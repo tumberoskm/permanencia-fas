@@ -177,6 +177,7 @@ class AppController {
     }
 
     this.renderDailyPlanner();
+    this.renderBaremoCalculator();
     this.renderHeatmap();
 
     const historyContainer = document.getElementById("dash-history-list");
@@ -222,6 +223,405 @@ class AppController {
         }).join("");
       }
     }
+  }
+
+  // ==========================================
+  // 🎖️ CALCULADORA OFICIAL DE BAREMO (CONCURSO 0–100 + OPOSICIÓN 0–100) Y SIMULADOR "¿ESTOY EN PLAZA?"
+  // ==========================================
+  calculateBaremoBreakdown(b) {
+    const mesesPref = Math.max(0, Number(b.mesesPreferente || 0));
+    const mesesOtras = Math.max(0, Number(b.mesesOtras || 0));
+    const mesesMision = Math.min(24, Math.max(0, Number(b.mesesMision || 0)));
+    const empleoPts = Math.max(0, Number(b.empleo || 0));
+    const recompPts = Math.max(0, Number(b.recompensasPuntos || 0));
+
+    const tiempoPts = (mesesPref * 0.08) + (mesesOtras * 0.04);
+    const misionPts = mesesMision * 0.10;
+    const profRaw = tiempoPts + misionPts + empleoPts + recompPts;
+    const profTotal = Math.min(40, profRaw);
+
+    const titulacionPts = Math.max(0, Number(b.titulacionPuntos || 0));
+    const inglesPts = Math.max(0, Number(b.inglesPuntos || 0));
+    const otroIdiomaPts = Math.max(0, Number(b.otroIdiomaPuntos || 0));
+    const cursosEsp = Math.min(4, Math.max(0, Number(b.cursosEspecializacion || 0))) * 2.0;
+    const cursosInf = Math.min(4, Math.max(0, Number(b.cursosInformativos || 0))) * 0.5;
+    const acadRaw = titulacionPts + inglesPts + otroIdiomaPts + cursosEsp + cursosInf;
+    const acadTotal = Math.min(20, acadRaw);
+
+    const ipecMedia = Math.min(10, Math.max(0, Number(b.ipecMedia || 0)));
+    const ipecTotal = Math.min(25, ipecMedia * 2.5);
+
+    const fisicasTotal = Math.min(15, Math.max(0, Number(b.fisicasPuntos || 0)));
+
+    const concursoTotal = Number((profTotal + acadTotal + ipecTotal + fisicasTotal).toFixed(2));
+    return {
+      profTotal: Number(profTotal.toFixed(2)),
+      acadTotal: Number(acadTotal.toFixed(2)),
+      ipecTotal: Number(ipecTotal.toFixed(2)),
+      fisicasTotal: Number(fisicasTotal.toFixed(2)),
+      concursoTotal
+    };
+  }
+
+  updateBaremoField(field, value) {
+    const numVal = Number(value);
+    window.storageManager.saveBaremo({ [field]: isNaN(numVal) ? 0 : numVal });
+    this.renderBaremoCalculator();
+  }
+
+  renderBaremoCalculator() {
+    const container = document.getElementById("baremo-calculator-container");
+    if (!container) return;
+
+    const b = window.storageManager.getBaremo();
+    const calc = this.calculateBaremoBreakdown(b);
+    const history = window.storageManager.getSimulatorHistory();
+
+    // Calcular nota media de examen sobre 100 puntos
+    let avgExam100 = 65.0;
+    let hasRealHistory = false;
+    if (history.length > 0) {
+      hasRealHistory = true;
+      const recent = history.slice(0, 5);
+      const avg10 = recent.reduce((acc, h) => acc + Number(h.scoreOutOf10 || 0), 0) / recent.length;
+      avgExam100 = Number((avg10 * 10).toFixed(2));
+    }
+
+    const totalFinal200 = Number((calc.concursoTotal + avgExam100).toFixed(2));
+    const corteObjetivo = Number(b.ejercitoCorte || 130.5);
+    const diffCorte = Number((totalFinal200 - corteObjetivo).toFixed(2));
+    const notaExamenNecesaria = Number(Math.max(50, corteObjetivo - calc.concursoTotal).toFixed(2));
+    const inPlaza = totalFinal200 >= corteObjetivo && avgExam100 >= 50;
+
+    container.innerHTML = `
+      <div class="tactical-card rounded-2xl p-5 border-2 border-emerald-500/40 bg-gradient-to-br from-slate-950 via-slate-900/95 to-emerald-950/20 space-y-4">
+        <div class="flex flex-wrap items-center justify-between gap-3 border-b border-slate-800 pb-3">
+          <div>
+            <div class="flex flex-wrap items-center gap-2">
+              <span class="px-2.5 py-0.5 rounded bg-emerald-500 text-slate-950 font-black text-[11px] uppercase">
+                🎖️ Calculadora Oficial de Baremo + Simulador "¿Estoy en Plaza?"
+              </span>
+              <span class="text-xs font-mono text-amber-300">
+                Anexo II Orden DEF/1341/2017 + Orden DEF/15/2026 (Pruebas Físicas Unificadas)
+              </span>
+            </div>
+            <h3 class="text-base sm:text-lg font-black text-white mt-1">
+              📊 Tu Nota de Concurso (0–100 pts) + Tu Nota de Examen (0–100 pts) = Calificación Final (0–200 pts)
+            </h3>
+          </div>
+          <div class="flex items-center gap-2">
+            <span class="text-xs text-slate-400 font-bold">Especialidad / Corte Ref.:</span>
+            <select
+              onchange="window.appController.updateBaremoField('ejercitoCorte', this.value)"
+              class="p-2 rounded-xl bg-slate-950 border border-amber-500/50 text-xs font-black text-amber-300"
+            >
+              <option value="126.5" ${corteObjetivo === 126.5 ? "selected" : ""}>🪖 ET — Especialidades Operativas (~126.5 pts)</option>
+              <option value="130.5" ${corteObjetivo === 130.5 ? "selected" : ""}>🪖 ET — Corte Medio Estimado (~130.5 pts)</option>
+              <option value="137.0" ${corteObjetivo === 137.0 ? "selected" : ""}>🔧 ET — Especialidades Técnicas (~137.0 pts)</option>
+              <option value="134.0" ${corteObjetivo === 134.0 ? "selected" : ""}>⚓ Armada / ✈️ Ejército del Aire (~134.0 pts)</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Marcador Central de Plaza -->
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-3">
+          <div class="p-3.5 rounded-xl bg-slate-950/90 border border-slate-800">
+            <div class="text-[11px] font-mono uppercase text-slate-400">1️⃣ Fase Concurso (Baremo)</div>
+            <div class="text-2xl font-black text-amber-400 mt-0.5">${calc.concursoTotal} <span class="text-xs font-normal text-slate-400">/ 100 pts</span></div>
+            <div class="text-[11px] text-slate-400 mt-1">
+              Prof: <strong>${calc.profTotal}</strong> • Acad: <strong>${calc.acadTotal}</strong> • IPEC: <strong>${calc.ipecTotal}</strong> • Fís: <strong>${calc.fisicasTotal}</strong>
+            </div>
+          </div>
+
+          <div class="p-3.5 rounded-xl bg-slate-950/90 border border-slate-800">
+            <div class="text-[11px] font-mono uppercase text-slate-400">2️⃣ Fase Oposición (Test 100p)</div>
+            <div class="text-2xl font-black text-sky-400 mt-0.5">${avgExam100} <span class="text-xs font-normal text-slate-400">/ 100 pts</span></div>
+            <div class="text-[11px] text-slate-400 mt-1">
+              ${hasRealHistory ? "Media de tus últimos simulacros" : "Estimación inicial (haz 1 simulacro)"}
+            </div>
+          </div>
+
+          <div class="p-3.5 rounded-xl bg-slate-950/90 border border-slate-800">
+            <div class="text-[11px] font-mono uppercase text-slate-400">🎯 Nota Examen Necesaria</div>
+            <div class="text-2xl font-black text-emerald-400 mt-0.5">${notaExamenNecesaria} <span class="text-xs font-normal text-slate-400">/ 100 pts</span></div>
+            <div class="text-[11px] text-slate-400 mt-1">
+              Necesitas <strong>${(notaExamenNecesaria / 10).toFixed(2)}/10</strong> en el examen para el corte
+            </div>
+          </div>
+
+          <div class="p-3.5 rounded-xl border-2 ${inPlaza ? "bg-emerald-950/40 border-emerald-500" : "bg-amber-950/30 border-amber-500/70"}">
+            <div class="text-[11px] font-mono uppercase ${inPlaza ? "text-emerald-300" : "text-amber-300"} font-bold">
+              ${inPlaza ? "🏆 PROYECCIÓN: ¡EN PLAZA!" : "⚠️ PROYECCIÓN: AÚN FUERA DE CORTE"}
+            </div>
+            <div class="text-2xl font-black text-white mt-0.5">
+              ${totalFinal200} <span class="text-xs font-normal text-slate-300">/ 200 pts</span>
+            </div>
+            <div class="text-[11px] ${inPlaza ? "text-emerald-300" : "text-amber-200"} mt-1 font-semibold">
+              ${diffCorte >= 0 ? `+${diffCorte} pts por encima del corte (${corteObjetivo})` : `Te faltan ${Math.abs(diffCorte)} pts para el corte (${corteObjetivo})`}
+            </div>
+          </div>
+        </div>
+
+        <!-- Controles Rápidos de los 4 Bloques del Baremo Oficial -->
+        <details class="group bg-slate-950/80 rounded-xl border border-slate-800 p-3.5">
+          <summary class="cursor-pointer text-xs font-black uppercase text-amber-400 flex items-center justify-between">
+            <span>⚙️ Configurar mis puntos reales de Baremo (Tiempos, Empleo, SLP, Titulación, IPEC y Físicas)</span>
+            <span class="text-slate-400 group-open:rotate-180 transition">▼</span>
+          </summary>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 mt-3 pt-3 border-t border-slate-800 text-xs">
+            <!-- Bloque 1: Profesionales (Máx 40) -->
+            <div class="p-3 rounded-xl bg-slate-900/70 border border-slate-800 space-y-2">
+              <div class="font-black text-amber-300 uppercase flex justify-between">
+                <span>1. Profesionales</span>
+                <span>${calc.profTotal}/40</span>
+              </div>
+              <div>
+                <label class="block text-[11px] text-slate-400">Meses en Unidad Preferente (0,08/mes):</label>
+                <input type="number" min="0" max="300" value="${b.mesesPreferente}" onchange="window.appController.updateBaremoField('mesesPreferente', this.value)" class="w-full mt-0.5 p-1.5 rounded bg-slate-950 border border-slate-700 text-white font-mono" />
+              </div>
+              <div>
+                <label class="block text-[11px] text-slate-400">Meses en Otras Unidades (0,04/mes):</label>
+                <input type="number" min="0" max="300" value="${b.mesesOtras}" onchange="window.appController.updateBaremoField('mesesOtras', this.value)" class="w-full mt-0.5 p-1.5 rounded bg-slate-950 border border-slate-700 text-white font-mono" />
+              </div>
+              <div>
+                <label class="block text-[11px] text-slate-400">Meses Misión Extranjero (máx 24 • 0,10/mes):</label>
+                <input type="number" min="0" max="24" value="${b.mesesMision}" onchange="window.appController.updateBaremoField('mesesMision', this.value)" class="w-full mt-0.5 p-1.5 rounded bg-slate-950 border border-slate-700 text-white font-mono" />
+              </div>
+              <div class="grid grid-cols-2 gap-1.5">
+                <div>
+                  <label class="block text-[11px] text-slate-400">Empleo:</label>
+                  <select onchange="window.appController.updateBaremoField('empleo', this.value)" class="w-full mt-0.5 p-1.5 rounded bg-slate-950 border border-slate-700 text-white">
+                    <option value="5" ${Number(b.empleo) === 5 ? "selected" : ""}>Cabo 1º (5p)</option>
+                    <option value="2" ${Number(b.empleo) === 2 ? "selected" : ""}>Cabo (2p)</option>
+                    <option value="1" ${Number(b.empleo) === 1 ? "selected" : ""}>Sold. 1ª (1p)</option>
+                    <option value="0" ${Number(b.empleo) === 0 ? "selected" : ""}>Soldado (0p)</option>
+                  </select>
+                </div>
+                <div>
+                  <label class="block text-[11px] text-slate-400">Medallas/Felic. (pts):</label>
+                  <input type="number" step="0.25" min="0" max="25" value="${b.recompensasPuntos}" onchange="window.appController.updateBaremoField('recompensasPuntos', this.value)" class="w-full mt-0.5 p-1.5 rounded bg-slate-950 border border-slate-700 text-white font-mono" />
+                </div>
+              </div>
+            </div>
+
+            <!-- Bloque 2: Académicos (Máx 20) -->
+            <div class="p-3 rounded-xl bg-slate-900/70 border border-slate-800 space-y-2">
+              <div class="font-black text-emerald-300 uppercase flex justify-between">
+                <span>2. Académicos</span>
+                <span>${calc.acadTotal}/20</span>
+              </div>
+              <div>
+                <label class="block text-[11px] text-slate-400">Titulación Académica (1 título):</label>
+                <select onchange="window.appController.updateBaremoField('titulacionPuntos', this.value)" class="w-full mt-0.5 p-1.5 rounded bg-slate-950 border border-slate-700 text-white">
+                  <option value="6" ${Number(b.titulacionPuntos) === 6 ? "selected" : ""}>Doctor MECES 4 (6 pts)</option>
+                  <option value="5" ${Number(b.titulacionPuntos) === 5 ? "selected" : ""}>Máster / Licenciado MECES 3 (5 pts)</option>
+                  <option value="4" ${Number(b.titulacionPuntos) === 4 ? "selected" : ""}>Grado Univ. MECES 2 (4 pts)</option>
+                  <option value="3.5" ${Number(b.titulacionPuntos) === 3.5 ? "selected" : ""}>Diplomado / Ing. Téc. (3,5 pts)</option>
+                  <option value="3" ${Number(b.titulacionPuntos) === 3 ? "selected" : ""}>Técnico Superior FP GS (3 pts)</option>
+                  <option value="2" ${Number(b.titulacionPuntos) === 2 ? "selected" : ""}>Bachiller o equivalente (2 pts)</option>
+                  <option value="0" ${Number(b.titulacionPuntos) === 0 ? "selected" : ""}>ESO / Sin título baremable (0 pts)</option>
+                </select>
+              </div>
+              <div>
+                <label class="block text-[11px] text-slate-400">Idioma Inglés (SLP en vigor):</label>
+                <select onchange="window.appController.updateBaremoField('inglesPuntos', this.value)" class="w-full mt-0.5 p-1.5 rounded bg-slate-950 border border-slate-700 text-white">
+                  <option value="0" ${Number(b.inglesPuntos) === 0 ? "selected" : ""}>Sin perfil SLP inglés (0 pts)</option>
+                  <option value="1" ${Number(b.inglesPuntos) === 1 ? "selected" : ""}>SLP Funcional 1.1.1.1 (1 pt)</option>
+                  <option value="3" ${Number(b.inglesPuntos) === 3 ? "selected" : ""}>SLP Profesional 2.2.2.2 (3 pts)</option>
+                  <option value="5" ${Number(b.inglesPuntos) === 5 ? "selected" : ""}>SLP Experto 3.3.3.3+ (5 pts)</option>
+                </select>
+              </div>
+              <div class="grid grid-cols-2 gap-1.5">
+                <div>
+                  <label class="block text-[11px] text-slate-400">Cursos Espec. (2p):</label>
+                  <input type="number" min="0" max="4" value="${b.cursosEspecializacion}" onchange="window.appController.updateBaremoField('cursosEspecializacion', this.value)" class="w-full mt-0.5 p-1.5 rounded bg-slate-950 border border-slate-700 text-white font-mono" />
+                </div>
+                <div>
+                  <label class="block text-[11px] text-slate-400">Cursos Inf. (0,5p):</label>
+                  <input type="number" min="0" max="4" value="${b.cursosInformativos}" onchange="window.appController.updateBaremoField('cursosInformativos', this.value)" class="w-full mt-0.5 p-1.5 rounded bg-slate-950 border border-slate-700 text-white font-mono" />
+                </div>
+              </div>
+            </div>
+
+            <!-- Bloque 3: IPEC (Máx 25) -->
+            <div class="p-3 rounded-xl bg-slate-900/70 border border-slate-800 space-y-2">
+              <div class="font-black text-sky-300 uppercase flex justify-between">
+                <span>3. Informes IPEC</span>
+                <span>${calc.ipecTotal}/25</span>
+              </div>
+              <div>
+                <label class="block text-[11px] text-slate-400">Nota Media 5 últimos IPEC (sobre 10):</label>
+                <input type="number" step="0.1" min="0" max="10" value="${b.ipecMedia}" onchange="window.appController.updateBaremoField('ipecMedia', this.value)" class="w-full mt-0.5 p-1.5 rounded bg-slate-950 border border-slate-700 text-white font-mono" />
+              </div>
+              <p class="text-[11px] text-slate-400 leading-relaxed">
+                📌 El Anexo II multiplica tu nota media de los 5 últimos IPEC por <strong>2,5</strong> (ej: media de 8,0 = 20,00 puntos).
+              </p>
+            </div>
+
+            <!-- Bloque 4: Aptitud Psicofísica (Máx 15) -->
+            <div class="p-3 rounded-xl bg-slate-900/70 border border-slate-800 space-y-2">
+              <div class="font-black text-purple-300 uppercase flex justify-between">
+                <span>4. Físicas (DEF/15/2026)</span>
+                <span>${calc.fisicasTotal}/15</span>
+              </div>
+              <div>
+                <label class="block text-[11px] text-slate-400">Puntos Pruebas Físicas (0 a 15 pts):</label>
+                <input type="number" step="0.5" min="0" max="15" value="${b.fisicasPuntos}" onchange="window.appController.updateBaremoField('fisicasPuntos', this.value)" class="w-full mt-0.5 p-1.5 rounded bg-slate-950 border border-slate-700 text-white font-mono" />
+              </div>
+              <p class="text-[11px] text-slate-400 leading-relaxed">
+                🆕 Actualizado a la <strong>Orden DEF/15/2026 (BOE 21/01/2026)</strong> que unifica las pruebas físicas en las FAS.
+              </p>
+            </div>
+          </div>
+        </details>
+      </div>
+    `;
+  }
+
+  // ==========================================
+  // 📓 CENTRAL DE "MI CUADERNO PERSONAL DE GUERRA" (MODAL + EXPORTACIÓN PDF)
+  // ==========================================
+  openWarNotebookModal() {
+    const modal = document.getElementById("war-notebook-modal");
+    const body = document.getElementById("war-notebook-modal-body");
+    if (!modal || !body || typeof OFFICIAL_SYLLABUS === "undefined") return;
+
+    const allNotes = window.storageManager.getAllTopicNotes();
+    const allHighlights = window.storageManager.getAllTopicHighlights();
+    const failedList = window.storageManager.getFailedQuestions();
+    const allQuestions = window.storageManager.getQuestions();
+
+    let totalNotes = 0;
+    let totalHl = 0;
+    const topicsWithData = [];
+
+    OFFICIAL_SYLLABUS.forEach(t => {
+      const notes = allNotes[t.codigo] || [];
+      const hl = allHighlights[t.codigo] || { items: {}, phrases: [] };
+      const itemCount = Object.keys(hl.items || {}).length;
+      const phraseCount = (hl.phrases || []).length;
+      totalNotes += notes.length;
+      totalHl += itemCount + phraseCount;
+
+      if (notes.length > 0 || itemCount > 0 || phraseCount > 0) {
+        topicsWithData.push({ tema: t, notes, hl, itemCount, phraseCount });
+      }
+    });
+
+    body.innerHTML = `
+      <div class="space-y-5">
+        <div class="flex flex-wrap items-center justify-between gap-3 border-b border-slate-800 pb-4">
+          <div>
+            <div class="flex items-center space-x-2">
+              <span class="px-2.5 py-0.5 rounded bg-amber-500 text-slate-950 font-black text-xs uppercase">
+                📓 Mi Cuaderno Personal de Guerra
+              </span>
+              <span class="text-xs font-mono text-emerald-400">
+                📌 ${totalNotes} Post-its • 🖍️ ${totalHl} Subrayados • ⚠️ ${failedList.length} Fallos Pendientes
+              </span>
+            </div>
+            <h3 class="text-lg sm:text-xl font-black text-white mt-1">
+              Todos tus Post-its, Subrayados Fluorescentes y Fallos reunidos en un solo lugar
+            </h3>
+          </div>
+
+          <div class="flex flex-wrap items-center gap-2">
+            <button
+              onclick="window.pdfGenerator.downloadCompleteWarNotebookPDF()"
+              class="px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs uppercase tracking-wider transition shadow-lg flex items-center space-x-1.5"
+            >
+              <span>🖨️</span><span>Descargar Cuaderno Completo en 1 PDF</span>
+            </button>
+            <button
+              onclick="window.appController.closeWarNotebookModal()"
+              class="px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold text-xs"
+            >
+              Cerrar ✕
+            </button>
+          </div>
+        </div>
+
+        ${topicsWithData.length > 0 ? `
+          <div class="space-y-3">
+            ${topicsWithData.map(({ tema, notes, hl }) => `
+              <div class="p-4 rounded-2xl bg-slate-950/90 border border-slate-800 space-y-3">
+                <div class="flex flex-wrap items-center justify-between gap-2 border-b border-slate-800/80 pb-2">
+                  <div class="flex flex-wrap items-center gap-2">
+                    <span class="px-2 py-0.5 rounded bg-amber-500 text-slate-950 font-mono font-black text-xs">${tema.codigo}</span>
+                    <strong class="text-sm text-white">${tema.titulo}</strong>
+                    ${tema.equivalencia28 ? `<span class="text-[11px] font-mono text-sky-300">(${tema.equivalencia28})</span>` : ""}
+                  </div>
+                  <button
+                    onclick="window.appController.closeWarNotebookModal(); window.appController.openStudyGuideModal('${tema.codigo}');"
+                    class="px-2.5 py-1 rounded-lg bg-slate-900 hover:bg-slate-800 text-amber-300 border border-amber-500/40 text-xs font-bold"
+                  >
+                    📖 Abrir Tema ➔
+                  </button>
+                </div>
+
+                ${notes.length > 0 ? `
+                  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
+                    ${notes.map(n => `
+                      <div class="p-3 rounded-xl bg-yellow-950/30 border-l-4 border-amber-400 text-xs space-y-1">
+                        <div class="flex justify-between text-[10px] font-mono text-amber-300">
+                          <span>${n.tag || "📌 Post-it"}</span>
+                          <span>${n.fecha || ""}</span>
+                        </div>
+                        ${n.titulo ? `<div class="font-black text-white">${n.titulo}</div>` : ""}
+                        <div class="text-slate-200 leading-relaxed">${n.texto}</div>
+                      </div>
+                    `).join("")}
+                  </div>
+                ` : ""}
+
+                ${(hl.phrases || []).length > 0 ? `
+                  <div class="space-y-1">
+                    <div class="text-[11px] font-black uppercase text-emerald-400">🖍️ Frases subrayadas a mano:</div>
+                    <div class="flex flex-wrap gap-1.5">
+                      ${hl.phrases.map(p => `
+                        <span class="px-2.5 py-1 rounded-lg bg-amber-500/20 border border-amber-400/50 text-amber-100 text-xs font-semibold">
+                          "${p.text}"
+                        </span>
+                      `).join("")}
+                    </div>
+                  </div>
+                ` : ""}
+              </div>
+            `).join("")}
+          </div>
+        ` : `
+          <div class="p-6 rounded-2xl bg-slate-950/80 border border-dashed border-slate-700 text-center space-y-2">
+            <div class="text-3xl">🖍️</div>
+            <h4 class="text-sm font-black text-white">Aún no has subrayado ni pegado Post-its en los temas</h4>
+            <p class="text-xs text-slate-400 max-w-lg mx-auto">
+              Entra en cualquier tema pulsando <strong>📖 1. Leer Resumen</strong>, selecciona cualquier frase con el ratón o pega un Post-it amarillo/rojo. Todo se recopilará automáticamente aquí y podrás imprimirlo en un único PDF junto con tus preguntas falladas (${failedList.length} actuales).
+            </p>
+          </div>
+        `}
+      </div>
+    `;
+
+    modal.classList.remove("hidden");
+  }
+
+  closeWarNotebookModal() {
+    const modal = document.getElementById("war-notebook-modal");
+    if (modal) modal.classList.add("hidden");
+  }
+
+  // ==========================================
+  // 💀 MODO SUPERVIVENCIA (3 VIDAS ❤️❤️❤️)
+  // ==========================================
+  startSurvivalMode() {
+    this.startSimulatorWithParams({
+      count: 50,
+      bloque: "ALL",
+      mode: "survival",
+      studyMode: true,
+      packTitle: "💀 Modo Supervivencia (3 Vidas ❤️❤️❤️)",
+      customMinutes: 45
+    });
   }
 
   // ==========================================
@@ -680,6 +1080,11 @@ class AppController {
               <span class="px-2 py-0.5 rounded bg-slate-900 text-amber-300 border border-amber-700/50 text-xs font-mono">
                 📊 ${tema.frecuenciaExamen || "Alta frecuencia"}
               </span>
+              ${tema.equivalencia28 ? `
+                <span class="px-2 py-0.5 rounded bg-sky-950 text-sky-300 border border-sky-600/60 text-xs font-mono font-bold">
+                  🎬 ${tema.equivalencia28}
+                </span>
+              ` : ""}
             </div>
             <h3 class="text-lg sm:text-2xl font-black leading-snug" style="color:${pal.titleColor};">
               ${guide && guide.subtituloDidactico ? guide.subtituloDidactico : tema.titulo}
@@ -962,6 +1367,7 @@ class AppController {
 
     const readTopics = window.storageManager.getReadTopics();
     const allQuestions = window.storageManager.getQuestions();
+    const survivalRec = window.storageManager.getSurvivalRecord();
     const [t1, t2] = pair;
     const pal1 = (typeof TOPIC_COLOR_PALETTE !== "undefined" && TOPIC_COLOR_PALETTE[t1.tema.codigo]) || { accent: "#10b981", titleColor: "#34d399" };
     const pal2 = (typeof TOPIC_COLOR_PALETTE !== "undefined" && TOPIC_COLOR_PALETTE[t2.tema.codigo]) || { accent: "#f59e0b", titleColor: "#fbbf24" };
@@ -976,7 +1382,7 @@ class AppController {
                 👨‍🏫 Método del Jefe de Estudios (Empezar desde Cero)
               </span>
               <span class="text-xs font-mono font-bold text-amber-400">
-                📖 ${readTopics.length} de 21 Temas Leídos
+                📖 ${readTopics.length} de 21 Temas Leídos (Equivalen a los 28 Temas en Vídeo)
               </span>
             </div>
             <p class="text-xs text-slate-200 leading-relaxed">
@@ -989,16 +1395,23 @@ class AppController {
           </div>
           <div class="flex flex-wrap gap-1.5 shrink-0">
             <button
+              onclick="window.appController.openWarNotebookModal()"
+              class="px-3 py-1.5 rounded-lg bg-amber-500 hover:bg-amber-400 text-slate-950 text-xs font-black transition shadow"
+            >
+              📓 Mi Cuaderno de Guerra (PDF)
+            </button>
+            <button
+              onclick="window.appController.startSurvivalMode()"
+              class="px-3 py-1.5 rounded-lg bg-red-950 hover:bg-red-900 text-red-200 border border-red-500 text-xs font-black transition"
+              title="Modo Supervivencia: 3 Vidas ❤️❤️❤️. Récord actual: ${survivalRec.bestStreak || 0} seguidas"
+            >
+              💀 Supervivencia 3 Vidas (🏆 ${survivalRec.bestStreak || 0})
+            </button>
+            <button
               onclick="window.appController.startTagFilteredTest('Fácil', true, 20)"
               class="px-3 py-1.5 rounded-lg bg-green-950 hover:bg-green-900 text-green-300 border border-green-600 text-xs font-black transition"
             >
               🟢 Test Nivel Fácil (20p)
-            </button>
-            <button
-              onclick="window.appController.startTagFilteredTest('Importante', true, 25)"
-              class="px-3 py-1.5 rounded-lg bg-emerald-950 hover:bg-emerald-900 text-emerald-300 border border-emerald-600 text-xs font-black transition"
-            >
-              ⭐ Test Imprescindibles (25p)
             </button>
           </div>
         </div>
@@ -1041,7 +1454,7 @@ class AppController {
                     </div>
                   </div>
                   <h4 class="text-sm font-black leading-snug" style="color:${pal.titleColor};">${item.tema.titulo}</h4>
-                  <p class="text-[11px] text-slate-400 mt-1">📊 Peso en examen: <strong class="text-slate-200">${item.tema.frecuenciaExamen || "Alto"}</strong> • 🗄️ <strong>${qCount} preguntas</strong></p>
+                  <p class="text-[11px] text-slate-400 mt-1">📊 Peso: <strong class="text-slate-200">${item.tema.frecuenciaExamen || "Alto"}</strong> • 🗄️ <strong>${qCount} preg.</strong> ${item.tema.equivalencia28 ? `• <span class="text-sky-300">${item.tema.equivalencia28}</span>` : ""}</p>
                 </div>
                 <div class="flex flex-wrap gap-1.5 pt-2 border-t border-slate-800/80">
                   <button onclick="window.appController.openStudyGuideModal('${item.tema.codigo}')" class="px-2.5 py-1.5 rounded-lg bg-amber-500 hover:bg-amber-400 text-slate-950 text-[11px] font-black transition">
@@ -1148,17 +1561,17 @@ class AppController {
     const bloquesConfig = [
       {
         key: "Bloque 1: Organización",
-        titulo: "🏛️ BLOQUE 1: ORGANIZACIÓN (6 Temas • ~34% Examen)",
+        titulo: "🏛️ BLOQUE 1: ORGANIZACIÓN (6 Temas BOE = Vídeos 1 al 10 • ~34% Examen)",
         headerBg: "bg-emerald-950/80 border-emerald-600/50 text-emerald-300"
       },
       {
         key: "Bloque 2: Jurídico-Social",
-        titulo: "⚖️ BLOQUE 2: JURÍDICO-SOCIAL (8 Temas • ~40% Examen)",
+        titulo: "⚖️ BLOQUE 2: JURÍDICO-SOCIAL (8 Temas BOE = Vídeos 11 al 20 • ~40% Examen)",
         headerBg: "bg-amber-950/80 border-amber-600/50 text-amber-300"
       },
       {
         key: "Bloque 3: Seguridad Nacional",
-        titulo: "🌍 BLOQUE 3: SEGURIDAD NACIONAL (7 Temas • ~26% Examen)",
+        titulo: "🌍 BLOQUE 3: SEGURIDAD NACIONAL (7 Temas BOE = Vídeos 21 al 28 • ~26% Examen)",
         headerBg: "bg-sky-950/80 border-sky-600/50 text-sky-300"
       }
     ];
@@ -1196,12 +1609,13 @@ class AppController {
                   style="border-left: 5px solid ${pal.accent}; background: ${pal.bg};"
                 >
                   <div class="min-w-0 flex-1 cursor-pointer" onclick="window.appController.openStudyGuideModal('${tema.codigo}')">
-                    <div class="flex items-center space-x-1.5">
+                    <div class="flex flex-wrap items-center gap-1.5">
                       <span class="px-1.5 py-0.5 rounded text-[10px] font-mono font-black bg-slate-950 text-white border" style="border-color:${pal.accent};">
                         ${tema.codigo}
                       </span>
                       ${isRead ? `<span class="text-[10px] text-emerald-400 font-bold" title="Resumen Magistral Leído">✅ Leído</span>` : `<span class="text-[10px] text-amber-300/90 font-semibold" title="Pulsa para leer el Resumen desde Cero">📖 Leer</span>`}
                       ${pctBadge}
+                      ${tema.equivalencia28 ? `<span class="text-[9px] font-mono text-sky-300/90">${tema.equivalencia28.replace("🎬 Vídeos 28T: ", "🎬 ")}</span>` : ""}
                     </div>
                     <div class="text-xs font-extrabold leading-snug mt-1" style="color:${pal.titleColor};">
                       ${shortTitle}
@@ -1387,6 +1801,7 @@ class AppController {
           t.titulo,
           t.normativa,
           t.resumen,
+          t.equivalencia28 || "",
           guideText,
           notesText,
           ...(t.puntosCalientes || []),
@@ -1470,17 +1885,17 @@ class AppController {
     const bloquesOrder = [
       {
         key: "Bloque 1: Organización",
-        banner: "🏛️ BLOQUE 1: ORGANIZACIÓN (6 Temas Oficiales • ~34% de las preguntas del examen)",
+        banner: "🏛️ BLOQUE 1: ORGANIZACIÓN (6 Temas Oficiales BOE = Vídeos 1 al 10 de YouTube • ~34% del examen)",
         bannerStyle: "background: linear-gradient(90deg, rgba(6,95,70,0.9), rgba(15,23,42,0.9)); border-color: #10b981; color: #6ee7b7;"
       },
       {
         key: "Bloque 2: Jurídico-Social",
-        banner: "⚖️ BLOQUE 2: JURÍDICO-SOCIAL (8 Temas Oficiales • ~40% de las preguntas del examen)",
+        banner: "⚖️ BLOQUE 2: JURÍDICO-SOCIAL (8 Temas Oficiales BOE = Vídeos 11 al 20 de YouTube • ~40% del examen)",
         bannerStyle: "background: linear-gradient(90deg, rgba(146,64,14,0.9), rgba(15,23,42,0.9)); border-color: #f59e0b; color: #fde68a;"
       },
       {
         key: "Bloque 3: Seguridad Nacional",
-        banner: "🌍 BLOQUE 3: SEGURIDAD NACIONAL Y OO.II. (7 Temas Oficiales • ~26% de las preguntas del examen)",
+        banner: "🌍 BLOQUE 3: SEGURIDAD NACIONAL Y OO.II. (7 Temas Oficiales BOE = Vídeos 21 al 28 de YouTube • ~26% del examen)",
         bannerStyle: "background: linear-gradient(90deg, rgba(7,89,133,0.9), rgba(15,23,42,0.9)); border-color: #38bdf8; color: #bae6fd;"
       }
     ];
@@ -1493,22 +1908,30 @@ class AppController {
         <div class="space-y-1">
           <div class="flex flex-wrap items-center gap-2">
             <span class="px-2.5 py-0.5 rounded bg-amber-500 text-slate-950 font-black text-[11px] uppercase">
-              🧭 Ruta de Estudio + Subrayador Fluorescente y Post-its
+              🧭 Ruta de Estudio + Equivalencia 21 Temas BOE ↔ 28 Temas Vídeos
             </span>
             <span class="text-xs font-mono font-bold text-emerald-400">
               ✅ ${readSet.size} / 21 Resúmenes Leídos • 📌 ${totalNotesCount} Post-its • 🗄️ ${allQuestions.length} Preguntas
             </span>
           </div>
           <p class="text-xs text-slate-300">
-            Para cada tema: Pulsa <strong>📖 1. Resumen Cero</strong> (subraya en fluorescente y pega tus <strong>📌 Post-its</strong>) ➔ <strong>📊 2. Esquema PDF</strong> ➔ <strong>🟢 3. Test Fácil</strong> y <strong>💡 4. Estudio Completo</strong>.
+            Cada fila incluye la etiqueta <strong>🎬 Vídeos 28T</strong> para que sepas a qué vídeo(s) de tu NotebookLM corresponde cada tema oficial del BOE (Orden DEF/1341/2017 y Orden DEF/15/2026).
           </p>
         </div>
-        <button
-          onclick="window.appController.toggleExpandAllTopics()"
-          class="px-3 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-700 text-xs font-bold text-amber-400 transition shrink-0"
-        >
-          📂 Expandir / Contraer Todos
-        </button>
+        <div class="flex flex-wrap items-center gap-2 shrink-0">
+          <button
+            onclick="window.appController.openWarNotebookModal()"
+            class="px-3 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 text-xs font-black transition shadow"
+          >
+            📓 Mi Cuaderno de Guerra (PDF)
+          </button>
+          <button
+            onclick="window.appController.toggleExpandAllTopics()"
+            class="px-3 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-700 text-xs font-bold text-amber-400 transition"
+          >
+            📂 Expandir / Contraer Todos
+          </button>
+        </div>
       </div>
     ` + bloquesOrder.map(bl => {
       const temasGrupo = filtered.filter(t => t.bloque === bl.key);
@@ -1563,6 +1986,11 @@ class AppController {
                         <span class="px-2.5 py-0.5 rounded text-xs font-mono font-black bg-slate-950 text-white border" style="border-color:${pal.accent};">
                           ${tema.codigo}
                         </span>
+                        ${tema.equivalencia28 ? `
+                          <span class="px-2 py-0.5 rounded text-[11px] font-mono font-bold bg-sky-950 text-sky-300 border border-sky-500/50">
+                            ${tema.equivalencia28}
+                          </span>
+                        ` : ""}
                         ${isRead
                           ? `<span class="px-2 py-0.5 rounded text-[11px] font-black bg-emerald-950 text-emerald-300 border border-emerald-500/60">✅ Paso 1 Leído</span>`
                           : `<span class="px-2 py-0.5 rounded text-[11px] font-bold bg-amber-950 text-amber-300 border border-amber-500/50">📖 Paso 1: Empieza por el Resumen</span>`
@@ -2203,7 +2631,15 @@ class AppController {
     const isRevealed = window.simulatorEngine.isCurrentRevealed() && userAnswer !== null && userAnswer !== undefined;
 
     const counterEl = document.getElementById("sim-question-counter");
-    if (counterEl) counterEl.textContent = `Pregunta ${idx + 1} de ${total}`;
+    if (counterEl) {
+      if (window.simulatorEngine.survivalMode) {
+        const lives = window.simulatorEngine.survivalLives;
+        const hearts = "❤️".repeat(Math.max(0, lives)) + "🖤".repeat(Math.max(0, 3 - lives));
+        counterEl.innerHTML = `<span class="text-red-400 font-black">💀 ${hearts}</span> • <span class="text-amber-300 font-black">🔥 Racha: ${window.simulatorEngine.survivalStreak}</span> • Preg. ${idx + 1}/${total}`;
+      } else {
+        counterEl.textContent = `Pregunta ${idx + 1} de ${total}`;
+      }
+    }
 
     const studyBtn = document.getElementById("sim-btn-study-mode");
     if (studyBtn) {
@@ -2397,6 +2833,15 @@ class AppController {
   selectSimOption(optionIdx) {
     window.simulatorEngine.selectOption(optionIdx);
     this.renderSimulatorQuestion();
+
+    if (window.simulatorEngine.survivalMode && window.simulatorEngine.survivalLives <= 0 && !window.simulatorEngine.isFinished) {
+      setTimeout(() => {
+        alert(`💀 ¡HAS PERDIDO LAS 3 VIDAS EN COMBATE!\n🔥 Racha máxima alcanzada: ${window.simulatorEngine.survivalMaxStreak} aciertos seguidos.\nSe guardan tus estadísticas y pasamos al informe de tus preguntas.`);
+        const summary = window.simulatorEngine.evaluateExam();
+        this.renderResults(summary);
+        this.showTab("simulator-results");
+      }, 400);
+    }
   }
 
   leaveCurrentBlank() {
@@ -2797,11 +3242,20 @@ class AppController {
   }
 
   // ==========================================
-  // IMPORTADOR NOTEBOOKLM & BACKUP
+  // IMPORTADOR NOTEBOOKLM (CON SUPER-PROMPTS PARA LOS 27 VÍDEOS DE YOUTUBE) & BACKUP
   // ==========================================
-  renderImporter() {
-    const promptTemplate = `Actúa como Tribunal Militar y preparador de academia de la oposición de Permanencia de Tropa y Marinería (Orden DEF/1341/2017 actualizada a 2025/2026).
-A partir del temario oficial de este cuaderno, genera un array JSON con 15 preguntas tipo test de nivel examen oficial (incluyendo preguntas trampa de plazos, órganos y competencias) estrictamente con esta estructura:
+  getNotebookLMPromptByType(type = "video_questions") {
+    if (type === "video_notes") {
+      return `Actúa como Jefe de Estudios de la oposición de Permanencia de Tropa y Marinería (Orden DEF/1341/2017 y Orden DEF/15/2026).
+Analiza las transcripciones de los 27 vídeos de YouTube de este cuaderno (que están divididos en 28 temas de academia) y extrae para cada tema:
+1. Equivalencia con los 21 Temas Oficiales del BOE (ej: Vídeos T1 y T2 = B1-T01 Constitución; Vídeos T7, T8, T9 y T10 = B1-T06 EMAD, ET, Armada y EA; Vídeos T11 y T12 = B2-T01 Ley 39/2007 y Ley 8/2006; Vídeos T17 y T18 = B2-T07 Igualdad y UPA; Vídeos T19 y T20 = B2-T08 LPACAP; Vídeos T21 a T28 = B3-T01 a B3-T07).
+2. Todos los PLAZOS NUMÉRICOS, MAYORÍAS, EDADES, PORCENTAJES y FECHAS que el profesor destaca como "pregunta segura de examen".
+3. Las TRAMPAS DEL TRIBUNAL que advierte en los vídeos (ej: quién sanciona vs quién informa, plazos hábiles vs naturales, órganos consultivos vs ejecutivos).
+4. Redáctalo en formato de notas cortas tipo Post-it para pegarlos directamente en mi Cuaderno de Guerra.`;
+    }
+
+    return `Actúa como Tribunal Militar y preparador de academia de la oposición de Permanencia de Tropa y Marinería (Orden DEF/1341/2017 y Orden DEF/15/2026).
+A partir de los 27 vídeos de YouTube y fuentes de este cuaderno de NotebookLM, genera un array JSON con 20 preguntas tipo test de nivel examen oficial (incluyendo preguntas trampa de plazos, órganos y competencias mencionadas en los vídeos) estrictamente con esta estructura:
 
 [
   {
@@ -2811,7 +3265,8 @@ A partir del temario oficial de este cuaderno, genera un array JSON con 15 pregu
     "dificultad": "trampa",
     "esExamenOficial": true,
     "anioConvocatoria": 2025,
-    "pregunta": "¿Texto claro y riguroso de la pregunta oficial?",
+    "etiquetas": ["Pregunta de Examen", "Importante", "Trampa"],
+    "pregunta": "¿Texto claro y riguroso de la pregunta oficial extraída del vídeo?",
     "opciones": [
       "Opción A",
       "Opción B",
@@ -2819,20 +3274,51 @@ A partir del temario oficial de este cuaderno, genera un array JSON con 15 pregu
       "Opción D"
     ],
     "correcta": 1,
-    "ubicacionTemario": "Bloque 2 (Jurídico-Social) ➔ Tema 4 (Régimen Disciplinario LO 8/2014) ➔ Epígrafe o Capítulo exacto",
+    "ubicacionTemario": "Bloque 2 (Jurídico-Social) ➔ Tema 4 BOE (Vídeo T15) ➔ Epígrafe exacto",
     "referencia": "Ley Orgánica 8/2014, Art. 24.1",
-    "consejoAcademia": "Regla mnemotécnica o truco de academia para no caer en la trampa del tribunal.",
+    "consejoAcademia": "Truco o advertencia del vídeo para no caer en la trampa del tribunal.",
     "justificacion": "Explicación jurídica detallada citando el artículo exacto del temario."
   }
 ]
 
-IMPORTANTE:
-1. "bloque" debe ser exactamente: "Bloque 1: Organización", "Bloque 2: Jurídico-Social" o "Bloque 3: Seguridad Nacional".
-2. "temaCodigo" usa los 21 temas oficiales: "B1-T01" a "B1-T06" (Bloque 1), "B2-T01" a "B2-T08" (Bloque 2) o "B3-T01" a "B3-T07" (Bloque 3).
-3. "correcta" es el índice numérico: 0 (A), 1 (B), 2 (C) o 3 (D). Devuelve ÚNICAMENTE el bloque JSON válido.`;
+TABLA DE CONVERSIÓN AUTOMÁTICA (28 TEMAS VÍDEOS YOUTUBE ➔ 21 TEMAS OFICIALES BOE):
+- Vídeos T1 y T2 (Constitución) ➔ "B1-T01" ("Bloque 1: Organización")
+- Vídeo T3 (LO 5/2005 Defensa Nacional) ➔ "B1-T02" ("Bloque 1: Organización")
+- Vídeo T4 (Ley 40/2015 LRJSP) ➔ "B1-T03" ("Bloque 1: Organización")
+- Vídeo T5 (RD 205/2024 Ministerio Defensa) ➔ "B1-T04" ("Bloque 1: Organización")
+- Vídeo T6 (RD 521/2020 Organización Básica FAS) ➔ "B1-T05" ("Bloque 1: Organización")
+- Vídeos T7, T8, T9 y T10 (EMAD, ET, Armada y EA) ➔ "B1-T06" ("Bloque 1: Organización")
+- Vídeos T11 y T12 (Ley 39/2007 Carrera Militar y Ley 8/2006 Tropa) ➔ "B2-T01" ("Bloque 2: Jurídico-Social")
+- Vídeo T13 (Reales Ordenanzas RD 96/2009) ➔ "B2-T02" ("Bloque 2: Jurídico-Social")
+- Vídeo T14 (LO 9/2011 Derechos y Deberes) ➔ "B2-T03" ("Bloque 2: Jurídico-Social")
+- Vídeo T15 (LO 8/2014 Régimen Disciplinario) ➔ "B2-T04" ("Bloque 2: Jurídico-Social")
+- Vídeo T16 (RD 176/2014 Iniciativas y Quejas) ➔ "B2-T05" ("Bloque 2: Jurídico-Social")
+- Vídeo Igualdad LO 3/2007 ➔ "B2-T06" ("Bloque 2: Jurídico-Social")
+- Vídeos T17 y T18 (Observatorio Militar Igualdad y Protocolo Acoso UPA) ➔ "B2-T07" ("Bloque 2: Jurídico-Social")
+- Vídeos T19 y T20 (Ley 39/2015 LPACAP) ➔ "B2-T08" ("Bloque 2: Jurídico-Social")
+- Vídeos T21 y T22 (Ley 36/2015 Seguridad Nacional y ESN 2021) ➔ "B3-T01" ("Bloque 3: Seguridad Nacional")
+- Vídeo T23 (PDC-01 Doctrina Empleo FAS) ➔ "B3-T02" ("Bloque 3: Seguridad Nacional")
+- Vídeo T24 (ONU) ➔ "B3-T03" ("Bloque 3: Seguridad Nacional")
+- Vídeo T25 (OTAN) ➔ "B3-T04" ("Bloque 3: Seguridad Nacional")
+- Vídeo T26 (OSCE) ➔ "B3-T05" ("Bloque 3: Seguridad Nacional")
+- Vídeo T27 (Unión Europea / PCSD) ➔ "B3-T06" ("Bloque 3: Seguridad Nacional")
+- Vídeo T28 (España en Misiones Internacionales) ➔ "B3-T07" ("Bloque 3: Seguridad Nacional")
 
+Devuelve ÚNICAMENTE el bloque JSON válido.`;
+  }
+
+  selectNotebookLMPromptType(type) {
     const promptEl = document.getElementById("notebooklm-prompt-text");
-    if (promptEl) promptEl.value = promptTemplate;
+    if (promptEl) {
+      promptEl.value = this.getNotebookLMPromptByType(type);
+    }
+  }
+
+  renderImporter() {
+    const promptEl = document.getElementById("notebooklm-prompt-text");
+    if (promptEl) {
+      promptEl.value = this.getNotebookLMPromptByType("video_questions");
+    }
   }
 
   copyNotebookLMPrompt() {
@@ -2840,7 +3326,7 @@ IMPORTANTE:
     if (promptEl) {
       promptEl.select();
       navigator.clipboard.writeText(promptEl.value).then(() => {
-        alert("📋 ¡Prompt copiado al portapapeles!\nPégalo en tu cuaderno de NotebookLM y te devolverá las preguntas listas para pegar abajo.");
+        alert("📋 ¡Super-Prompt copiado al portapapeles!\nPégalo en tu cuaderno de NotebookLM con los 27 vídeos de YouTube y te devolverá el resultado listo.");
       });
     }
   }

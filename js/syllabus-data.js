@@ -543,5 +543,82 @@ const COMPARATIVE_TABLES = [
       ["Unión Europea", "España ingresa: 1 ene 1986\nAgencia en España: SATCEN (Torrejón)", "Art. 42.7 TUE (Asistencia Mutua) y Art. 222 TFUE (Solidaridad)", "EUNAVFOR Atalanta (OHQ en Rota, Cádiz), EUTM Somalia/RCA y EUFOR Althea"],
       ["OSCE (1975/1995)", "Acta Helsinki: 1975\nSecretariado: Viena | OIDDH: Varsovia", "3 Dimensiones (Cestas) de seguridad. 57 Estados por consenso", "Presidencia española de la OSCE en 2007"]
     ]
+  },
+  {
+    id: "TAB-07",
+    titulo: "🎬 Equivalencia Oficial: 21 Temas BOE (Orden DEF/1341/2017) ↔ 28 Temas Vídeos YouTube / Academias",
+    bloque: "Guía de Estudio y Vídeos",
+    headers: ["Código BOE (21 Temas)", "Temas en Vídeos (28 Temas)", "Normativa / Materia Incluida", "¿Por qué cambia la numeración?"],
+    rows: [
+      ["B1-T01 y B1-T02", "Vídeos T1, T2 y T3", "Constitución Española 1978 (Títulos Preliminar a VIII) + LO 5/2005 Defensa Nacional", "En vídeo se divide la Constitución en 2 partes (T1 y T2) y LO 5/2005 pasa a ser el T3."],
+      ["B1-T03, B1-T04 y B1-T05", "Vídeos T4, T5 y T6", "Ley 40/2015 LRJSP (T4), Estructura MINISDEF RD 205/2024 (T5) y Org. Básica FAS RD 521/2020 (T6)", "Correspondencia directa 1 a 1 con el desplazamiento de +1 de la Constitución."],
+      ["B1-T06 (1 Tema en BOE)", "Vídeos T7, T8, T9 y T10 (4 Vídeos)", "T7: EMAD (Orden DEF/710/2020) • T8: Ejército de Tierra (Inst. 14/2021) • T9: Armada (Inst. 15/2021) • T10: Ejército del Aire y del Espacio (Inst. 6/2025)", "El BOE agrupa EMAD, ET, Armada y EA en el Tema 6 de Organización; las academias hacen 4 vídeos separados (+3 temas)."],
+      ["B2-T01 (1 Tema en BOE)", "Vídeos T11 y T12 (2 Vídeos)", "T11: Ley 39/2007 de la Carrera Militar • T12: Ley 8/2006 de Tropa y Marinería", "El BOE une ambas leyes en el Tema 1 Jurídico-Social; en vídeo se separan en 2 temas (+1 tema)."],
+      ["B2-T02 a B2-T06", "Vídeos T13, T14, T15 y T16", "T13: RROO (RD 96/2009) • T14: Derechos y Deberes (LO 9/2011) • T15: Régimen Disciplinario (LO 8/2014) e Iniciativas/Quejas (RD 176/2014) • T16: Igualdad Efectiva (LO 3/2007)", "Mismo contenido íntegro del Bloque Jurídico-Social."],
+      ["B2-T07 y B2-T08", "Vídeos T17, T18, T19 y T20", "T17: Observatorio Igualdad • T18: Protocolo Acoso y UPA • T19 y T20: Ley 39/2015 LPACAP (Actos/Procedimiento y Recursos)", "El BOE agrupa Observatorio+UPA en B2-T07 y toda la Ley 39/2015 en B2-T08 (+2 temas en vídeo)."],
+      ["B3-T01 (1 Tema en BOE)", "Vídeos T21 y T22 (2 Vídeos)", "T21: Ley 36/2015 de Seguridad Nacional • T22: Estrategia de Seguridad Nacional 2021 (RD 1150/2021)", "El BOE une Ley 36/2015 y ESN en el Tema 1 de Seguridad Nacional; en vídeo son T21 y T22 (+1 tema)."],
+      ["B3-T02 a B3-T07 (6 Temas BOE)", "Vídeos T23, T24, T25, T26, T27 y T28", "T23: Doctrina PDC-01 • T24: ONU • T25: OTAN • T26: OSCE • T27: Unión Europea • T28: Misiones Internacionales FAS", "Correspondencia exacta 1 a 1 hasta cerrar en el Tema 28 (Misiones FAS)."]
+    ]
   }
 ];
+
+const VIDEO_28_EQUIVALENCE = {
+  "B1-T01": "🎬 Vídeos T1 y T2 (Constitución I y II)",
+  "B1-T02": "🎬 Vídeo T2/T3 (Cortes y LO 5/2005 Defensa Nacional)",
+  "B1-T03": "🎬 Vídeo T4 (Ley 40/2015 LRJSP y Ministerios)",
+  "B1-T04": "🎬 Vídeo T5 (Estructura MINISDEF RD 205/2024)",
+  "B1-T05": "🎬 Vídeo T6 (Org. Básica FAS RD 521/2020)",
+  "B1-T06": "🎬 Vídeos T7, T8, T9 y T10 (EMAD, ET, Armada y EA)",
+  "B2-T01": "🎬 Vídeos T11 y T12 (Ley 39/2007 Carrera y Ley 8/2006 Tropa)",
+  "B2-T02": "🎬 Vídeo T13 (Reales Ordenanzas RD 96/2009)",
+  "B2-T03": "🎬 Vídeo T14 (Derechos y Deberes LO 9/2011)",
+  "B2-T04": "🎬 Vídeo T15 (Régimen Disciplinario LO 8/2014)",
+  "B2-T05": "🎬 Vídeo T15-B (Iniciativas y Quejas RD 176/2014)",
+  "B2-T06": "🎬 Vídeo T16 (Igualdad Efectiva LO 3/2007)",
+  "B2-T07": "🎬 Vídeos T17 y T18 (Observatorio Igualdad + UPA y Acoso)",
+  "B2-T08": "🎬 Vídeos T19 y T20 (Ley 39/2015 LPACAP I y II)",
+  "B3-T01": "🎬 Vídeos T21 y T22 (Ley 36/2015 Seg. Nacional + ESN 2021)",
+  "B3-T02": "🎬 Vídeo T23 (Doctrina Empleo FAS PDC-01)",
+  "B3-T03": "🎬 Vídeo T24 (Naciones Unidas ONU)",
+  "B3-T04": "🎬 Vídeo T25 (OTAN / Alianza Atlántica)",
+  "B3-T05": "🎬 Vídeo T26 (OSCE)",
+  "B3-T06": "🎬 Vídeo T27 (Unión Europea UE)",
+  "B3-T07": "🎬 Vídeo T28 (Misiones Internacionales FAS)"
+};
+
+if (typeof OFFICIAL_SYLLABUS !== "undefined" && Array.isArray(OFFICIAL_SYLLABUS)) {
+  OFFICIAL_SYLLABUS.forEach(t => {
+    t.equivalencia28 = VIDEO_28_EQUIVALENCE[t.codigo] || "";
+  });
+}
+
+// =========================================================================
+// BAREMO OFICIAL DE CONCURSO (ANEXO II ORDEN DEF/1341/2017 BOE-A-2018-585
+// + ORDEN DEF/15/2026 BOE-A-2026-1379)
+// =========================================================================
+const OFFICIAL_BAREMO_CONFIG = {
+  maxConcurso: 100,
+  maxOposicion: 100,
+  maxTotal: 200,
+  notasCorteReferenciaET: {
+    operativas: {
+      nombre: "Agrupación de Especialidades Operativas (AEO - ET)",
+      corteTotal200: 118.5,
+      mediaConcursoTipica: 58.0,
+      consejo: "En Especialidades Operativas del ET la nota de corte final suele rondar entre 114 y 122 puntos sobre 200. Con un concurso medio de 58 pts, asegurar 62+ puntos netos en el examen te sitúa en zona franca de plaza."
+    },
+    tecnicas: {
+      nombre: "Agrupación de Especialidades Técnicas (AET - ET)",
+      corteTotal200: 124.0,
+      mediaConcursoTipica: 60.0,
+      consejo: "En Especialidades Técnicas suele haber menos plazas por especialidad y cortes ligeramente más altos (120-128 sobre 200). Apunta a superar 65 puntos netos en el test."
+    },
+    armada_ea: {
+      nombre: "Armada / Ejército del Aire y del Espacio (Referencia)",
+      corteTotal200: 126.0,
+      mediaConcursoTipica: 61.0,
+      consejo: "Excelente ratio de plazas para quienes superan el corte de 65+ puntos netos en la prueba de conocimientos."
+    }
+  }
+};
+

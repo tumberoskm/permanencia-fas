@@ -4,7 +4,7 @@
  */
 
 const STORAGE_KEYS = {
-  QUESTIONS: "permanencia_questions_v7",
+  QUESTIONS: "permanencia_questions_v8",
   FAILED_QUESTIONS: "permanencia_failed_v1",
   STATS: "permanencia_stats_v1",
   TOPIC_STATS: "permanencia_topic_stats_v1",
@@ -14,7 +14,9 @@ const STORAGE_KEYS = {
   READ_TOPICS: "permanencia_read_topics_v1",
   TOPIC_NOTES: "permanencia_topic_notes_v1",
   TOPIC_HIGHLIGHTS: "permanencia_topic_highlights_v1",
-  PACK_SCORES: "permanencia_pack_scores_v1"
+  PACK_SCORES: "permanencia_pack_scores_v1",
+  BAREMO: "permanencia_baremo_v1",
+  SURVIVAL_RECORD: "permanencia_survival_record_v1"
 };
 
 const RANKS = [
@@ -57,6 +59,7 @@ class StorageManager {
     try {
       const storedRaw =
         localStorage.getItem(STORAGE_KEYS.QUESTIONS) ||
+        localStorage.getItem("permanencia_questions_v7") ||
         localStorage.getItem("permanencia_questions_v6") ||
         localStorage.getItem("permanencia_questions_v5") ||
         localStorage.getItem("permanencia_questions_v4") ||
@@ -488,12 +491,78 @@ class StorageManager {
     return notes.length > 0 || Object.keys(hl.items).length > 0 || hl.phrases.length > 0;
   }
 
+  // BAREMO DE CONCURSO Y SIMULADOR DE PLAZA
+  getBaremo() {
+    try {
+      const data = localStorage.getItem(STORAGE_KEYS.BAREMO);
+      const defaults = {
+        mesesPreferente: 60,
+        mesesOtras: 48,
+        mesesMision: 6,
+        empleo: 2, // Cabo = 2
+        recompensasPuntos: 1.5,
+        titulacionPuntos: 2, // Bachiller/Equivalente = 2
+        inglesPuntos: 0,
+        otroIdiomaPuntos: 0,
+        cursosEspecializacion: 0,
+        cursosInformativos: 1,
+        ipecMedia: 7.8,
+        fisicasPuntos: 12.5,
+        ejercitoCorte: 130.5
+      };
+      return data ? { ...defaults, ...JSON.parse(data) } : defaults;
+    } catch (e) {
+      return {
+        mesesPreferente: 60,
+        mesesOtras: 48,
+        mesesMision: 6,
+        empleo: 2,
+        recompensasPuntos: 1.5,
+        titulacionPuntos: 2,
+        inglesPuntos: 0,
+        otroIdiomaPuntos: 0,
+        cursosEspecializacion: 0,
+        cursosInformativos: 1,
+        ipecMedia: 7.8,
+        fisicasPuntos: 12.5,
+        ejercitoCorte: 130.5
+      };
+    }
+  }
+
+  saveBaremo(baremoData) {
+    const merged = { ...this.getBaremo(), ...baremoData };
+    localStorage.setItem(STORAGE_KEYS.BAREMO, JSON.stringify(merged));
+    return merged;
+  }
+
+  // RÉCORD MODO SUPERVIVENCIA (3 VIDAS)
+  getSurvivalRecord() {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEYS.SURVIVAL_RECORD);
+      return raw ? JSON.parse(raw) : { bestStreak: 0, gamesPlayed: 0 };
+    } catch (e) {
+      return { bestStreak: 0, gamesPlayed: 0 };
+    }
+  }
+
+  saveSurvivalRecord(streak) {
+    const rec = this.getSurvivalRecord();
+    rec.gamesPlayed = (rec.gamesPlayed || 0) + 1;
+    if (streak > (rec.bestStreak || 0)) {
+      rec.bestStreak = streak;
+    }
+    rec.lastDate = new Date().toISOString();
+    localStorage.setItem(STORAGE_KEYS.SURVIVAL_RECORD, JSON.stringify(rec));
+    return rec;
+  }
+
   // BACKUP COMPLETO
   exportFullBackup() {
     return {
       appName: "Permanencia FAS - WebApp",
       exportDate: new Date().toISOString(),
-      version: "4.0",
+      version: "5.0",
       stats: this.getStats(),
       topicStats: this.getTopicStats(),
       questions: this.getQuestions(),
@@ -503,7 +572,9 @@ class StorageManager {
       readTopics: this.getReadTopics(),
       topicNotes: this.getAllTopicNotes(),
       topicHighlights: this.getAllTopicHighlights(),
-      packScores: this.getPackScores()
+      packScores: this.getPackScores(),
+      baremo: this.getBaremo(),
+      survivalRecord: this.getSurvivalRecord()
     };
   }
 
@@ -540,6 +611,12 @@ class StorageManager {
     }
     if (backupData.packScores && typeof backupData.packScores === "object") {
       localStorage.setItem(STORAGE_KEYS.PACK_SCORES, JSON.stringify(backupData.packScores));
+    }
+    if (backupData.baremo && typeof backupData.baremo === "object") {
+      this.saveBaremo(backupData.baremo);
+    }
+    if (backupData.survivalRecord && typeof backupData.survivalRecord === "object") {
+      localStorage.setItem(STORAGE_KEYS.SURVIVAL_RECORD, JSON.stringify(backupData.survivalRecord));
     }
     return true;
   }

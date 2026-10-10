@@ -24,6 +24,11 @@ class SimulatorEngine {
     this.secondsRemaining = 0;
     this.secondsElapsed = 0;
     this.isFinished = false;
+    this.survivalMode = false;
+    this.survivalLives = 3;
+    this.survivalStreak = 0;
+    this.survivalMaxStreak = 0;
+    this.survivalDeducted = new Set();
   }
 
   shuffleArray(arr) {
@@ -64,12 +69,17 @@ class SimulatorEngine {
     customMinutes = null
   }) {
     this.mode = mode;
-    this.studyMode = Boolean(studyMode);
+    this.survivalMode = mode === "survival";
+    this.survivalLives = 3;
+    this.survivalStreak = 0;
+    this.survivalMaxStreak = 0;
+    this.survivalDeducted = new Set();
+    this.studyMode = this.survivalMode ? true : Boolean(studyMode);
     this.filterBloque = bloque;
     this.filterTema = temaCodigo;
     this.tagFilter = tagFilter || "ALL";
     this.packId = packId || null;
-    this.packTitle = packTitle || null;
+    this.packTitle = packTitle || (this.survivalMode ? "💀 Modo Supervivencia (3 Vidas ❤️❤️❤️)" : null);
     this.currentIndex = 0;
     this.answers = {};
     this.revealed = new Set();
@@ -242,8 +252,21 @@ class SimulatorEngine {
   selectOption(optionIdx) {
     if (this.isFinished) return;
     this.answers[this.currentIndex] = optionIdx;
-    if (this.studyMode) {
+    if (this.studyMode || this.survivalMode) {
       this.revealed.add(this.currentIndex);
+    }
+    if (this.survivalMode && !this.survivalDeducted.has(this.currentIndex)) {
+      this.survivalDeducted.add(this.currentIndex);
+      const q = this.getCurrentQuestion();
+      if (q && optionIdx === q.correcta) {
+        this.survivalStreak++;
+        if (this.survivalStreak > this.survivalMaxStreak) {
+          this.survivalMaxStreak = this.survivalStreak;
+        }
+      } else {
+        this.survivalLives = Math.max(0, this.survivalLives - 1);
+        this.survivalStreak = 0;
+      }
     }
   }
 
@@ -333,6 +356,10 @@ class SimulatorEngine {
     const scoreOutOf100 = total > 0 ? Math.max(0, (rawScore / total) * 100) : 0;
     const passed = scoreOutOf10 >= 5.0;
 
+    if (this.survivalMode && window.storageManager) {
+      window.storageManager.saveSurvivalRecord(Math.max(this.survivalMaxStreak, correct));
+    }
+
     const summary = {
       total,
       correct,
@@ -345,6 +372,9 @@ class SimulatorEngine {
       passed,
       bloqueFilter: this.filterBloque,
       mode: this.mode,
+      survivalMode: this.survivalMode,
+      survivalMaxStreak: this.survivalMaxStreak,
+      survivalLivesRemaining: this.survivalLives,
       packId: this.packId,
       packTitle: this.packTitle,
       timeSpentSeconds: this.secondsElapsed,

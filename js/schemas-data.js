@@ -1656,5 +1656,217 @@ window.pdfGenerator = {
     `;
 
     this.openPrintWindow(html, `Chuleta_${tema.codigo}`);
+  },
+
+  /**
+   * 4. DESCARGAR "MI CUADERNO PERSONAL DE GUERRA" (TODOS LOS SUBRAYADOS + POST-ITS + FALLOS EN 1 PDF)
+   */
+  downloadCompleteWarNotebookPDF() {
+    const sm = window.storageManager;
+    const allNotes = sm ? sm.getAllTopicNotes() : {};
+    const allHighlights = sm ? sm.getAllTopicHighlights() : {};
+    const failedList = sm ? sm.getFailedQuestions() : [];
+    const allQuestions = sm ? sm.getQuestions() : [];
+    const studyGuides = window.TOPIC_STUDY_GUIDES || {};
+    const letters = ["A", "B", "C", "D"];
+
+    const hlBgMap = {
+      yellow: "#fef08a",
+      green: "#bbf7d0",
+      pink: "#fbcfe8",
+      cyan: "#bae6fd"
+    };
+    const noteBgMap = {
+      yellow: { bg: "#fef9c3", border: "#eab308" },
+      green: { bg: "#dcfce7", border: "#22c55e" },
+      pink: { bg: "#fce7f3", border: "#ec4899" },
+      cyan: { bg: "#e0f2fe", border: "#0ea5e9" }
+    };
+
+    let totalNotesCount = 0;
+    let totalHighlightsCount = 0;
+    let annotatedTopicsHTML = "";
+
+    OFFICIAL_SYLLABUS.forEach(tema => {
+      const notes = allNotes[tema.codigo] || [];
+      const hl = allHighlights[tema.codigo] || { items: {}, phrases: [] };
+      const itemKeys = Object.keys(hl.items || {});
+      const phrases = hl.phrases || [];
+
+      totalNotesCount += notes.length;
+      totalHighlightsCount += itemKeys.length + phrases.length;
+
+      if (notes.length === 0 && itemKeys.length === 0 && phrases.length === 0) {
+        return;
+      }
+
+      const guide = studyGuides[tema.codigo];
+      const highlightedItemsTexts = [];
+
+      itemKeys.forEach(k => {
+        const color = hl.items[k];
+        if (k.startsWith("pc-")) {
+          const idx = parseInt(k.replace("pc-", ""), 10);
+          if (tema.puntosCalientes && tema.puntosCalientes[idx]) {
+            highlightedItemsTexts.push({ tipo: "🔥 Punto Caliente", texto: tema.puntosCalientes[idx], color });
+          }
+        } else if (k.startsWith("tr-")) {
+          const idx = parseInt(k.replace("tr-", ""), 10);
+          if (tema.trampas && tema.trampas[idx]) {
+            highlightedItemsTexts.push({ tipo: "🪤 Trampa Examen", texto: tema.trampas[idx], color });
+          }
+        } else if (k.startsWith("ep-") && guide && guide.epigrafes) {
+          const parts = k.split("-");
+          const epIdx = parseInt(parts[1], 10);
+          const clIdx = parseInt(parts[2], 10);
+          const ep = guide.epigrafes[epIdx];
+          const list = ep ? (ep.puntos || ep.clavesExamen || []) : [];
+          if (list[clIdx]) {
+            highlightedItemsTexts.push({ tipo: `📖 ${ep.titulo}`, texto: list[clIdx], color });
+          }
+        }
+      });
+
+      annotatedTopicsHTML += `
+        <div style="border:2px solid #0f172a; border-radius:10px; padding:14px; margin-bottom:16px; background:#ffffff; page-break-inside:avoid;">
+          <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:2px solid #e2e8f0; padding-bottom:8px; margin-bottom:10px; flex-wrap:wrap; gap:6px;">
+            <div>
+              <span style="background:#0f172a; color:#facc15; font-weight:900; font-size:12px; padding:3px 8px; border-radius:4px;">${tema.codigo}</span>
+              <strong style="font-size:14px; color:#0f172a; margin-left:6px;">${tema.titulo}</strong>
+            </div>
+            <span style="font-size:11px; color:#475569; font-weight:700;">${tema.equivalencia28 || ""}</span>
+          </div>
+
+          ${notes.length > 0 ? `
+            <div style="margin-bottom:10px;">
+              <div style="font-size:11.5px; font-weight:900; color:#854d0e; margin-bottom:6px; text-transform:uppercase;">📌 Mis Post-its y Reglas Mnemotécnicas (${notes.length}):</div>
+              <div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(230px, 1fr)); gap:8px;">
+                ${notes.map(n => {
+                  const st = noteBgMap[n.color] || noteBgMap.yellow;
+                  return `
+                    <div style="background:${st.bg}; border-left:4px solid ${st.border}; padding:8px 10px; border-radius:6px; font-size:12px; color:#0f172a;">
+                      <div style="font-size:10px; font-weight:900; color:#475569; margin-bottom:3px;">${n.tag || "📌 Nota"} • ${n.fecha || ""}</div>
+                      <div style="font-weight:700; line-height:1.4;">${n.texto}</div>
+                    </div>
+                  `;
+                }).join("")}
+              </div>
+            </div>
+          ` : ""}
+
+          ${phrases.length > 0 ? `
+            <div style="margin-bottom:10px;">
+              <div style="font-size:11.5px; font-weight:900; color:#0f172a; margin-bottom:6px; text-transform:uppercase;">🖍️ Extractos Subrayados a Mano (${phrases.length}):</div>
+              <ul style="margin:0; padding-left:18px; font-size:12px; line-height:1.6;">
+                ${phrases.map(p => `
+                  <li style="margin-bottom:4px;">
+                    <span style="background:${hlBgMap[p.color] || "#fef08a"}; padding:2px 6px; border-radius:4px; font-weight:700; color:#0f172a;">"${p.text}"</span>
+                  </li>
+                `).join("")}
+              </ul>
+            </div>
+          ` : ""}
+
+          ${highlightedItemsTexts.length > 0 ? `
+            <div>
+              <div style="font-size:11.5px; font-weight:900; color:#0369a1; margin-bottom:6px; text-transform:uppercase;">⭐ Puntos de Examen Subrayados en el Tema (${highlightedItemsTexts.length}):</div>
+              <ul style="margin:0; padding-left:18px; font-size:12px; line-height:1.55;">
+                ${highlightedItemsTexts.map(item => `
+                  <li style="margin-bottom:5px;">
+                    <strong style="font-size:11px; color:#334155;">[${item.tipo}]</strong>
+                    <span style="background:${hlBgMap[item.color] || "#fef08a"}; padding:1px 5px; border-radius:4px;">${item.texto}</span>
+                  </li>
+                `).join("")}
+              </ul>
+            </div>
+          ` : ""}
+        </div>
+      `;
+    });
+
+    if (!annotatedTopicsHTML) {
+      annotatedTopicsHTML = `
+        <div style="border:2px dashed #94a3b8; border-radius:10px; padding:16px; margin-bottom:18px; background:#f8fafc; text-align:center;">
+          <strong style="font-size:13px; color:#0f172a;">Aún no has guardado subrayados o Post-its personalizados en los temas.</strong>
+          <p style="font-size:12px; color:#475569; margin:6px 0 0;">Abre cualquier tema en "📖 1. Leer Resumen Magistral", selecciona texto con el ratón o pulsa el marcador 🖍️ para que aparezca aquí automáticamente. A continuación tienes tus preguntas falladas y el resumen de trampas críticas:</p>
+        </div>
+      `;
+    }
+
+    const failedQuestionsFull = failedList
+      .map(f => {
+        const q = allQuestions.find(item => item.id === f.id);
+        return q ? { ...q, attempts: f.attempts || 1 } : null;
+      })
+      .filter(Boolean);
+
+    const html = `
+      <!DOCTYPE html>
+      <html lang="es">
+      <head>
+        <meta charset="UTF-8">
+        <title>Cuaderno Personal de Guerra - Permanencia FAS</title>
+        ${this.getPrintStyles()}
+      </head>
+      <body>
+        <div class="print-controls">
+          <div>
+            <strong style="font-size:14px;">📓 MI CUADERNO PERSONAL DE GUERRA (SUBRAYADOS + POST-ITS + FALLOS)</strong>
+            <div style="font-size:11px; color:#cbd5e1;">Todo tu estudio personalizado y errores pendientes en un único documento imprimible</div>
+          </div>
+          <div style="display:flex; gap:10px;">
+            <button class="btn-print" onclick="window.print()">🖨️ IMPRIMIR / GUARDAR CUADERNO EN PDF</button>
+            <button class="btn-close-print" onclick="window.close()">✖ CERRAR</button>
+          </div>
+        </div>
+
+        <div class="poster-sheet">
+          <div class="flag-stripe"></div>
+          <div class="poster-header">
+            <div>
+              <div class="poster-subtitle">🎖️ ACADEMIA TÁCTICA PERMANENCIA FAS • DOSSIER PERSONALIZADO DEL OPOSITOR</div>
+              <h1 class="poster-title">📓 MI CUADERNO DE GUERRA: APUNTES, SUBRAYADOS Y BOLSA DE FALLOS</h1>
+              <div style="font-size:12px; color:#0f172a; font-weight:700;">
+                📌 Post-its guardados: <span class="hl-yellow">${totalNotesCount}</span> •
+                🖍️ Puntos y Frases Subrayadas: <span class="hl-green">${totalHighlightsCount}</span> •
+                ⚠️ Fallos Pendientes de Dominar: <span class="hl-pink">${failedQuestionsFull.length}</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="schema-poster-title">🖍️ 1. MIS APUNTES POST-IT Y SUBRAYADOS FLUORESCENTES POR TEMA</div>
+          ${annotatedTopicsHTML}
+
+          <div class="schema-poster-title" style="margin-top:20px;">⚠️ 2. MI BOLSA DE FALLOS PENDIENTES DE DOMINAR (${failedQuestionsFull.length} PREGUNTAS)</div>
+          ${failedQuestionsFull.length > 0 ? failedQuestionsFull.map((q, idx) => `
+            <div class="question-print-card">
+              <div style="display:flex; justify-content:space-between; font-size:11px; color:#9f1239; font-weight:800; margin-bottom:4px;">
+                <span>FALLO #${idx + 1} (${q.temaCodigo} • ${q.id}) — Fallada ${q.attempts} ${q.attempts === 1 ? "vez" : "veces"}</span>
+                <span class="hl-cyan">${q.referencia || ""}</span>
+              </div>
+              <div style="font-size:13px; font-weight:800; color:#0f172a; margin-bottom:6px;">${q.enunciado || q.pregunta || ""}</div>
+              <div style="font-size:12px; margin-bottom:6px;">
+                ${q.opciones.map((opt, oIdx) => `
+                  <div style="padding:3px 6px; border-radius:4px; ${oIdx === q.correcta ? "background:#dcfce7; color:#065f46; font-weight:800; border:1px solid #10b981;" : "color:#475569;"}">
+                    ${letters[oIdx]}) ${opt} ${oIdx === q.correcta ? "✓ [RESPUESTA OFICIAL]" : ""}
+                  </div>
+                `).join("")}
+              </div>
+              <div style="font-size:11.5px; color:#1e293b; background:#f8fafc; padding:6px 8px; border-radius:4px; border:1px solid #e2e8f0;">
+                <strong>⚖️ Explicación:</strong> ${q.justificacion}
+                ${q.consejoAcademia ? `<br/><span class="hl-yellow">💡 Truco Academia:</span> <strong>${q.consejoAcademia}</strong>` : ""}
+              </div>
+            </div>
+          `).join("") : `
+            <div style="padding:14px; background:#dcfce7; border:1px solid #10b981; border-radius:8px; color:#065f46; font-weight:700; font-size:12.5px;">
+              ✅ ¡Excelente! Actualmente tienes 0 preguntas pendientes en tu Bolsa de Fallos.
+            </div>
+          `}
+        </div>
+      </body>
+      </html>
+    `;
+
+    this.openPrintWindow(html, "Cuaderno_Guerra_Permanencia_FAS");
   }
 };

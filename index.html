@@ -126,14 +126,14 @@
             <button onclick="window.appController.startSimulatorWithParams({ count: 100, bloque: 'ALL', mode: 'ponderado_100', studyMode: false })" class="px-4 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs uppercase tracking-wider shadow-lg shadow-amber-500/10 transition flex items-center space-x-1.5">
               <span>🏆</span><span>Simulacro Oficial 100p</span>
             </button>
-            <button onclick="window.appController.startQuickChallenge('RET-EXPRESS-10', true)" class="px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-slate-950 font-black text-xs uppercase tracking-wider transition flex items-center space-x-1.5">
-              <span>⚡</span><span>Reto 3 Min (10p)</span>
+            <button onclick="window.appController.startSurvivalMode()" class="px-3.5 py-2.5 rounded-xl bg-red-950 hover:bg-red-900 text-red-200 border border-red-500 font-black text-xs uppercase tracking-wider transition flex items-center space-x-1.5">
+              <span>💀</span><span>Supervivencia (3 ❤️)</span>
+            </button>
+            <button onclick="window.appController.openWarNotebookModal()" class="px-3.5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-slate-950 font-black text-xs uppercase tracking-wider transition flex items-center space-x-1.5">
+              <span>📓</span><span>Cuaderno Guerra PDF</span>
             </button>
             <button id="btn-quick-sim" class="px-3.5 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-amber-300 border border-amber-500/30 font-bold text-xs uppercase tracking-wider transition flex items-center space-x-1.5">
               <span>💡</span><span>Modo Estudio (20p)</span>
-            </button>
-            <button onclick="window.appController.startTrapHunterTest()" class="px-3.5 py-2.5 rounded-xl bg-red-900/80 hover:bg-red-800 text-red-100 border border-red-600/50 font-bold text-xs uppercase tracking-wider transition flex items-center space-x-1.5">
-              <span>🪤</span><span>Caza-Trampas</span>
             </button>
           </div>
         </div>
@@ -169,12 +169,15 @@
         </div>
         <div class="tactical-card p-4 rounded-xl col-span-2 sm:col-span-1">
           <span class="text-xs text-slate-400 block">🗄️ Banco Etiquetado</span>
-          <span class="text-xl font-black text-amber-400 mt-1 block" id="dash-total-questions">650</span>
+          <span class="text-xl font-black text-amber-400 mt-1 block" id="dash-total-questions">800</span>
         </div>
       </div>
 
       <!-- 📈 PLANIFICADOR DIARIO DE MISIÓN (PLAN DE CHOQUE INTELIGENTE) -->
       <div id="daily-planner-container"></div>
+
+      <!-- 🎖️ CALCULADORA OFICIAL DE BAREMO Y SIMULADOR "¿ESTOY EN PLAZA?" -->
+      <div id="baremo-calculator-container"></div>
 
       <!-- Accesos Rápidos a los 3 Bloques Oficiales -->
       <div>
@@ -368,14 +371,14 @@
           <span class="text-3xl">🎯</span>
           <div>
             <h2 class="text-xl font-black text-white uppercase">Cuartel General de Simulacros Oficiales & Entrenamiento por Niveles</h2>
-            <p class="text-xs text-slate-400">Calificación con penalización reglamentaria: <strong class="text-amber-400">Nota = Aciertos - (Errores / 3)</strong> • Banco Activo: <strong class="text-emerald-400">500 Preguntas Etiquetadas</strong></p>
+            <p class="text-xs text-slate-400">Calificación con penalización reglamentaria: <strong class="text-amber-400">Nota = Aciertos - (Errores / 3)</strong> • Banco Activo: <strong class="text-emerald-400">800 Preguntas Etiquetadas</strong></p>
           </div>
         </div>
 
         <div class="p-4 rounded-xl bg-slate-900/80 border border-slate-800 mb-6 text-xs text-slate-300 space-y-1.5">
           <div class="font-bold text-amber-400 uppercase">📌 Normas de la Prueba Oficial y Modos de Entrenamiento:</div>
           <p>• Cada respuesta acertada suma <strong>+1,00 punto</strong>; cada errónea resta <strong>-0,33 puntos (1/3 de acierto)</strong>; en blanco <strong>0 puntos</strong>.</p>
-          <p>• <strong>🏆 12 Simulacros Oficiales y Especializados:</strong> Guarda tu mejor nota e intentos en cada examen oficial (Convocatorias 2023, 2024, 2025, Previsión 2026, Pareto Top 6, Solo Plazos, Novedades y Monográficos).</p>
+          <p>• <strong>🏆 12 Simulacros Oficiales + 4 Retos Rápidos + 💀 Supervivencia 3 Vidas:</strong> Guarda tu mejor nota e intentos en cada examen oficial (Convocatorias 2023, 2024, 2025, Previsión 2026, Pareto Top 6, Solo Plazos, Novedades y Monográficos).</p>
           <p>• <strong>💡 Modo Academia (Corrección Instantánea):</strong> Al marcar una opción ves al instante la explicación jurídica, la ubicación exacta en el temario y el truco de academia.</p>
         </div>
 
@@ -441,8 +444,14 @@
           </button>
         </div>
 
-        <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400 mb-3">Otras modalidades rápidas por tiempo:</h3>
-        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400 mb-3">Otras modalidades rápidas y extremas:</h3>
+        <div class="grid grid-cols-1 sm:grid-cols-4 gap-4">
+          <button onclick="window.appController.startSurvivalMode()" class="tactical-card tactical-card-hover p-5 rounded-xl text-left border-2 border-red-500/60 bg-red-950/20">
+            <span class="text-xs font-mono text-red-400 font-bold">💀 MODO SUPERVIVENCIA</span>
+            <h4 class="text-lg font-black text-white mt-1">3 Vidas (❤️❤️❤️)</h4>
+            <p class="text-xs text-slate-300 mt-1">¿Cuántas aciertas seguidas antes de cometer 3 fallos?</p>
+          </button>
+
           <button onclick="window.appController.startSimulatorWithParams({ count: 15, bloque: 'ALL', mode: 'official', studyMode: false })" class="tactical-card tactical-card-hover p-5 rounded-xl text-left border border-slate-800">
             <span class="text-xs font-mono text-amber-400 font-bold">15 MINUTOS</span>
             <h4 class="text-lg font-black text-white mt-1">Patrulla Rápida (15 preg.)</h4>
@@ -455,10 +464,10 @@
             <p class="text-xs text-slate-400 mt-1">Mezcla equilibrada de los 3 Bloques Oficiales.</p>
           </button>
 
-          <button onclick="window.appController.startSimulatorWithParams({ count: 500, bloque: 'ALL', mode: 'official', studyMode: true })" class="tactical-card tactical-card-hover p-5 rounded-xl text-left border border-slate-800">
-            <span class="text-xs font-mono text-sky-400 font-bold">MARATÓN COMPLETA (500 PREG.)</span>
+          <button onclick="window.appController.startSimulatorWithParams({ count: 800, bloque: 'ALL', mode: 'official', studyMode: true })" class="tactical-card tactical-card-hover p-5 rounded-xl text-left border border-slate-800">
+            <span class="text-xs font-mono text-sky-400 font-bold">MARATÓN COMPLETA (800 PREG.)</span>
             <h4 class="text-lg font-black text-white mt-1">Banco Completo en Modo Estudio</h4>
-            <p class="text-xs text-slate-400 mt-1">Las 500 preguntas de los 21 temas con corrección instantánea.</p>
+            <p class="text-xs text-slate-400 mt-1">Las 800 preguntas de los 21 temas con corrección instantánea.</p>
           </button>
         </div>
       </div>
@@ -755,8 +764,8 @@
             <div class="flex items-center space-x-2.5">
               <span class="text-2xl">🤖</span>
               <div>
-                <h2 class="text-base font-black text-white uppercase">Conector con tu Cuaderno NotebookLM</h2>
-                <p class="text-xs text-slate-400">Cuaderno vinculado: <span class="text-emerald-400 font-mono">aa45f522-eb9d...</span> (21 Temas Oficiales)</p>
+                <h2 class="text-base font-black text-white uppercase">Conector con tu Cuaderno NotebookLM (+27 Vídeos YouTube)</h2>
+                <p class="text-xs text-slate-400">Cuaderno vinculado: <span class="text-emerald-400 font-mono">aa45f522-eb9d...</span> (21 Temas BOE ↔ 28 Temas Vídeos)</p>
               </div>
             </div>
             <a 
@@ -769,14 +778,22 @@
             </a>
           </div>
 
-          <div>
-            <div class="flex items-center justify-between mb-1.5">
-              <label class="text-xs font-bold text-amber-400">Paso 1: Copia este Prompt Oficial v3 (con Ubicación y Trucos de Academia)</label>
-              <button onclick="window.appController.copyNotebookLMPrompt()" class="px-2.5 py-1 rounded bg-amber-500 text-slate-950 font-black text-xs hover:bg-amber-400 transition">
-                📋 Copiar Prompt
-              </button>
+          <div class="space-y-2">
+            <div class="flex flex-wrap items-center justify-between gap-2">
+              <label class="text-xs font-bold text-amber-400">Paso 1: Elige y Copia tu Super-Prompt para los 27 Vídeos de YouTube</label>
+              <div class="flex flex-wrap gap-1.5">
+                <button onclick="window.appController.selectNotebookLMPromptType('video_questions')" class="px-2.5 py-1 rounded bg-sky-950 hover:bg-sky-900 text-sky-300 border border-sky-600 font-bold text-[11px] transition">
+                  🎬 1. Cosechar Test JSON de los Vídeos
+                </button>
+                <button onclick="window.appController.selectNotebookLMPromptType('video_notes')" class="px-2.5 py-1 rounded bg-emerald-950 hover:bg-emerald-900 text-emerald-300 border border-emerald-600 font-bold text-[11px] transition">
+                  📌 2. Extraer Plazos y Post-its de los Vídeos
+                </button>
+                <button onclick="window.appController.copyNotebookLMPrompt()" class="px-2.5 py-1 rounded bg-amber-500 text-slate-950 font-black text-xs hover:bg-amber-400 transition">
+                  📋 Copiar Prompt
+                </button>
+              </div>
             </div>
-            <textarea id="notebooklm-prompt-text" readonly rows="5" class="w-full p-3 rounded-xl bg-slate-950 border border-slate-800 text-[11px] font-mono text-slate-300 focus:outline-none"></textarea>
+            <textarea id="notebooklm-prompt-text" readonly rows="6" class="w-full p-3 rounded-xl bg-slate-950 border border-slate-800 text-[11px] font-mono text-slate-300 focus:outline-none"></textarea>
           </div>
 
           <div>
@@ -800,15 +817,15 @@
             <div class="flex items-center space-x-2.5">
               <span class="text-2xl">💾</span>
               <div>
-                <h2 class="text-base font-black text-white uppercase">Sistema de Respaldo / Backup Militar</h2>
-                <p class="text-xs text-slate-400">Guarda tu progreso y llévalo del PC a tu teléfono móvil sin perder nada.</p>
+                <h2 class="text-base font-black text-white uppercase">Sistema de Respaldo / Backup Militar (PC ↔ Móvil ↔ Tablet)</h2>
+                <p class="text-xs text-slate-400">Guarda tu progreso, Baremo, Post-its y Subrayados y llévalos del PC a tu teléfono móvil o tablet sin perder nada.</p>
               </div>
             </div>
 
             <div class="p-4 rounded-xl bg-slate-900/80 border border-slate-800 space-y-3">
               <h3 class="text-xs font-bold text-amber-400 uppercase">📤 Exportar Copia de Seguridad Completa</h3>
               <p class="text-xs text-slate-300">
-                Descarga un archivo <code class="text-amber-300">.json</code> con tu XP, racha, mapa de calor, bolsa de fallos y preguntas importadas.
+                Descarga un archivo <code class="text-amber-300">.json</code> con tu XP, racha, Baremo, Post-its, subrayados, mapa de calor, bolsa de fallos y preguntas importadas.
               </p>
               <button onclick="window.appController.downloadFullBackup()" class="w-full py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs uppercase tracking-wider transition">
                 ⬇️ Descargar Backup (.JSON)
@@ -818,7 +835,7 @@
             <div class="p-4 rounded-xl bg-slate-900/80 border border-slate-800 space-y-3">
               <h3 class="text-xs font-bold text-emerald-400 uppercase">📥 Restaurar Copia de Seguridad</h3>
               <p class="text-xs text-slate-300">
-                Selecciona un archivo de respaldo previamente guardado para restaurar todo tu estado en este dispositivo.
+                Selecciona un archivo de respaldo previamente guardado para restaurar todo tu estado en tu móvil, tablet o PC.
               </p>
               <label class="block w-full py-2.5 px-4 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold text-xs uppercase tracking-wider text-center cursor-pointer border border-slate-700 transition">
                 📂 Seleccionar Archivo JSON de Backup
@@ -848,6 +865,13 @@
     <div id="schema-modal" class="hidden fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-3 sm:p-6 overflow-y-auto">
       <div class="tactical-card w-full max-w-5xl rounded-2xl p-4 sm:p-6 border-2 border-amber-500/50 max-h-[92vh] overflow-y-auto">
         <div id="schema-modal-body"></div>
+      </div>
+    </div>
+
+    <!-- MODAL CENTRAL DE "MI CUADERNO PERSONAL DE GUERRA" (TODOS LOS SUBRAYADOS + POST-ITS + FALLOS) -->
+    <div id="war-notebook-modal" class="hidden fixed inset-0 z-50 bg-black/85 backdrop-blur-sm flex items-center justify-center p-3 sm:p-6 overflow-y-auto">
+      <div class="tactical-card w-full max-w-5xl rounded-2xl p-4 sm:p-6 border-2 border-amber-500/60 max-h-[92vh] overflow-y-auto">
+        <div id="war-notebook-modal-body"></div>
       </div>
     </div>
 
@@ -895,6 +919,7 @@
   <script src="./js/questions-extra-data.js"></script>
   <script src="./js/questions-wave2-data.js"></script>
   <script src="./js/questions-wave3-data.js"></script>
+  <script src="./js/questions-wave4-data.js"></script>
   <script src="./js/flashcards-data.js"></script>
   <script src="./js/storage.js"></script>
   <script src="./js/simulator.js"></script>
