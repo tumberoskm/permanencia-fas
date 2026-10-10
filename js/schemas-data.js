@@ -1366,12 +1366,108 @@ window.pdfGenerator = {
     this.openPrintWindow(html, `Esquema_${tema.codigo}`);
   },
 
+  downloadMasterSummaryPDF(temaCodigo) {
+    const tema = (typeof OFFICIAL_SYLLABUS !== "undefined")
+      ? OFFICIAL_SYLLABUS.find(t => t.codigo === temaCodigo)
+      : null;
+    if (!tema) return;
+
+    const guide = (typeof MASTER_STUDY_GUIDES !== "undefined") ? MASTER_STUDY_GUIDES[temaCodigo] : null;
+    const schema = VISUAL_SCHEMAS[temaCodigo];
+
+    const html = `
+      <!DOCTYPE html>
+      <html lang="es">
+      <head>
+        <meta charset="UTF-8" />
+        <title>Manual Magistral ${tema.codigo} - ${tema.titulo}</title>
+        ${this.getCommonPrintStyles(false)}
+      </head>
+      <body>
+        <div class="no-print-bar">
+          <div>
+            <strong>📖 MANUAL MAGISTRAL DESDE CERO • ${tema.codigo}: ${tema.titulo}</strong>
+            <div style="font-size:11px; color:#cbd5e1;">Lectura guiada paso a paso para comprender todo el tema antes de hacer esquemas y tests</div>
+          </div>
+          <div>
+            <button class="btn-print" onclick="window.print()">🖨️ Descargar Tema en PDF</button>
+            <button class="btn-close" onclick="window.close()">Cerrar ✕</button>
+          </div>
+        </div>
+
+        <div class="poster-sheet">
+          <div class="flag-stripe"></div>
+          <div class="poster-header">
+            <div>
+              <div class="poster-subtitle">📖 PASO 1: RESUMEN MAGISTRAL DESDE CERO • ${tema.bloque} • TIEMPO LECTURA: ${guide ? guide.tiempoLectura : "10 min"}</div>
+              <h1 class="poster-title">${tema.codigo} — ${tema.titulo}</h1>
+              <div style="font-size:12px; color:#0f172a; font-weight:700;">📜 Normativa Oficial BOD: <span class="hl-yellow">${tema.normativa}</span></div>
+            </div>
+          </div>
+
+          ${guide ? `
+            <div style="background:#fffbeb; border:2px solid #f59e0b; padding:12px 16px; border-radius:10px; font-size:12.5px; line-height:1.55; margin-bottom:14px;">
+              <strong>🎓 CONSEJO DEL JEFE DE ESTUDIOS (CÓMO EMPEZAR ESTE TEMA DESDE CERO):</strong><br/>
+              ${guide.consejoJefeEstudios}
+              ${guide.actualizaciones ? `<div style="margin-top:8px; padding-top:8px; border-top:1px dashed #d97706;"><strong>🚨 ACTUALIZACIÓN NORMATIVA RECIENTE DE EXAMEN:</strong> <span class="hl-pink">${guide.actualizaciones}</span></div>` : ""}
+            </div>
+
+            ${(guide.epigrafes || []).map((ep) => `
+              <div style="border:2px solid #1e293b; border-radius:10px; margin-bottom:14px; overflow:hidden; page-break-inside:avoid;">
+                <div style="background:#0f172a; color:#fbbf24; font-weight:900; font-size:13px; padding:9px 14px; text-transform:uppercase;">
+                  📌 ${ep.titulo}
+                </div>
+                <div style="padding:12px 16px; background:#ffffff; font-size:12.5px; line-height:1.6; color:#0f172a;">
+                  <div style="margin-bottom:10px; background:#f8fafc; padding:8px 12px; border-left:4px solid #0284c7; border-radius:4px;">
+                    <strong>💡 Explicación Didáctica:</strong> ${ep.explicacionSencilla}
+                  </div>
+                  <div style="font-weight:800; font-size:11.5px; color:#334155; text-transform:uppercase; margin-bottom:6px;">🎯 Lo que debes memorizar sí o sí para el examen:</div>
+                  <ul style="margin:0; padding-left:18px;">
+                    ${(ep.clavesExamen || []).map(cl => `<li style="margin-bottom:6px;">${cl}</li>`).join("")}
+                  </ul>
+                </div>
+              </div>
+            `).join("")}
+          ` : `
+            <div style="background:#f1f5f9; border-left:5px solid #0f172a; padding:10px 14px; border-radius:6px; font-size:12.5px; line-height:1.5; margin-bottom:14px;">
+              <strong>📖 RESUMEN EJECUTIVO DEL TEMA:</strong><br/>
+              ${tema.resumen}
+            </div>
+          `}
+
+          <div class="normativa-footer-box">
+            <strong>🔥 SÍNTESIS DE PUNTOS CALIENTES DEL TRIBUNAL (${tema.codigo}):</strong>
+            <ul style="margin:6px 0 0 0; padding-left:18px; font-size:12px; line-height:1.5;">
+              ${(tema.puntosCalientes || []).map(p => `<li style="margin-bottom:4px;">${p}</li>`).join("")}
+            </ul>
+          </div>
+
+          <div class="trap-box">
+            <strong>🪤 TRAMPAS MORTALES QUE PONE EL TRIBUNAL EN ESTE TEMA:</strong>
+            <ul style="margin:6px 0 0 0; padding-left:18px; font-size:12px; line-height:1.5;">
+              ${(tema.trampas || []).map(t => `<li style="margin-bottom:4px;">${t}</li>`).join("")}
+            </ul>
+          </div>
+
+          ${schema ? `
+            <div class="schema-poster-title" style="margin-top:16px;">📊 ANEXO: ESQUEMA VISUAL DE COLORES (${tema.codigo})</div>
+            ${schema.htmlDiagrama}
+          ` : ""}
+        </div>
+      </body>
+      </html>
+    `;
+
+    this.openPrintWindow(html, `Manual_Magistral_${tema.codigo}`);
+  },
+
   downloadTopicCheatSheetPDF(temaCodigo) {
     const tema = (typeof OFFICIAL_SYLLABUS !== "undefined")
       ? OFFICIAL_SYLLABUS.find(t => t.codigo === temaCodigo)
       : null;
     if (!tema) return;
 
+    const guide = (typeof MASTER_STUDY_GUIDES !== "undefined") ? MASTER_STUDY_GUIDES[temaCodigo] : null;
     const schema = VISUAL_SCHEMAS[temaCodigo];
     const allQuestions = window.storageManager ? window.storageManager.getQuestions() : [];
     const topicQuestions = allQuestions.filter(q => q.temaCodigo === temaCodigo);
@@ -1388,7 +1484,7 @@ window.pdfGenerator = {
       <body>
         <div class="no-print-bar">
           <div>
-            <strong>📄 CHULETA TÁCTICA COMPLETA (ESQUEMA + RESUMEN + ${topicQuestions.length} PREGUNTAS) • ${tema.codigo}</strong>
+            <strong>📄 CHULETA TÁCTICA COMPLETA (RESUMEN MAGISTRAL + ESQUEMA + ${topicQuestions.length} PREGUNTAS) • ${tema.codigo}</strong>
             <div style="font-size:11px; color:#cbd5e1;">Lista para guardar en PDF en tu móvil o imprimir en A4 a todo color</div>
           </div>
           <div>
@@ -1412,6 +1508,19 @@ window.pdfGenerator = {
             ${tema.resumen}
           </div>
 
+          ${guide ? `
+            <div class="schema-poster-title">📖 0. DESARROLLO MAGISTRAL POR EPÍGRAFES (${tema.codigo})</div>
+            ${(guide.epigrafes || []).map(ep => `
+              <div style="border:1px solid #cbd5e1; border-left:5px solid #0284c7; border-radius:8px; padding:10px 12px; margin-bottom:10px; background:#ffffff;">
+                <div style="font-weight:900; font-size:12.5px; color:#0f172a; margin-bottom:4px;">📌 ${ep.titulo}</div>
+                <div style="font-size:12px; color:#334155; margin-bottom:6px;"><em>${ep.explicacionSencilla}</em></div>
+                <ul style="margin:0; padding-left:18px; font-size:12px; line-height:1.5;">
+                  ${(ep.clavesExamen || []).map(cl => `<li style="margin-bottom:3px;">${cl}</li>`).join("")}
+                </ul>
+              </div>
+            `).join("")}
+          ` : ""}
+
           ${schema ? `
             <div class="schema-poster-title">📊 1. ESQUEMA VISUAL Y ORGANIGRAMA DE COLORES (${tema.codigo})</div>
             ${schema.htmlDiagrama}
@@ -1434,8 +1543,8 @@ window.pdfGenerator = {
           <div class="schema-poster-title" style="margin-top:18px;">🎯 4. BANCO DE PREGUNTAS OFICIALES Y TRAMPA RESUELTAS (${topicQuestions.length} PREGUNTAS)</div>
           ${topicQuestions.map((q, idx) => `
             <div class="question-print-card">
-              <div style="display:flex; justify-content:space-between; font-size:11px; color:#475569; font-weight:800; margin-bottom:4px;">
-                <span>PREGUNTA ${idx + 1} (${q.id}) • ${q.dificultad === "trampa" ? "🪤 PREGUNTA TRAMPA" : "🏛️ OFICIAL BOD"}</span>
+              <div style="display:flex; justify-content:space-between; font-size:11px; color:#475569; font-weight:800; margin-bottom:4px; flex-wrap:wrap; gap:4px;">
+                <span>PREGUNTA ${idx + 1} (${q.id}) • ${(q.etiquetas || []).join(" · ")}</span>
                 <span class="hl-cyan">${q.referencia || ""}</span>
               </div>
               <div style="font-size:13px; font-weight:800; color:#0f172a; margin-bottom:6px;">${q.pregunta}</div>

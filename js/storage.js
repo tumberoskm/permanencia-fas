@@ -4,13 +4,14 @@
  */
 
 const STORAGE_KEYS = {
-  QUESTIONS: "permanencia_questions_v4",
+  QUESTIONS: "permanencia_questions_v5",
   FAILED_QUESTIONS: "permanencia_failed_v1",
   STATS: "permanencia_stats_v1",
   TOPIC_STATS: "permanencia_topic_stats_v1",
   HISTORY: "permanencia_sim_history_v1",
   FLASHCARDS: "permanencia_flashcards_v1",
-  LEARNED_FLASHCARDS: "permanencia_fc_learned_v1"
+  LEARNED_FLASHCARDS: "permanencia_fc_learned_v1",
+  READ_TOPICS: "permanencia_read_topics_v1"
 };
 
 const RANKS = [
@@ -53,6 +54,7 @@ class StorageManager {
     try {
       const storedRaw =
         localStorage.getItem(STORAGE_KEYS.QUESTIONS) ||
+        localStorage.getItem("permanencia_questions_v4") ||
         localStorage.getItem("permanencia_questions_v3") ||
         localStorage.getItem("permanencia_questions_v2");
       const customQuestions = storedRaw
@@ -310,18 +312,45 @@ class StorageManager {
     return list.includes(cardId);
   }
 
+  // PROGRESO DE LECTURA DEL TEMARIO (PASO 1: RESUMEN MAGISTRAL LEÍDO)
+  getReadTopics() {
+    try {
+      const data = localStorage.getItem(STORAGE_KEYS.READ_TOPICS);
+      return data ? JSON.parse(data) : [];
+    } catch (e) {
+      return [];
+    }
+  }
+
+  isTopicRead(temaCodigo) {
+    return this.getReadTopics().includes(temaCodigo);
+  }
+
+  toggleTopicRead(temaCodigo) {
+    let list = this.getReadTopics();
+    if (list.includes(temaCodigo)) {
+      list = list.filter(code => code !== temaCodigo);
+    } else {
+      list.push(temaCodigo);
+      this.addXP(25);
+    }
+    localStorage.setItem(STORAGE_KEYS.READ_TOPICS, JSON.stringify(list));
+    return list.includes(temaCodigo);
+  }
+
   // BACKUP COMPLETO
   exportFullBackup() {
     return {
       appName: "Permanencia FAS - WebApp",
       exportDate: new Date().toISOString(),
-      version: "2.0",
+      version: "3.0",
       stats: this.getStats(),
       topicStats: this.getTopicStats(),
       questions: this.getQuestions(),
       failedQuestions: this.getFailedQuestions(),
       simulatorHistory: this.getSimulatorHistory(),
-      learnedFlashcards: this.getLearnedFlashcards()
+      learnedFlashcards: this.getLearnedFlashcards(),
+      readTopics: this.getReadTopics()
     };
   }
 
@@ -346,6 +375,9 @@ class StorageManager {
     }
     if (backupData.learnedFlashcards && Array.isArray(backupData.learnedFlashcards)) {
       localStorage.setItem(STORAGE_KEYS.LEARNED_FLASHCARDS, JSON.stringify(backupData.learnedFlashcards));
+    }
+    if (backupData.readTopics && Array.isArray(backupData.readTopics)) {
+      localStorage.setItem(STORAGE_KEYS.READ_TOPICS, JSON.stringify(backupData.readTopics));
     }
     return true;
   }

@@ -33,11 +33,12 @@ class SimulatorEngine {
     return copy;
   }
 
-  startSession({ count = 20, bloque = "ALL", mode = "official", temaCodigo = null, studyMode = false }) {
+  startSession({ count = 20, bloque = "ALL", mode = "official", temaCodigo = null, studyMode = false, tagFilter = "ALL" }) {
     this.mode = mode;
     this.studyMode = Boolean(studyMode);
     this.filterBloque = bloque;
     this.filterTema = temaCodigo;
+    this.tagFilter = tagFilter || "ALL";
     this.currentIndex = 0;
     this.answers = {};
     this.revealed = new Set();
@@ -67,9 +68,9 @@ class SimulatorEngine {
         const failedIds = new Set(failedItems.map(f => f.id));
         pool = allQuestions.filter(q => failedIds.has(q.id));
       } else if (mode === "trampas") {
-        pool = allQuestions.filter(q => q.dificultad === "trampa");
+        pool = allQuestions.filter(q => q.dificultad === "trampa" || (Array.isArray(q.etiquetas) && q.etiquetas.includes("Trampa")));
       } else if (mode === "examen_real") {
-        pool = allQuestions.filter(q => q.esExamenOficial === true);
+        pool = allQuestions.filter(q => q.esExamenOficial === true || (Array.isArray(q.etiquetas) && q.etiquetas.includes("Pregunta de Examen")));
       } else if (temaCodigo) {
         pool = allQuestions.filter(q => q.temaCodigo === temaCodigo);
       } else if (bloque !== "ALL") {
@@ -78,12 +79,17 @@ class SimulatorEngine {
         pool = [...allQuestions];
       }
 
+      // Aplicar filtro adicional por etiqueta (tagFilter) si está activo
+      if (this.tagFilter && this.tagFilter !== "ALL") {
+        pool = pool.filter(q => Array.isArray(q.etiquetas) && q.etiquetas.includes(this.tagFilter));
+      }
+
       if (pool.length === 0) {
         return {
           ok: false,
           message: mode === "failed_bag"
             ? "¡Enhorabuena! No tienes preguntas pendientes en la bolsa de falladas."
-            : "No hay preguntas disponibles para este filtro todavía."
+            : `No hay preguntas disponibles con el filtro seleccionado (${this.tagFilter !== "ALL" ? this.tagFilter : "actual"}).`
         };
       }
 

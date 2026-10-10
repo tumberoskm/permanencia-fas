@@ -168,8 +168,8 @@
           <span class="text-xl font-black text-red-400 mt-1 block" id="dash-failed-count">0</span>
         </div>
         <div class="tactical-card p-4 rounded-xl col-span-2 sm:col-span-1">
-          <span class="text-xs text-slate-400 block">🗄️ Banco Activo</span>
-          <span class="text-xl font-black text-amber-400 mt-1 block" id="dash-total-questions">156</span>
+          <span class="text-xs text-slate-400 block">🗄️ Banco Etiquetado</span>
+          <span class="text-xl font-black text-amber-400 mt-1 block" id="dash-total-questions">313</span>
         </div>
       </div>
 
@@ -180,10 +180,10 @@
       <div>
         <div class="flex items-center justify-between mb-3">
           <h3 class="text-sm font-black uppercase tracking-wider text-slate-200 flex items-center space-x-2">
-            <span>🛡️</span><span>Entrenamiento por los 3 Bloques Oficiales (Orden DEF/1341/2017 + Actualización 2025)</span>
+            <span>🛡️</span><span>Entrenamiento por los 3 Bloques Oficiales (Orden DEF/1341/2017 + Actualización 2025/2026)</span>
           </h3>
           <button onclick="window.appController.showTab('temario')" class="text-xs text-amber-400 hover:underline font-semibold">
-            Abrir Temario Completo (21 Temas) ➔
+            Abrir Temario Completo (21 Temas + Resúmenes desde Cero) ➔
           </button>
         </div>
 
@@ -222,9 +222,9 @@
         <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
           <div>
             <h3 class="text-sm font-black uppercase tracking-wider text-slate-200">
-              🎨 Listado por Bloques y Colores de los 21 Temas Oficiales (con 📊 Esquema Visual y 📄 Chuleta PDF)
+              🎨 Ruta por Bloques y Colores de los 21 Temas (📖 1. Resumen Cero • 📊 2. Esquema • 💡 3. Test • 📄 4. Chuleta)
             </h3>
-            <p class="text-xs text-slate-400">Cada tema tiene su propia fila de color. Pulsa <strong>📊</strong> para abrir el Esquema Visual con flechas y colores, <strong>📄</strong> para la Chuleta PDF o el título para ir al tema.</p>
+            <p class="text-xs text-slate-400">Pulsa <strong>📖</strong> o el título para leer el <strong>Resumen Magistral desde Cero</strong>, <strong>📊</strong> para el Esquema Visual de colores, <strong>📄</strong> para la Chuleta PDF o <strong>Test</strong> para entrenar.</p>
           </div>
           <div class="flex items-center space-x-3 text-[11px]">
             <span class="text-emerald-400">🟢 ≥70% Dominado</span>
@@ -397,6 +397,65 @@
           </button>
         </div>
 
+        <h3 class="text-xs font-bold uppercase tracking-wider text-emerald-400 mb-3">
+          🏷️ Entrenamiento Gradual por Etiquetas y Niveles (Ideal para Empezar desde Cero):
+        </h3>
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 mb-6">
+          <button onclick="window.appController.startTagFilteredTest('Fácil', true, 25)" class="tactical-card tactical-card-hover p-4 rounded-xl text-left border border-green-500/50 bg-green-950/20">
+            <div class="flex items-center justify-between">
+              <span class="px-2 py-0.5 rounded bg-green-950 text-green-300 border border-green-600 text-[10px] font-black uppercase">🟢 ETIQUETA: FÁCIL</span>
+              <span class="text-xs font-mono text-green-400 font-bold">NIVEL 1</span>
+            </div>
+            <h4 class="text-sm font-black text-white mt-1.5">Toma de Contacto (Conceptos Base)</h4>
+            <p class="text-[11px] text-slate-300 mt-1">Ideal justo después de leer tu primer Resumen desde Cero. Modo Estudio activado.</p>
+          </button>
+
+          <button onclick="window.appController.startTagFilteredTest('Nivel Medio', true, 25)" class="tactical-card tactical-card-hover p-4 rounded-xl text-left border border-sky-500/50 bg-sky-950/20">
+            <div class="flex items-center justify-between">
+              <span class="px-2 py-0.5 rounded bg-sky-950 text-sky-300 border border-sky-600 text-[10px] font-black uppercase">🟡 ETIQUETA: NIVEL MEDIO</span>
+              <span class="text-xs font-mono text-sky-400 font-bold">NIVEL 2</span>
+            </div>
+            <h4 class="text-sm font-black text-white mt-1.5">Consolidación de Artículos y Órganos</h4>
+            <p class="text-[11px] text-slate-300 mt-1">Preguntas de dificultad media para afianzar competencias, estructura y leyes.</p>
+          </button>
+
+          <button onclick="window.appController.startTagFilteredTest('Importante', true, 30)" class="tactical-card tactical-card-hover p-4 rounded-xl text-left border border-emerald-500/50 bg-emerald-950/20">
+            <div class="flex items-center justify-between">
+              <span class="px-2 py-0.5 rounded bg-emerald-950 text-emerald-300 border border-emerald-600 text-[10px] font-black uppercase">⭐ ETIQUETA: IMPORTANTE</span>
+              <span class="text-xs font-mono text-emerald-400 font-bold">ESENCIAL</span>
+            </div>
+            <h4 class="text-sm font-black text-white mt-1.5">Las Imprescindibles de la Oposición</h4>
+            <p class="text-[11px] text-slate-300 mt-1">Selección de preguntas troncales que todo aspirante a la Permanencia debe dominar.</p>
+          </button>
+
+          <button onclick="window.appController.startTagFilteredTest('Pregunta de Examen', false, 35)" class="tactical-card tactical-card-hover p-4 rounded-xl text-left border border-amber-500/50 bg-amber-950/20">
+            <div class="flex items-center justify-between">
+              <span class="px-2 py-0.5 rounded bg-amber-950 text-amber-300 border border-amber-600 text-[10px] font-black uppercase">🏛️ PREGUNTA DE EXAMEN</span>
+              <span class="text-xs font-mono text-amber-400 font-bold">BOD OFICIAL</span>
+            </div>
+            <h4 class="text-sm font-black text-white mt-1.5">Histórico de Convocatorias (2021–2025)</h4>
+            <p class="text-[11px] text-slate-300 mt-1">Preguntas reales y de corte oficial que se repiten año tras año en el examen.</p>
+          </button>
+
+          <button onclick="window.appController.startTagFilteredTest('Rebuscada', true, 25)" class="tactical-card tactical-card-hover p-4 rounded-xl text-left border border-purple-500/50 bg-purple-950/20">
+            <div class="flex items-center justify-between">
+              <span class="px-2 py-0.5 rounded bg-purple-950 text-purple-300 border border-purple-600 text-[10px] font-black uppercase">🟣 ETIQUETA: REBUSCADA</span>
+              <span class="text-xs font-mono text-purple-400 font-bold">NIVEL 3 • CORTE</span>
+            </div>
+            <h4 class="text-sm font-black text-white mt-1.5">Preguntas de Corte para Sacar Plaza</h4>
+            <p class="text-[11px] text-slate-300 mt-1">Detalles finos, excepciones legales y matices que marcan la diferencia en el escalafón.</p>
+          </button>
+
+          <button onclick="window.appController.startTagFilteredTest('Trampa', true, 30)" class="tactical-card tactical-card-hover p-4 rounded-xl text-left border border-red-500/50 bg-red-950/20">
+            <div class="flex items-center justify-between">
+              <span class="px-2 py-0.5 rounded bg-red-950 text-red-300 border border-red-600 text-[10px] font-black uppercase">🔴 ETIQUETA: TRAMPA</span>
+              <span class="text-xs font-mono text-red-400 font-bold">CAZA-TRAMPAS</span>
+            </div>
+            <h4 class="text-sm font-black text-white mt-1.5">Caza-Trampas de Plazos y Novedades</h4>
+            <p class="text-[11px] text-slate-300 mt-1">Cruces de plazos, órganos parecidos y reformas 2024/2025 donde el tribunal busca el fallo.</p>
+          </button>
+        </div>
+
         <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400 mb-3">Otras modalidades de entrenamiento por tiempo:</h3>
         <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <button onclick="window.appController.startSimulatorWithParams({ count: 15, bloque: 'ALL', mode: 'official', studyMode: false })" class="tactical-card tactical-card-hover p-5 rounded-xl text-left border border-slate-800">
@@ -411,10 +470,10 @@
             <p class="text-xs text-slate-400 mt-1">Mezcla equilibrada de los 3 Bloques Oficiales.</p>
           </button>
 
-          <button onclick="window.appController.startSimulatorWithParams({ count: 156, bloque: 'ALL', mode: 'official', studyMode: true })" class="tactical-card tactical-card-hover p-5 rounded-xl text-left border border-slate-800">
-            <span class="text-xs font-mono text-sky-400 font-bold">MARATÓN COMPLETA (156 PREG.)</span>
+          <button onclick="window.appController.startSimulatorWithParams({ count: 313, bloque: 'ALL', mode: 'official', studyMode: true })" class="tactical-card tactical-card-hover p-5 rounded-xl text-left border border-slate-800">
+            <span class="text-xs font-mono text-sky-400 font-bold">MARATÓN COMPLETA (313 PREG.)</span>
             <h4 class="text-lg font-black text-white mt-1">Banco Completo en Modo Estudio</h4>
-            <p class="text-xs text-slate-400 mt-1">Las 156 preguntas de los 21 temas con corrección instantánea.</p>
+            <p class="text-xs text-slate-400 mt-1">Las 313 preguntas de los 21 temas con corrección instantánea.</p>
           </button>
         </div>
       </div>
@@ -453,7 +512,7 @@
       </div>
 
       <div class="tactical-card rounded-2xl p-5 sm:p-7">
-        <div class="flex items-center justify-between mb-3">
+        <div class="flex flex-wrap items-center justify-between gap-2 mb-2">
           <span class="text-xs font-bold uppercase tracking-wider text-amber-400" id="sim-q-materia-badge">
             Constitución Española
           </span>
@@ -461,6 +520,9 @@
             <span>🏳️</span><span class="text-slate-400">Marcar duda</span>
           </button>
         </div>
+
+        <!-- Etiquetas de la Pregunta (Examen, Importante, Fácil, Nivel Medio, Rebuscada, Trampa) -->
+        <div id="sim-q-tags-container" class="mb-4"></div>
 
         <h3 class="text-base sm:text-lg font-bold text-white leading-snug mb-6" id="sim-q-text">
           Cargando enunciado de la pregunta...
@@ -790,6 +852,13 @@
       </div>
     </section>
 
+    <!-- MODAL LECTOR DEL PASO 1: RESUMEN MAGISTRAL DESDE CERO + PDF -->
+    <div id="study-guide-modal" class="hidden fixed inset-0 z-50 bg-black/85 backdrop-blur-sm flex items-center justify-center p-3 sm:p-6 overflow-y-auto">
+      <div class="tactical-card w-full max-w-5xl rounded-2xl p-4 sm:p-6 border-2 border-emerald-500/60 max-h-[92vh] overflow-y-auto">
+        <div id="study-guide-modal-body"></div>
+      </div>
+    </div>
+
     <!-- MODAL INTERACTIVO DE ESQUEMA VISUAL, ORGANIGRAMA E INFOGRAFÍA A TODO COLOR -->
     <div id="schema-modal" class="hidden fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-3 sm:p-6 overflow-y-auto">
       <div class="tactical-card w-full max-w-5xl rounded-2xl p-4 sm:p-6 border-2 border-amber-500/50 max-h-[92vh] overflow-y-auto">
@@ -835,8 +904,10 @@
 
   <!-- SCRIPTS DE LA APLICACIÓN -->
   <script src="./js/syllabus-data.js"></script>
+  <script src="./js/study-guides-data.js"></script>
   <script src="./js/schemas-data.js"></script>
   <script src="./js/questions-data.js"></script>
+  <script src="./js/questions-extra-data.js"></script>
   <script src="./js/flashcards-data.js"></script>
   <script src="./js/storage.js"></script>
   <script src="./js/simulator.js"></script>
