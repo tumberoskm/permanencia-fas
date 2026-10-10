@@ -1033,3 +1033,573 @@ const MASTER_STUDY_GUIDES = {
     ]
   }
 };
+
+// ============================================================================
+// 🎬 CÁPSULAS DE CLASE EN VÍDEO (28 TEMAS YOUTUBE NOTEBOOKLM ↔ 21 TEMAS BOE)
+// Contiene la "Pizarra del Profesor" y los Post-its listos para pegar en 1 clic
+// ============================================================================
+const VIDEO_CLASS_CAPSULES = {
+  "B1-T01": {
+    videosCubiertos: "🎬 Vídeos T1 y T2 de YouTube (Constitución Española I y II)",
+    tituloCapsula: "🎬 Pizarra del Profesor — Vídeos T1 y T2: Constitución Española 1978 (Parte Dogmática y Orgánica)",
+    puntos: [
+      "🎬 <strong>Vídeo T1 (Parte Dogmática — Títulos Preliminar y I):</strong> Las 4 fechas sagradas: <span class='hl-yellow'>31 Octubre 1978</span> (aprobación Cortes), <span class='hl-green'>6 Diciembre 1978</span> (ratificación referéndum), <span class='hl-cyan'>27 Diciembre 1978</span> (sanción y promulgación Rey) y <span class='hl-pink'>29 Diciembre 1978</span> (publicación BOE y entrada en vigor el mismo día).",
+      "🎬 <strong>Vídeo T1 (Artículo 8 vs Artículo 30 CE):</strong> El <strong>Art. 8</strong> está en el Título Preliminar (Misión FAS: garantizar soberanía e independencia, defender integridad territorial y el ordenamiento constitucional; Ley Orgánica regula las bases de la organización militar). El <strong>Art. 30</strong> está en la Sección 2ª del Cap. II del Título I (derecho y deber de defender a España).",
+      "🎬 <strong>Vídeo T1 (Estados Excepcionales Art. 116 CE y Suspensión Art. 55.1 CE):</strong> <strong>Alarma</strong> = Decreto del Consejo de Ministros por máx. <span class='hl-yellow'>15 días</span> dando cuenta al Congreso (prórroga con autorización del Congreso; <em>NO suspende derechos</em>, solo los limita). <strong>Excepción</strong> = Decreto del Consejo de Ministros previa autorización del Congreso por máx. <span class='hl-pink'>30 días prorrogables por otros 30</span>. <strong>Sitio</strong> = Declarado por <span class='hl-cyan'>mayoría absoluta del Congreso</span> a propuesta exclusiva del Gobierno.",
+      "🎬 <strong>Vídeo T2 (Parte Orgánica — Corona, Cortes, Gobierno, PJ y TC):</strong> El Rey (Título II) arbitra y modera el funcionamiento regular de las instituciones; sus actos los refrenda el Presidente del Gobierno, los Ministros competentes o el <strong>Presidente del Congreso</strong> (en los 3 casos del Art. 99: propuesta de candidato, nombramiento de Presidente y disolución del Art. 99.5 si pasan 2 meses desde la 1ª votación de investidura).",
+      "🎬 <strong>Vídeo T2 (Reforma Constitucional Título X — Art. 167 vs 168):</strong> Reforma ordinaria (Art. 167): mayoría de <span class='hl-green'>3/5 de cada Cámara</span> (referéndum facultativo si lo pide 1/10 de diputados o senadores en 15 días). Reforma agravada (Art. 168 — Revisión total, Título Preliminar, Secc. 1ª Cap. II Tít. I o Título II Corona): <span class='hl-pink'>2/3 de cada Cámara + disolución inmediata de Cortes + 2/3 de las nuevas Cámaras + Referéndum obligatorio</span>."
+    ],
+    postItsProfesor: [
+      {
+        titulo: "🎬 Vídeo T1: Las 4 Fechas de la CE 1978",
+        texto: "31 Oct (Cortes) ➔ 6 Dic (Referéndum) ➔ 27 Dic (Sanción Rey) ➔ 29 Dic 1978 (BOE y entrada en vigor el mismo día). ¡3 reformas: 1992 (Art. 13.2), 2011 (Art. 135) y 2024 (Art. 49)!",
+        color: "yellow",
+        tag: "🎬 Post-it Vídeo T1"
+      },
+      {
+        titulo: "🎬 Vídeo T1: Alarma vs Excepción vs Sitio (Art. 116 CE)",
+        texto: "• Alarma: Gobierno 15 días (NO suspende derechos).\n• Excepción: Gobierno CON autorización previa Congreso, máx 30 días + 30.\n• Sitio: Mayoría ABSOLUTA del Congreso a propuesta exclusiva del Gobierno.",
+        color: "pink",
+        tag: "🎬 Post-it Vídeo T1"
+      },
+      {
+        titulo: "🎬 Vídeo T2: Quién Refrenda al Rey (Art. 64 y 99 CE)",
+        texto: "Regla general: Presidente del Gobierno o Ministros. EXCEPCIÓN de examen: El Presidente del Congreso refrenda la propuesta de candidato, el nombramiento del Presidente del Gobierno y la disolución de las Cortes tras 2 meses sin investidura (Art. 99.5).",
+        color: "cyan",
+        tag: "🎬 Post-it Vídeo T2"
+      },
+      {
+        titulo: "🎬 Vídeo T2: Reforma CE Art. 167 (3/5) vs Art. 168 (2/3)",
+        texto: "• Art. 167 (Ordinaria): 3/5 de cada Cámara + referéndum solo si lo pide 1/10 en 15 días.\n• Art. 168 (Tít. Preliminar, Derechos Fund. 15-29 o Corona Tít. II): 2/3 + Disolución Cortes + 2/3 + Referéndum OBLIGATORIO.",
+        color: "green",
+        tag: "🎬 Post-it Vídeo T2"
+      }
+    ]
+  },
+
+  "B1-T02": {
+    videosCubiertos: "🎬 Vídeo T3 de YouTube (Ley Orgánica 5/2005 de la Defensa Nacional)",
+    tituloCapsula: "🎬 Pizarra del Profesor — Vídeo T3: LO 5/2005 de la Defensa Nacional (Competencias y Autorización Congreso)",
+    puntos: [
+      "🎬 <strong>Vídeo T3 (Reparto de Poderes en la LO 5/2005):</strong> <span class='hl-yellow'>El Rey</span> = Mando supremo de las FAS (Art. 3). <span class='hl-green'>El Gobierno</span> = Determina la política de defensa y dirige la Administración militar (Art. 5). <span class='hl-cyan'>El Presidente del Gobierno</span> = Dirige la política de defensa, aprueba la Directiva de Defensa Nacional (DDN), ordena las misiones de las FAS y ejerce la dirección estratégica de las operaciones (Art. 6). <span class='hl-pink'>El Ministro de Defensa</span> = Desarrolla y ejecuta la política de defensa (Art. 7).",
+      "🎬 <strong>Vídeo T3 (Consejo de Defensa Nacional — Art. 8):</strong> Es el órgano colegiado coordinador, asesor y consultivo del Presidente del Gobierno en materia de defensa. Funciona en <strong>Pleno</strong> y como <strong>Consejo Ejecutivo</strong>. El JEMAD es miembro nato de ambos.",
+      "🎬 <strong>Vídeo T3 (Misiones en el Exterior — Arts. 17 y 19):</strong> Para ordenar operaciones en el exterior que no estén directamente relacionadas con la defensa de España o del interés nacional, el Gobierno requiere <strong>consulta previa y AUTORIZACIÓN DEL CONGRESO DE LOS DIPUTADOS</strong> (en misiones de máxima urgencia se somete al Congreso lo antes posible para su ratificación).",
+      "🎬 <strong>Vídeo T3 (Reglas de Enfrentamiento ROE y Jurisdicción Militar):</strong> Corresponde al Gobierno (a propuesta del Ministro de Defensa o previo informe del JEMAD) fijar las directrices y <strong>Reglas de Enfrentamiento (ROE)</strong>. La jurisdicción militar se limita al ámbito estrictamente castrense y a los supuestos de estado de sitio (Art. 117.5 CE)."
+    ],
+    postItsProfesor: [
+      {
+        titulo: "🎬 Vídeo T3: Presidente (Art. 6) vs Gobierno (Art. 5) en LO 5/2005",
+        texto: "• GOBIERNO: Determina la política de defensa.\n• PRESIDENTE DEL GOBIERNO: Dirige la política de defensa, formula la Directiva de Defensa Nacional (DDN) y ordena las misiones de las FAS.\n• MINISTRO: Desarrolla y ejecuta la política de defensa.",
+        color: "yellow",
+        tag: "🎬 Post-it Vídeo T3"
+      },
+      {
+        titulo: "🎬 Vídeo T3: Autorización de Misiones Exteriores (Art. 17 LO 5/2005)",
+        texto: "¡Cae siempre! Quien autoriza las misiones en el exterior es el CONGRESO DE LOS DIPUTADOS (nunca las Cortes Generales en conjunto ni el Senado).",
+        color: "pink",
+        tag: "🎬 Post-it Vídeo T3"
+      },
+      {
+        titulo: "🎬 Vídeo T3: Estructura Básica de las FAS (Art. 11 LO 5/2005)",
+        texto: "Las FAS se organizan en 2 estructuras:\n1) Estructura ORGÁNICA (Ejércitos y Armada: preparación de la Fuerza).\n2) Estructura OPERATIVA (JEMAD y Mandos bajo su autoridad: empleo de la Fuerza en misiones).",
+        color: "green",
+        tag: "🎬 Post-it Vídeo T3"
+      }
+    ]
+  },
+
+  "B1-T03": {
+    videosCubiertos: "🎬 Vídeos T4 y T5 de YouTube (Ley 40/2015 LRJSP I y II)",
+    tituloCapsula: "🎬 Pizarra del Profesor — Vídeos T4 y T5: Ley 40/2015 LRJSP (AGE, Órganos Colegiados y Técnicas de Competencia)",
+    puntos: [
+      "🎬 <strong>Vídeo T4 (Las 6 Técnicas de Alteración de la Competencia — Arts. 8 a 14):</strong> La competencia es <strong>irrenunciable</strong>. <span class='hl-pink'>SOLO la Desconcentración (Art. 8.2) transfiere la TITULARIDAD y el ejercicio</span>. Las otras 5 (Delegación Art. 9, Avocación Art. 10, Encomienda de gestión Art. 11, Delegación de firma Art. 12 y Suplencia Art. 13) solo afectan al ejercicio o a actividades materiales/técnicas.",
+      "🎬 <strong>Vídeo T4 (Avocación Art. 10 vs Delegación Art. 9):</strong> Contra el acuerdo de <strong>avocación NO cabe recurso</strong> (aunque puede impugnarse en el recurso que se interponga contra la resolución del procedimiento). En la <strong>delegación</strong> (Art. 9), las resoluciones se consideran dictadas por el órgano delegante.",
+      "🎬 <strong>Vídeo T4 (Órganos Colegiados — Arts. 15 a 22 y Recusación Art. 24):</strong> El Secretario puede ser un miembro del propio órgano o una persona al servicio de la Administración Pública correspondiente: si NO es miembro, tiene <span class='hl-yellow'>voz pero NO voto</span>. En la <strong>Recusación (Art. 24)</strong>: al día siguiente el recusado manifiesta si se da la causa; si la niega, el superior resuelve en <span class='hl-green'>3 DÍAS</span> (y contra esa resolución NO cabe recurso).",
+      "🎬 <strong>Vídeo T5 (Organización Central y Periférica de la AGE — Arts. 54 a 80):</strong> <strong>Órganos Superiores</strong> = Ministros y Secretarios de Estado. <strong>Órganos Directivos</strong> = Subsecretarios, Secretarios Generales (rango Subsecretario), Secretarios Generales Técnicos (rango Director General), Directores Generales y Subdirectores Generales. En la AGE periférica: <strong>Delegados del Gobierno</strong> en CC.AA. (rango de <span class='hl-cyan'>Subsecretario</span>) y <strong>Subdelegados del Gobierno</strong> en provincias (nivel de <span class='hl-cyan'>Subdirector General</span>)."
+    ],
+    postItsProfesor: [
+      {
+        titulo: "🎬 Vídeo T4: La Regla de Oro del Art. 8 a 13 Ley 40/2015",
+        texto: "• ÚNICA que transfiere la TITULARIDAD de la competencia: DESCONCENTRACIÓN.\n• Encomienda de gestión (Art. 11): NO cede titularidad ni elementos sustantivos, solo actividades materiales o técnicas.\n• Acuerdo de Avocación (Art. 10): NO cabe recurso directo.",
+        color: "pink",
+        tag: "🎬 Post-it Vídeo T4"
+      },
+      {
+        titulo: "🎬 Vídeo T4: Plazos de Recusación (Art. 24 Ley 40/2015)",
+        texto: "1) Puede plantearse en CUALQUIER MOMENTO de la tramitación.\n2) En el DÍA SIGUIENTE el recusado dice si concurre o no la causa.\n3) Si la niega, el superior resuelve en 3 DÍAS (sin recurso directo).",
+        color: "yellow",
+        tag: "🎬 Post-it Vídeo T4"
+      },
+      {
+        titulo: "🎬 Vídeo T5: Rangos en la AGE (Art. 55 y 69-74 Ley 40/2015)",
+        texto: "• Órganos SUPERIORES: Ministros y Secretarios de Estado.\n• Rango SUBSECRETARIO: Secretarios Generales y Delegados del Gobierno en CCAA.\n• Rango DIRECTOR GENERAL: Secretarios Generales Técnicos.\n• Nivel SUBDIRECTOR GENERAL: Subdelegados del Gobierno en provincias.",
+        color: "cyan",
+        tag: "🎬 Post-it Vídeo T5"
+      }
+    ]
+  },
+
+  "B1-T04": {
+    videosCubiertos: "🎬 Vídeo T6 de YouTube (RD 205/2024 Estructura Orgánica Básica del Ministerio de Defensa)",
+    tituloCapsula: "🎬 Pizarra del Profesor — Vídeo T6: RD 205/2024 (Las 4 Grandes Patas del MINISDEF: FAS, SEDEF, SUBDEF y SEGENPOL)",
+    puntos: [
+      "🎬 <strong>Vídeo T6 (Dependencia Directa de la Persona Titular del Ministerio):</strong> Dependen directamente del Ministro/a de Defensa: el <strong>JEMAD</strong>, la <strong>SEDEF</strong>, la <strong>SUBDEF</strong>, la <strong>SEGENPOL</strong>, el <strong>CNI</strong> (Centro Nacional de Inteligencia) y la <strong>DIAPER</strong> (Dirección de Asuntos Económicos / Gabinete Técnico).",
+      "🎬 <strong>Vídeo T6 (Qué cuelga de la SEDEF vs SUBDEF — ¡El cruce más preguntado!):</strong> De la <strong>SEDEF</strong> dependen: <span class='hl-yellow'>DGAM</span> (ahora llamada <em>Dirección General de Armamento y Material / Estrategia e Innovación de la Industria de Defensa</em>), <span class='hl-yellow'>DIGENECO</span>, <span class='hl-yellow'>DIGENIN</span> y el <span class='hl-yellow'>CESTIC</span>, más el organismo autónomo <strong>INTA</strong>. De la <strong>SUBDEF</strong> dependen: <span class='hl-green'>SGT</span>, <span class='hl-green'>DIGENPER</span> y <span class='hl-green'>DIGEREM</span>, además de la Asesoría Jurídica General, Intervención General, Inspección General de Sanidad (IGESAN) y los organismos <strong>ISFAS e INVIED</strong>.",
+      "🎬 <strong>Vídeo T6 (La SEGENPOL y el CESEDEN):</strong> La <strong>Secretaría General de Política de Defensa (SEGENPOL)</strong> tiene rango de Subsecretaría y de ella depende la <strong>DIGENPOL</strong> (Dirección General de Política de Defensa) y las Agregadurías de Defensa. El <strong>CESEDEN</strong> depende directamente del <strong>JEMAD</strong>."
+    ],
+    postItsProfesor: [
+      {
+        titulo: "🎬 Vídeo T6: SEDEF vs SUBDEF (Mnemotecnia de Examen RD 205/2024)",
+        texto: "• SEDEF (Dinero, Armas, Obras y Wifi): DIGENECO, DGAM, DIGENIN y CESTIC + INTA.\n• SUBDEF (Personas, Papeles, Sanidad y Vivienda): DIGENPER, DIGEREM, SGT, IGESAN, Asesoría Jurídica, Intervención + ISFAS e INVIED.",
+        color: "yellow",
+        tag: "🎬 Post-it Vídeo T6"
+      },
+      {
+        titulo: "🎬 Vídeo T6: CESTIC y el CIO del Ministerio (RD 205/2024)",
+        texto: "El CESTIC (Centro de Sistemas y Tecnologías de la Información y las Comunicaciones) tiene rango de Dirección General, depende de la SEDEF y su titular ejerce como CIO (Director de Información) del Ministerio.",
+        color: "cyan",
+        tag: "🎬 Post-it Vídeo T6"
+      },
+      {
+        titulo: "🎬 Vídeo T6: Adscripción de INTA, ISFAS, INVIED y CNI",
+        texto: "• CNI ➔ Persona Titular del Ministerio.\n• INTA ➔ SEDEF.\n• ISFAS e INVIED ➔ SUBDEF.\n• CESEDEN ➔ JEMAD (EMAD).",
+        color: "green",
+        tag: "🎬 Post-it Vídeo T6"
+      }
+    ]
+  },
+
+  "B1-T05": {
+    videosCubiertos: "🎬 Vídeos T7, T8 y T9 de YouTube (RD 521/2020 Organización Básica FAS y Estado Mayor de la Defensa)",
+    tituloCapsula: "🎬 Pizarra del Profesor — Vídeos T7, T8 y T9: RD 521/2020 y Orden DEF/710/2020 (EMAD y los 4 Mandos Operativos)",
+    puntos: [
+      "🎬 <strong>Vídeo T7 (Cadena de Mando Operativo vs Orgánico — RD 521/2020):</strong> El <strong>JEMAD</strong> (Rango de Secretario de Estado, 4 estrellas) ejerce el <span class='hl-yellow'>Mando Operativo de las Fuerzas Armadas</span> bajo la dependencia directa del Ministro de Defensa. Los Jefes de Estado Mayor (JEME, AJEMA y JEMA, con rango de Subsecretario) desarrollan la <strong>estructura orgánica</strong> (preparación de la Fuerza) y transfieren capacidades al JEMAD para su empleo operativo.",
+      "🎬 <strong>Vídeo T8 (Órganos Principales del EMAD — Orden DEF/710/2020):</strong> El EMAD se articula en: 1) <strong>EMACON</strong> (Estado Mayor Conjunto de la Defensa, dirigido por el JEMACON), 2) <strong>MOPS</strong> (Mando de Operaciones, en Retamares, dirigido por el CMOPS), 3) <strong>MCCE</strong> (Mando Conjunto del Ciberespacio), 4) <strong>CIFAS</strong> (Centro de Inteligencia de las FAS) y 5) <strong>CESEDEN</strong> (Centro Superior de Estudios de la Defensa Nacional).",
+      "🎬 <strong>Vídeo T9 (Los 4 Mandos Operativos Permanentes — ¡Cuidado con los Comandantes!):</strong> <br/>• 陸 <strong>MOT (Mando Operativo Terrestre):</strong> Comandante es el GE JFC (<span class='hl-green'>Jefe del Mando de Canarias del ET</span>, sede en Santa Cruz de Tenerife). <br/>• ⚓ <strong>MOM (Mando Operativo Marítimo):</strong> Comandante es el <span class='hl-cyan'>ALMART</span> (Almirante de Acción Marítima, en Cartagena). <br/>• ✈️ <strong>MOA (Mando Operativo Aeroespacial):</strong> Comandante es el <span class='hl-yellow'>GJMACOM</span> (Jefe del Mando Aéreo de Combate, en Torrejón). <br/>• 💻 <strong>MOC (Mando Operativo Ciberespacial):</strong> Comandante es el <span class='hl-pink'>CMCCE</span> (Comandante del Mando Conjunto del Ciberespacio)."
+    ],
+    postItsProfesor: [
+      {
+        titulo: "🎬 Vídeo T7: Rango de JEMAD vs JEME / AJEMA / JEMA",
+        texto: "• JEMAD: Rango de SECRETARIO DE ESTADO (Estructura Operativa).\n• JEME, AJEMA y JEMA: Rango de SUBSECRETARIO (Estructura Orgánica: preparación de la Fuerza).",
+        color: "yellow",
+        tag: "🎬 Post-it Vídeo T7"
+      },
+      {
+        titulo: "🎬 Vídeo T8: Los 5 Pilares del EMAD (Orden DEF/710/2020)",
+        texto: "EMACON + MOPS + MCCE + CIFAS + CESEDEN (que integra ESFAS y CESIA).",
+        color: "green",
+        tag: "🎬 Post-it Vídeo T8"
+      },
+      {
+        titulo: "🎬 Vídeo T9: Los 4 Mandos Operativos Permanentes (MOT, MOM, MOA, MOC)",
+        texto: "• MOT (Terrestre) ➔ Jefe del Mando de Canarias (MCANA).\n• MOM (Marítimo) ➔ ALMART (Cartagena).\n• MOA (Aeroespacial) ➔ GJMACOM (Torrejón).\n• MOC (Ciberespacial) ➔ CMCCE.",
+        color: "pink",
+        tag: "🎬 Post-it Vídeo T9"
+      }
+    ]
+  },
+
+  "B1-T06": {
+    videosCubiertos: "🎬 Vídeo T10 de YouTube (Instrucción 14/2021 ET, 15/2021 Armada y 6/2025 EA)",
+    tituloCapsula: "🎬 Pizarra del Profesor — Vídeo T10: Organización del Ejército de Tierra (EME, La Fuerza y el Apoyo a la Fuerza)",
+    puntos: [
+      "🎬 <strong>Vídeo T10 (Las 3 Partes del Ejército de Tierra — Instrucción 14/2021):</strong> El ET se compone de: <strong>1) El Cuartel General (CG)</strong> (en el Palacio de Buenavista, Madrid, que encuadra al EME, Gabinete del JEME, IHCM y Asesoría Jurídica), <strong>2) La Fuerza</strong> y <strong>3) El Apoyo a la Fuerza</strong>.",
+      "🎬 <strong>Vídeo T10 (Los 3 Grandes Mandos de LA FUERZA del ET — ¡Pregunta estrella!):</strong> <br/>• <strong>FUTER (Fuerza Terrestre — Cuartel General en Sevilla, Plaza de España):</strong> Agrupa la <strong>División «Castillejos»</strong> (Huesca), la <strong>División «San Marcial»</strong> (Burgos — operaciones especiales MOE, FAMET, BRIPAC, Mando de Tropas de Montaña) y el Mando de Apoyo a la Maniobra (A Coruña). <br/>• <strong>MCANA (Mando de Canarias — Santa Cruz de Tenerife):</strong> Agrupa la Brigada «Canarias» XVI y las Comandancias Generales de <strong>Baleares, Ceuta y Melilla</strong>. <br/>• <strong>CGTAD (Cuartel General Terrestre de Alta Disponibilidad — Bétera, Valencia):</strong> Incluye el Regimiento de Inteligencia nº 1 y el Batallón de Policía Militar I.",
+      "🎬 <strong>Vídeo T10 (Los 4 Mandos del APOYO A LA FUERZA del ET):</strong> <span class='hl-yellow'>MAPER</span> (Mando de Personal), <span class='hl-green'>MALE</span> (Mando de Apoyo Logístico), <span class='hl-cyan'>MADOC</span> (Mando de Adiestramiento y Doctrina — con sede en <strong>Granada</strong>) y <span class='hl-pink'>IGE</span> (Inspección General del Ejército — con sede en el Palacio de Capitanía de <strong>Barcelona</strong>). Además, la <strong>DIAE</strong> (Dirección de Asuntos Económicos)."
+    ],
+    postItsProfesor: [
+      {
+        titulo: "🎬 Vídeo T10: Los 3 Mandos de LA FUERZA del ET (Instrucción 14/2021)",
+        texto: "1) FUTER (Sevilla): División 'Castillejos' (Huesca) + División 'San Marcial' (Burgos) + MAM (A Coruña).\n2) MCANA (Tenerife): BRICAN XVI + COMGEBAL + COMGECEU + COMGEMEL.\n3) CGTAD (Bétera, Valencia).",
+        color: "yellow",
+        tag: "🎬 Post-it Vídeo T10"
+      },
+      {
+        titulo: "🎬 Vídeo T10: Sedes del Apoyo a la Fuerza del ET",
+        texto: "• MADOC (Adiestramiento y Doctrina) ➔ GRANADA.\n• IGE (Inspección General del Ejército) ➔ BARCELONA.\n• MAPER, MALE y DIAE ➔ MADRID.",
+        color: "green",
+        tag: "🎬 Post-it Vídeo T10"
+      },
+      {
+        titulo: "🎬 Vídeo T10: Armada (15/2021) y Ejército del Aire y del Espacio (6/2025)",
+        texto: "• La Fuerza de la Armada es LA FLOTA (mandada por el ALFLOT en Rota).\n• El Ejército del Aire pasó a denominarse Ejército del Aire y del Espacio (RD 524/2022) y su organización se actualizó por Instrucción 6/2025 del JEMA.",
+        color: "cyan",
+        tag: "🎬 Post-it Vídeo T10"
+      }
+    ]
+  },
+
+  "B2-T01": {
+    videosCubiertos: "🎬 Vídeo T11 de YouTube (Ley 8/2006 de Tropa y Marinería y Ley 39/2007 de la Carrera Militar)",
+    tituloCapsula: "🎬 Pizarra del Profesor — Vídeo T11: Ley 8/2006 de Tropa y Marinería y Ley 39/2007 de la Carrera Militar",
+    puntos: [
+      "🎬 <strong>Vídeo T11 (Modalidades de Compromiso en la Ley 8/2006):</strong> 1) <strong>Compromiso Inicial:</strong> de <span class='hl-yellow'>2 o 3 años</span> (prorrogable hasta completar un máximo de <strong>6 años</strong> de servicios). 2) <strong>Compromiso de Larga Duración (CLD):</strong> Se suscribe tras más de <strong>5 años</strong> de servicios hasta los <span class='hl-green'>45 años de edad</span>. 3) <strong>Condición de Permanente:</strong> Adquiere la condición de militar de carrera.",
+      "🎬 <strong>Vídeo T11 (Requisitos para acceder a la Permanencia y Reservista de Especial Disponibilidad RED):</strong> Para participar en el proceso selectivo a Tropa Permanente (Art. 12 Ley 8/2006 y Orden DEF/1341/2017): tener suscrito el <strong>CLD</strong>, poseer como mínimo el título de <strong>Técnico del Sistema Educativo General (FP Grado Medio) o equivalente</strong> (o 14 años de servicio según disposiciones transitorias/convocatoria) y acreditar un mínimo de <strong>8 o 14 años de tiempo de servicios</strong> según la modalidad convocada. Al cumplir <strong>45 años</strong> sin ser permanente y con al menos <span class='hl-pink'>18 años de servicios</span>, se accede a <strong>Reservista de Especial Disponibilidad (RED)</strong> hasta los <strong>65 años</strong>.",
+      "🎬 <strong>Vídeo T11 (Situaciones Administrativas y Sanciones Disciplinarias en la Ley 39/2007):</strong> Las 5 situaciones administrativas (Art. 107 Ley 39/2007): <em>Servicio activo, Servicios especiales, Excedencia, Suspensión de funciones y Suspensión de empleo</em>. ¡Trampa de examen!: En <strong>suspensión de empleo o funciones</strong> de hasta 6 meses NO se pierde el destino; si supera los <span class='hl-cyan'>6 meses</span> (o es por expediente gubernativo/judicial superior a 6 meses), conlleva <strong>pérdida de destino</strong>."
+    ],
+    postItsProfesor: [
+      {
+        titulo: "🎬 Vídeo T11: Escalera de Compromisos (Ley 8/2006)",
+        texto: "• Compromiso Inicial: 2 o 3 años (renovaciones hasta máx. 6 años).\n• Compromiso de Larga Duración (CLD): desde >5 años de servicio hasta los 45 años de edad.\n• RED (Reservista Especial Disponibilidad): a los 45 años con al menos 18 años de servicio (hasta los 65 años).",
+        color: "yellow",
+        tag: "🎬 Post-it Vídeo T11"
+      },
+      {
+        titulo: "🎬 Vídeo T11: Reserva de Plazas para MTM con >5 años (Ley 8/2006)",
+        texto: "• Guardia Civil: reserva de al menos el 40% de las plazas.\n• Cuerpo Nacional de Policía: reserva de al menos el 20%.\n• Escala de Suboficiales (Promoción interna): al menos el 80% de las plazas.",
+        color: "green",
+        tag: "🎬 Post-it Vídeo T11"
+      },
+      {
+        titulo: "🎬 Vídeo T11: Los 4 Sistemas de Ascenso (Ley 39/2007 Art. 88)",
+        texto: "1) Elección (p. ej. a General de Brigada y Cabo Mayor).\n2) Clasificación (p. ej. a Coronel, Teniente Coronel, Comandante, Suboficial Mayor, Brigada y Cabo 1º según casos).\n3) Concurso o Concurso-Oposición (p. ej. a Cabo y Cabo 1º).\n4) Antigüedad (p. ej. a Capitán y Sargento 1º).",
+        color: "cyan",
+        tag: "🎬 Post-it Vídeo T11"
+      }
+    ]
+  },
+
+  "B2-T02": {
+    videosCubiertos: "🎬 Vídeos T12 y T13 de YouTube (Reales Ordenanzas para las FAS — RD 96/2009 Partes I y II)",
+    tituloCapsula: "🎬 Pizarra del Profesor — Vídeos T12 y T13: Reales Ordenanzas para las FAS (RD 96/2009 — 128 Artículos y 6 Títulos)",
+    puntos: [
+      "🎬 <strong>Vídeo T12 (Estructura y Ámbito de Aplicación de las RROO — RD 96/2009):</strong> Constan de <span class='hl-yellow'>128 artículos, 6 Títulos</span> y una Disposición Final. Se aplican a todos los militares profesionales, alumnos de centros docentes militares de formación y a los <strong>reservistas y aspirantes cuando se encuentren incorporados a las FAS</strong>.",
+      "🎬 <strong>Vídeo T12 (Obediencia Debida y Límites — Art. 48 RROO):</strong> Si las órdenes entrañan la ejecución de actos constitutivos de <span class='hl-pink'>delito, en particular contra la Constitución y contra las personas y bienes protegidos en caso de conflicto armado</span>, el militar <strong>NO estará obligado a obedecerlas</strong> y en todo caso asumirá la grave responsabilidad de su acción u omisión.",
+      "🎬 <strong>Vídeo T13 (Conducto Reglamentario y Excepciones — Arts. 31 y 40 RROO):</strong> Para asuntos del servicio el militar se dirigirá a sus superiores por <strong>conducto reglamentario</strong> (a través de su jefe inmediato). <strong>Excepción clave:</strong> NO es necesario seguir el conducto reglamentario cuando se presente una queja o recurso contra ese mismo jefe inmediato o ante las Unidades de Protección frente al Acoso (UPA)."
+    ],
+    postItsProfesor: [
+      {
+        titulo: "🎬 Vídeo T12: Estructura Exacta del RD 96/2009 (RROO)",
+        texto: "128 Artículos repartidos en 6 Títulos:\n• Tít. Preliminar (Disposiciones generales)\n• Tít. I (El militar)\n• Tít. II (La disciplina)\n• Tít. III (La acción del mando)\n• Tít. IV (Las operaciones)\n• Tít. V (De las demás funciones).",
+        color: "yellow",
+        tag: "🎬 Post-it Vídeo T12"
+      },
+      {
+        titulo: "🎬 Vídeo T12: Definición de Orden (Art. 45 RROO) y Límite (Art. 48)",
+        texto: "• Orden (Art. 45): Mandato relativo al servicio que un militar superior da a un subordinado, en forma adecuada y dentro de las atribuciones que le correspondan.\n• Límite (Art. 48): Si constituye DELITO, NO está obligado a obedecerla.",
+        color: "pink",
+        tag: "🎬 Post-it Vídeo T12"
+      },
+      {
+        titulo: "🎬 Vídeo T13: Uso Legítimo de la Fuerza (Art. 84 y 91 RROO)",
+        texto: "El militar hará un uso gradual y proporcionado de la fuerza, de acuerdo con las Reglas de Enfrentamiento (ROE) fijadas para la operación, inspirándose en los principios de congruencia, oportunidad y proporcionalidad.",
+        color: "green",
+        tag: "🎬 Post-it Vídeo T13"
+      }
+    ]
+  },
+
+  "B2-T03": {
+    videosCubiertos: "🎬 Vídeo T14 de YouTube (LO 9/2011 de Derechos y Deberes de los Miembros de las FAS)",
+    tituloCapsula: "🎬 Pizarra del Profesor — Vídeo T14: LO 9/2011 de Derechos y Deberes (CAPI, Asociaciones y Neutralidad)",
+    puntos: [
+      "🎬 <strong>Vídeo T14 (Neutralidad Política y Sindical — Arts. 7 y 8 LO 9/2011):</strong> El militar está sujeto al deber de <strong>neutralidad política y sindical</strong>. <span class='hl-pink'>NO puede afiliarse a partidos políticos ni a sindicatos</span>, ni ejercer el derecho de huelga ni acciones sustitutivas o concertadas con el fin de alterar el normal funcionamiento de las FAS.",
+      "🎬 <strong>Vídeo T14 (Asociaciones Profesionales y Registro RAPFAS — Arts. 33 a 45):</strong> Los militares en activo o reserva pueden crear y afiliarse a <strong>Asociaciones Profesionales de miembros de las FAS</strong> (inscritas en el RAPFAS del Ministerio de Defensa). Solo se puede estar afiliado a <strong>UNA</strong> asociación profesional. Para acceder al <strong>CAPI</strong> se exige acreditar el <span class='hl-yellow'>1% de los afiliados en general</span>, o el <span class='hl-green'>3% de los miembros de su escala</span> (Oficiales / Suboficiales), o el <span class='hl-cyan'>1,5% en la Escala de Tropa y Marinería</span>.",
+      "🎬 <strong>Vídeo T14 (El CAPI y el Observatorio de la Vida Militar — Arts. 46 a 55):</strong> El <strong>CAPI (Consejo de Personal de las FAS)</strong> lo preside el Ministro de Defensa (o el Subsecretario de Defensa por delegación). El <strong>Observatorio de la Vida Militar (OVM)</strong> es un órgano colegiado de carácter asesor y consultivo <strong>adscrito a las Cortes Generales</strong>, compuesto por <strong>9 personalidades</strong> elegidas por mayoría de 3/5 (<strong>5 por el Congreso y 4 por el Senado</strong>) por un mandato de <strong>5 años</strong>."
+    ],
+    postItsProfesor: [
+      {
+        titulo: "🎬 Vídeo T14: Los 3 Porcentajes para entrar al CAPI (Art. 48 LO 9/2011)",
+        texto: "Para tener representación en el CAPI una asociación necesita:\n• 1% del total de efectivos de las FAS, O\n• 3% en la escala de Oficiales o en la de Suboficiales, O\n• 1,5% en la escala de TROPA Y MARINERÍA.",
+        color: "yellow",
+        tag: "🎬 Post-it Vídeo T14"
+      },
+      {
+        titulo: "🎬 Vídeo T14: Observatorio de la Vida Militar (OVM — Art. 54 LO 9/2011)",
+        texto: "• Adscrito a las CORTES GENERALES (no al Ministerio).\n• 9 miembros: 5 elegidos por el Congreso + 4 por el Senado (por mayoría de 3/5).\n• Mandato: 5 años (cargo gratuito e incompatible con servicio activo).",
+        color: "cyan",
+        tag: "🎬 Post-it Vídeo T14"
+      },
+      {
+        titulo: "🎬 Vídeo T14: Derecho de Petición en las FAS (Art. 15 LO 9/2011)",
+        texto: "El militar puede ejercer el derecho de petición solo INDIVIDUALMENTE (nunca de forma colectiva) y por conducto reglamentario.",
+        color: "pink",
+        tag: "🎬 Post-it Vídeo T14"
+      }
+    ]
+  },
+
+  "B2-T04": {
+    videosCubiertos: "🎬 Vídeos T15 y T16 de YouTube (LO 8/2014 de Régimen Disciplinario de las FAS I y II)",
+    tituloCapsula: "🎬 Pizarra del Profesor — Vídeos T15 y T16: LO 8/2014 Régimen Disciplinario (Faltas, Sanciones, Prescripción y Cancelación)",
+    puntos: [
+      "🎬 <strong>Vídeo T15 (Cuadro de Faltas y Sanciones — Arts. 6 a 22 LO 8/2014):</strong> <br/>• <strong>Faltas LEVES:</strong> Reprensión, Privación de salida de <span class='hl-green'>1 a 8 días</span>, Sanción económica de <span class='hl-green'>1 a 7 días</span>, Arresto de <span class='hl-green'>1 a 14 días</span>. <br/>• <strong>Faltas GRAVES:</strong> Sanción económica de <span class='hl-yellow'>8 a 15 días</span>, Arresto de <span class='hl-yellow'>15 a 30 días</span>, Pérdida de destino, Baja en centro docente militar. <br/>• <strong>Faltas MUY GRAVES:</strong> Arresto de <span class='hl-pink'>31 a 60 días</span>, Suspensión de empleo (de 1 mes a 1 año), Separación del servicio y Resolución de compromiso.",
+      "🎬 <strong>Vídeo T15 (La Tabla Mágica: Prescripción vs Cancelación — Arts. 23, 24 y 65):</strong> <br/>• <strong>Prescripción de las FALTAS (Art. 23):</strong> Leves = <span class='hl-cyan'>2 meses</span> | Graves = <span class='hl-cyan'>1 año</span> | Muy Graves = <span class='hl-cyan'>2 años</span>. <br/>• <strong>Prescripción de las SANCIONES (Art. 24):</strong> Leves = <span class='hl-yellow'>3 meses</span> | Graves = <span class='hl-yellow'>1 año</span> | Muy Graves = <span class='hl-yellow'>2 años</span>. <br/>• <strong>Cancelación de Notas Desfavorables (Art. 65):</strong> Leves = <span class='hl-green'>1 año</span> | Graves = <span class='hl-green'>2 años</span> | Muy Graves = <span class='hl-green'>4 años</span> (se cancelan de oficio o a instancia de parte, EXCEPTO la separación del servicio y la resolución de compromiso).",
+      "🎬 <strong>Vídeo T16 (Potestad Disciplinaria y Recursos — Arts. 26 a 32 y 67 a 71):</strong> El <strong>Jefe de Compañía o unidad similar</strong> puede imponer reprensión, privación de salida hasta <span class='hl-yellow'>5 días</span>, sanción económica hasta <span class='hl-yellow'>5 días</span> y arresto hasta <span class='hl-yellow'>7 días</span>. El <strong>Jefe de Batallón</strong> hasta 8 días de privación de salida, 7 días económica y 7 días de arresto; el <strong>Jefe de Regimiento (Coronel)</strong> todas las sanciones por falta leve (hasta 14 días de arresto). Plazo para interponer recurso disciplinario: <span class='hl-pink'>1 MES</span> (si el sancionado está en arresto, el plazo de 1 mes empieza a contar al día siguiente de finalizar el cumplimiento del arresto)."
+    ],
+    postItsProfesor: [
+      {
+        titulo: "🎬 Vídeo T15: Tabla Mágica LO 8/2014 (Falta / Sanción / Cancelación)",
+        texto: "• LEVES: Falta prescribe a los 2 MESES | Sanción 3 MESES | Cancela al 1 AÑO.\n• GRAVES: Falta prescribe al 1 AÑO | Sanción 1 AÑO | Cancela a los 2 AÑOS.\n• MUY GRAVES: Falta prescribe a los 2 AÑOS | Sanción 2 AÑOS | Cancela a los 4 AÑOS.",
+        color: "yellow",
+        tag: "🎬 Post-it Vídeo T15"
+      },
+      {
+        titulo: "🎬 Vídeo T15: Duración Exacta de Sanciones (Art. 11 LO 8/2014)",
+        texto: "• Privación de salida: 1 a 8 días (Leve).\n• Sanción económica: 1 a 7 días (Leve) | 8 a 15 días (Grave).\n• Arresto: 1 a 14 días (Leve) | 15 a 30 días (Grave) | 31 a 60 días (Muy Grave).",
+        color: "pink",
+        tag: "🎬 Post-it Vídeo T15"
+      },
+      {
+        titulo: "🎬 Vídeo T16: Plazos de Tramitación y Recursos (LO 8/2014)",
+        texto: "• Caducidad del expediente: Graves = 6 MESES | Muy Graves = 1 AÑO.\n• Plazo para alegar al Pliego de Cargos: 10 DÍAS.\n• Plazo para interponer Recurso de Alzada / Reposición disciplinario: 1 MES (si hay arresto, cuenta desde que termina el arresto).",
+        color: "cyan",
+        tag: "🎬 Post-it Vídeo T16"
+      },
+      {
+        titulo: "🎬 Vídeo T16: Quién Impone Separación del Servicio vs Resolución Compromiso",
+        texto: "Ambas sanciones por falta Muy Grave son competencia EXCLUSIVA del MINISTRO DE DEFENSA (Art. 27 LO 8/2014), previo informe del Consejo Superior del Ejército correspondiente.",
+        color: "green",
+        tag: "🎬 Post-it Vídeo T16"
+      }
+    ]
+  },
+
+  "B2-T05": {
+    videosCubiertos: "🎬 Vídeo T17 de YouTube (RD 176/2014 de Iniciativas y Quejas)",
+    tituloCapsula: "🎬 Pizarra del Profesor — Vídeo T17: RD 176/2014 Procedimiento para la Tramitación de Iniciativas y Quejas",
+    puntos: [
+      "🎬 <strong>Vídeo T17 (Diferencia entre Iniciativa y Queja — RD 176/2014):</strong> <strong>Iniciativa</strong> = Propuesta para mejorar la eficacia de las unidades, el régimen interior o la calidad de vida. <strong>Queja</strong> = Reclamación por insatisfacción o agravio en el régimen de personal o condiciones de vida/trabajo que no tenga un cauce específico de recurso administrativo o disciplinario.",
+      "🎬 <strong>Vídeo T17 (Prohibiciones y Plazos — ¡El número 6 Meses!):</strong> Se presentan siempre de forma <strong>individual</strong> (prohibidas las anónimas o colectivas). Si en el plazo de <span class='hl-yellow'>6 MESES</span> desde la presentación de la queja el Jefe de Unidad no ha contestado o la respuesta no es satisfactoria, el militar puede acudir directamente al <strong>Mando o Jefatura de Personal (MAPER / JEPER)</strong> y dar cuenta al <strong>Subsecretario de Defensa (SUBDEF)</strong>."
+    ],
+    postItsProfesor: [
+      {
+        titulo: "🎬 Vídeo T17: El Plazo de 6 Meses en las Quejas (RD 176/2014)",
+        texto: "El Jefe de Unidad debe acusar recibo en 15 DÍAS. Si pasan 6 MESES sin resolución o sin acuerdo, el militar puede elevar la queja directamente al Mando de Personal (MAPER/JEPER) e informar al SUBDEF.",
+        color: "yellow",
+        tag: "🎬 Post-it Vídeo T17"
+      },
+      {
+        titulo: "🎬 Vídeo T17: Qué está Excluido del RD 176/2014 (Art. 3)",
+        texto: "Quedan excluidas:\n1) Las decisiones operativas o de mando.\n2) Los asuntos sometidos a procedimiento judicial.\n3) Los actos que tengan procedimiento específico de recurso administrativo o disciplinario.\n4) Las iniciativas o quejas anónimas o colectivas.",
+        color: "pink",
+        tag: "🎬 Post-it Vídeo T17"
+      }
+    ]
+  },
+
+  "B2-T06": {
+    videosCubiertos: "🎬 Vídeo T18 (1ª Mitad) de YouTube (LO 3/2007 de Igualdad Efectiva de Mujeres y Hombres)",
+    tituloCapsula: "🎬 Pizarra del Profesor — Vídeo T18 (Parte 1): LO 3/2007 de Igualdad y Observatorio Militar para la Igualdad",
+    puntos: [
+      "🎬 <strong>Vídeo T18 (Conceptos Clave de la LO 3/2007 — Arts. 6 a 11 y Disposición Adicional 1ª):</strong> <strong>Discriminación directa</strong> (trato menos favorable por razón de sexo) vs <strong>Discriminación indirecta</strong> (disposición aparentemente neutra que pone en desventaja particular a personas de un sexo). <strong>Presencia o composición equilibrada:</strong> que las personas de cada sexo no superen el <span class='hl-yellow'>60% ni sean menos del 40%</span>.",
+      "🎬 <strong>Vídeo T18 (Inversión de la Carga de la Prueba — Art. 13 LO 3/2007):</strong> En los procedimientos en los que las alegaciones de la parte actora se fundamenten en actuaciones discriminatorias por razón de sexo, corresponderá a la <strong>persona demandada probar la ausencia de discriminación</strong> (EXCEPTO en los procesos penales y en los administrativos sancionadores).",
+      "🎬 <strong>Vídeo T18 (Observatorio Militar para la Igualdad — Orden DEF/111/2019):</strong> Adscrito a la <span class='hl-green'>Subsecretaría de Defensa (SUBDEF)</span>, presidido por el/la Subsecretario/a de Defensa. Se reúne en pleno en sesión ordinaria al menos <strong>2 veces al año</strong> (semestralmente)."
+    ],
+    postItsProfesor: [
+      {
+        titulo: "🎬 Vídeo T18: Regla 60% / 40% y Carga de la Prueba (LO 3/2007)",
+        texto: "• Presencia equilibrada: ningún sexo > 60% ni < 40%.\n• Carga de la prueba (Art. 13): se invierte (prueba el demandado), EXCEPTO en procesos penales y administrativos sancionadores.",
+        color: "yellow",
+        tag: "🎬 Post-it Vídeo T18"
+      },
+      {
+        titulo: "🎬 Vídeo T18: Acoso Sexual vs Acoso por Razón de Sexo (Art. 7)",
+        texto: "• Acoso Sexual (Art. 7.1): comportamiento verbal o físico de NATURALEZA SEXUAL.\n• Acoso por Razón de Sexo (Art. 7.2): comportamiento realizado EN FUNCIÓN DEL SEXO de una persona (p. ej. embarazo o maternidad).",
+        color: "pink",
+        tag: "🎬 Post-it Vídeo T18"
+      }
+    ]
+  },
+
+  "B2-T07": {
+    videosCubiertos: "🎬 Vídeo T18 (2ª Mitad) de YouTube (Protocolo de Actuación frente al Acoso Sexual y Profesional en las FAS — UPA)",
+    tituloCapsula: "🎬 Pizarra del Profesor — Vídeo T18 (Parte 2): Protocolo frente al Acoso en las FAS y Unidades de Protección (UPA)",
+    puntos: [
+      "🎬 <strong>Vídeo T18 (Las Unidades de Protección frente al Acoso — UPA):</strong> Existe una <strong>UPA Central</strong> en la Dirección General de Personal (<span class='hl-yellow'>DIGENPER — SUBDEF</span>) y <strong>UPAs en los Mandos/Jefaturas de Personal</strong> de los Ejércitos y la Armada (MAPER ET, JEPER Armada y MAPER EA).",
+      "🎬 <strong>Vídeo T18 (Sin Conducto Reglamentario y Plazo de Remisión — ¡Muy preguntado!):</strong> Cualquier víctima o militar que conozca un caso de acoso puede dirigirse <span class='hl-green'>DIRECTAMENTE a la UPA sin pasar por el conducto reglamentario</span>. Cuando el Jefe de Unidad recibe una denuncia de acoso, debe remitirla de forma reservada e inmediata (en el plazo máximo de <strong>48 horas / 2 días</strong>) a la autoridad con competencia sancionadora o judicial y comunicarlo a la UPA."
+    ],
+    postItsProfesor: [
+      {
+        titulo: "🎬 Vídeo T18: Regla de Oro de la UPA (Protocolo Anti-Acoso FAS)",
+        texto: "1) Acudir a la UPA NO requiere conducto reglamentario.\n2) UPA Central = DIGENPER (SUBDEF).\n3) UPAs específicas = MAPER (ET y EA) y JEPER (Armada).",
+        color: "green",
+        tag: "🎬 Post-it Vídeo T18"
+      }
+    ]
+  },
+
+  "B2-T08": {
+    videosCubiertos: "🎬 Vídeos T19 y T20 de YouTube (Ley 39/2015 LPACAP Partes I y II)",
+    tituloCapsula: "🎬 Pizarra del Profesor — Vídeos T19 y T20: Ley 39/2015 LPACAP (Interesados, Plazos, Nulidad y Recursos)",
+    puntos: [
+      "🎬 <strong>Vídeo T19 (Representación Art. 5, Plazo de Resolver Art. 21 y Silencio Art. 24):</strong> Para formular solicitudes, presentar declaraciones responsables, interponer recursos, desistir o renunciar a derechos <strong>debe acreditarse la representación</strong> (se subsana en <span class='hl-yellow'>10 días</span>). Plazo máximo legal para resolver y notificar (Art. 21): no puede exceder de <span class='hl-green'>6 MESES</span> salvo rango de Ley o norma UE; si la norma no fija plazo, el plazo supletorio es de <span class='hl-cyan'>3 MESES</span>.",
+      "🎬 <strong>Vídeo T19 (Notificaciones en Papel Art. 42 vs Electrónicas Art. 43):</strong> Toda notificación debe cursarse en los <span class='hl-yellow'>10 días</span> siguientes a dictarse el acto. En domicilio (papel): puede recogerla cualquier persona mayor de <strong>14 años</strong>; si no hay nadie, 2º intento dentro de los <strong>3 días siguientes</strong> con al menos <strong>3 horas de diferencia</strong> (cruzando la barrera de las <strong>15:00 horas</strong>). En notificación electrónica: se entiende <strong>rechazada a los 10 DÍAS NATURALES</strong> desde la puesta a disposición sin acceder.",
+      "🎬 <strong>Vídeo T20 (Nulidad Art. 47 vs Anulabilidad Art. 48 y los 3 Recursos Administrativos):</strong> Incompetencia manifiesta por razón de la <strong>materia o del territorio = Nulidad de pleno derecho (Art. 47)</strong>; incompetencia por <strong>jerarquía = Anulabilidad (Art. 48, convalidable)</strong>. Tabla de Recursos: <br/>• <strong>Alzada (Arts. 121-122):</strong> Plazo interposición <span class='hl-green'>1 mes</span> (expreso) | Resolución <span class='hl-green'>3 meses</span>. <br/>• <strong>Potestativo de Reposición (Arts. 123-124):</strong> Plazo interposición <span class='hl-yellow'>1 mes</span> (expreso) | Resolución <span class='hl-yellow'>1 mes</span>. <br/>• <strong>Extraordinario de Revisión (Arts. 125-126):</strong> Contra actos firmes: <span class='hl-pink'>4 años</span> (error de hecho en documentos del expediente) o <span class='hl-pink'>3 meses</span> (documentos nuevos esenciales, falsedad o prevaricación/cohecho) | Resolución <span class='hl-pink'>3 meses</span>."
+    ],
+    postItsProfesor: [
+      {
+        titulo: "🎬 Vídeo T19: Los 5 Números de las Notificaciones (Arts. 40-43 LPACAP)",
+        texto: "• 10 días hábiles para cursar la notificación desde que se dicta.\n• >14 años para recogerla en domicilio.\n• 3 días / barrera 15:00h / margen 3 horas para el 2º intento en papel.\n• 10 DÍAS NATURALES para entender rechazada la notificación electrónica.",
+        color: "yellow",
+        tag: "🎬 Post-it Vídeo T19"
+      },
+      {
+        titulo: "🎬 Vídeo T20: Nulidad (Art. 47) vs Anulabilidad (Art. 48)",
+        texto: "• NULO DE PLENO DERECHO (Art. 47): Incompetencia manifiesta por MATERIA o TERRITORIO, lesión derechos susceptibles de amparo, contenido imposible, delito o prescindir totalmente del procedimiento.\n• ANULABLE (Art. 48): Incompetencia por JERARQUÍA (convalidable por el superior).",
+        color: "pink",
+        tag: "🎬 Post-it Vídeo T20"
+      },
+      {
+        titulo: "🎬 Vídeo T20: Tabla Express de Recursos (Alzada vs Reposición vs Revisión)",
+        texto: "• ALZADA: no agotan vía ➔ Interponer 1 MES / Resolver 3 MESES.\n• REPOSICIÓN: agotan vía ➔ Interponer 1 MES / Resolver 1 MES.\n• REVISIÓN: actos firmes ➔ Interponer 4 AÑOS (error hecho) o 3 MESES (resto) / Resolver 3 MESES.",
+        color: "cyan",
+        tag: "🎬 Post-it Vídeo T20"
+      }
+    ]
+  },
+
+  "B3-T01": {
+    videosCubiertos: "🎬 Vídeos T21 y T22 de YouTube (Ley 36/2015 de Seguridad Nacional y Estrategia de Seguridad Nacional 2021)",
+    tituloCapsula: "🎬 Pizarra del Profesor — Vídeos T21 y T22: Ley 36/2015 de Seguridad Nacional y ESN 2021",
+    puntos: [
+      "🎬 <strong>Vídeo T21 (Ley 36/2015 de Seguridad Nacional — Órganos y Situación de Interés para la Seguridad Nacional):</strong> El <strong>Consejo de Seguridad Nacional (CSN)</strong> tiene condición de Comisión Delegada del Gobierno; lo preside el Presidente del Gobierno (salvo que asista el Rey, en cuyo caso lo preside el Rey). La <strong>Situación de Interés para la Seguridad Nacional (Art. 23-24)</strong> la declara el <span class='hl-pink'>Presidente del Gobierno mediante Real Decreto</span> (y NO supone suspensión de derechos fundamentales).",
+      "🎬 <strong>Vídeo T22 (Estrategia de Seguridad Nacional ESN 2021 — RD 1150/2021):</strong> Se revisa cada <span class='hl-yellow'>5 años</span> (o antes si cambian las circunstancias estratégicas). El lema de la ESN 2021 es <em>«Un proyecto compartido»</em> y se estructura en <strong>3 Ejes Estratégicos</strong>: <span class='hl-green'>1) Proteger, 2) Promover y 3) Participar</span>, junto a 33 líneas de acción."
+    ],
+    postItsProfesor: [
+      {
+        titulo: "🎬 Vídeo T21: Quién Declara la Situación de Interés para la Seguridad Nacional",
+        texto: "La declara el PRESIDENTE DEL GOBIERNO mediante Real Decreto (Art. 24 Ley 36/2015). El Director del DSN (Departamento de Seguridad Nacional) es el Director del Gabinete de la Presidencia del Gobierno.",
+        color: "yellow",
+        tag: "🎬 Post-it Vídeo T21"
+      },
+      {
+        titulo: "🎬 Vídeo T22: Las '3 P' de la ESN 2021 (RD 1150/2021)",
+        texto: "Revisión cada 5 años. Los 3 Ejes de la Estrategia de Seguridad Nacional 2021 son:\n1) PROTEGER\n2) PROMOVER\n3) PARTICIPAR.",
+        color: "green",
+        tag: "🎬 Post-it Vídeo T22"
+      }
+    ]
+  },
+
+  "B3-T02": {
+    videosCubiertos: "🎬 Vídeos T23 y T24 de YouTube (Doctrina PDC-01 B para el Empleo de las FAS I y II)",
+    tituloCapsula: "🎬 Pizarra del Profesor — Vídeos T23 y T24: Doctrina PDC-01 (B) (Entornos Operativos, Dominios e Instrumentos de Poder)",
+    puntos: [
+      "🎬 <strong>Vídeo T23 (Los 4 Instrumentos de Poder Nacional DIME y los 3 Rasgos del Entorno Operativo):</strong> Los 4 instrumentos del Poder Nacional son: <span class='hl-yellow'>D</span>iplomático, de la <span class='hl-yellow'>I</span>nformación, <span class='hl-yellow'>M</span>ilitar y <span class='hl-yellow'>E</span>conómico (<strong>DIME</strong>). El entorno operativo actual se caracteriza por ser <strong>complejo, incierto y cambiante (volátil/ambiguo)</strong>, donde destaca la <strong>Zona Gris</strong> (conflicto híbrido por debajo del umbral de la guerra convencional).",
+      "🎬 <strong>Vídeo T24 (Los 5 Ámbitos / Dominios de Operación y los 3 Niveles de Conducción):</strong> Las operaciones multidominio integran <strong>5 Ámbitos</strong>: <span class='hl-green'>Terrestre, Marítimo, Aeroespacial, Ciberespacial y Cognitivo</span> (en el entorno de la información). Los <strong>3 Niveles de planeamiento y conducción</strong> son: <strong>Estratégico</strong> (Presidente / Ministro / JEMAD), <strong>Operacional</strong> (CMOPS) y <strong>Táctico</strong> (Comandantes sobre el terreno)."
+    ],
+    postItsProfesor: [
+      {
+        titulo: "🎬 Vídeo T23: Siglas DIME en la Doctrina PDC-01 (B)",
+        texto: "Los 4 Instrumentos del Poder Nacional son D-I-M-E:\n• Diplomático\n• Información\n• Militar\n• Económico.",
+        color: "yellow",
+        tag: "🎬 Post-it Vídeo T23"
+      },
+      {
+        titulo: "🎬 Vídeo T24: Los 5 Ámbitos (Multidominio) y los 3 Niveles (PDC-01)",
+        texto: "• 5 Ámbitos: Terrestre, Marítimo, Aeroespacial, Ciberespacial y Cognitivo.\n• 3 Niveles de las operaciones: Estratégico (JEMAD), Operacional (CMOPS) y Táctico.",
+        color: "cyan",
+        tag: "🎬 Post-it Vídeo T24"
+      }
+    ]
+  },
+
+  "B3-T03": {
+    videosCubiertos: "🎬 Vídeo T25 de YouTube (Organización de las Naciones Unidas — ONU)",
+    tituloCapsula: "🎬 Pizarra del Profesor — Vídeo T25: Naciones Unidas (Carta de San Francisco 1945 y los 6 Órganos Principales)",
+    puntos: [
+      "🎬 <strong>Vídeo T25 (Fechas y los 6 Órganos Principales de la ONU — Art. 7 de la Carta):</strong> Carta firmada en San Francisco el <strong>26 de junio de 1945</strong> (en vigor el <span class='hl-yellow'>24 de octubre de 1945</span>). España ingresó el <span class='hl-green'>14 de diciembre de 1955</span>. Los 6 órganos principales son: <em>Asamblea General, Consejo de Seguridad, ECOSOC (54 miembros), Consejo de Administración Fiduciaria, Corte Internacional de Justicia (La Haya, 15 jueces por 9 años) y Secretaría General</em>.",
+      "🎬 <strong>Vídeo T25 (Consejo de Seguridad y Capítulos VI, VII y VIII):</strong> El Consejo de Seguridad tiene <strong>15 miembros</strong>: <span class='hl-pink'>5 Permanentes con derecho de veto</span> (EE.UU., Reino Unido, Francia, Rusia y China) y <strong>10 No Permanentes</strong> elegidos por 2 años (las decisiones de fondo requieren al menos <strong>9 votos afirmativos</strong> sin veto de los 5 permanentes). <strong>Cap. VI</strong> = Arreglo pacífico de controversias; <strong>Cap. VII</strong> = Acción en caso de amenazas a la paz o actos de agresión (uso de la fuerza); <strong>Cap. VIII</strong> = Acuerdos regionales."
+    ],
+    postItsProfesor: [
+      {
+        titulo: "🎬 Vídeo T25: Números Clave de la ONU (1945 / 1955 / 15 / 54)",
+        texto: "• Carta ONU: 26 junio 1945 (en vigor 24 octubre 1945). España ingresó el 14 diciembre 1955.\n• Consejo de Seguridad: 15 miembros (5 permanentes con veto + 10 por 2 años; mayoría 9/15).\n• ECOSOC: 54 miembros (por 3 años).\n• CIJ (La Haya): 15 magistrados (por 9 años).",
+        color: "yellow",
+        tag: "🎬 Post-it Vídeo T25"
+      }
+    ]
+  },
+
+  "B3-T04": {
+    videosCubiertos: "🎬 Vídeo T26 de YouTube (Organización del Tratado del Atlántico Norte — OTAN)",
+    tituloCapsula: "🎬 Pizarra del Profesor — Vídeo T26: La OTAN (32 Aliados, Artículos 4 y 5, ACO vs ACT y Sedes en España)",
+    puntos: [
+      "🎬 <strong>Vídeo T26 (Tratado de Washington 1949 y los 32 Aliados):</strong> Firmado el <span class='hl-yellow'>4 de abril de 1949</span>. España ingresó el <span class='hl-green'>30 de mayo de 1982</span> (como miembro nº 16). Con las incorporaciones de <strong>Finlandia (2023) y Suecia (marzo de 2024)</strong>, la OTAN cuenta hoy con <span class='hl-cyan'>32 países aliados</span>.",
+      "🎬 <strong>Vídeo T26 (ACO en Mons vs ACT en Norfolk y Sedes en España):</strong> Los 2 Mandos Estratégicos son: <strong>ACO</strong> (Mando Aliado de Operaciones, en <span class='hl-yellow'>SHAPE — Mons, Bélgica</span>) y <strong>ACT</strong> (Mando Aliado de Transformación, en <span class='hl-green'>Norfolk, EE.UU.</span>). En España: <strong>CAOC Torrejón</strong> (pertenece a la Estructura de <em>Mandos</em> de la OTAN) y <strong>HQ NRDC-ESP Bétera</strong> (pertenece a la Estructura de <em>Fuerzas</em>)."
+    ],
+    postItsProfesor: [
+      {
+        titulo: "🎬 Vídeo T26: 32 Aliados OTAN y ACO (Mons) vs ACT (Norfolk)",
+        texto: "• Tratado de Washington: 4 abril 1949. España: 30 mayo 1982. Total aliados actual: 32 (Finlandia #31 en 2023 y Suecia #32 en 2024).\n• ACO (Operaciones) ➔ Mons (Bélgica).\n• ACT (Transformación) ➔ Norfolk (EE.UU.).",
+        color: "cyan",
+        tag: "🎬 Post-it Vídeo T26"
+      }
+    ]
+  },
+
+  "B3-T05": {
+    videosCubiertos: "🎬 Vídeo T27 (1ª Mitad) de YouTube (Organización para la Seguridad y la Cooperación en Europa — OSCE)",
+    tituloCapsula: "🎬 Pizarra del Profesor — Vídeo T27 (Parte 1): La OSCE (Helsinki 1975, Budapest 1994, 57 Estados y 3 Dimensiones)",
+    puntos: [
+      "🎬 <strong>Vídeo T27 (Datos Clave de la OSCE):</strong> Nació en el <span class='hl-yellow'>Acta Final de Helsinki (1 de agosto de 1975)</span> como CSCE y se transformó en organización permanente (OSCE) en la <strong>Cumbre de Budapest de 1994</strong>. Agrupa a <span class='hl-green'>57 Estados participantes</span>, tiene su sede principal en <span class='hl-cyan'>Viena (Austria)</span> (y la ODIHR en Varsovia), decide por <strong>consenso</strong> y actúa en <strong>3 Dimensiones (Cestas)</strong>: <em>1) Político-Militar, 2) Económica y Medioambiental y 3) Humana</em>."
+    ],
+    postItsProfesor: [
+      {
+        titulo: "🎬 Vídeo T27: Los 5 Datos que Caen Siempre de la OSCE",
+        texto: "1) Acta Final de Helsinki (1975) ➔ Cumbre de Budapest (1994).\n2) 57 Estados participantes.\n3) Sede del Consejo Permanente y Secretariado: VIENA.\n4) Sede de la ODIHR (Derechos Humanos): VARSOVIA.\n5) 3 Dimensiones: Político-Militar, Económica-Medioambiental y Humana.",
+        color: "green",
+        tag: "🎬 Post-it Vídeo T27"
+      }
+    ]
+  },
+
+  "B3-T06": {
+    videosCubiertos: "🎬 Vídeo T27 (2ª Mitad) de YouTube (Unión Europea y Política Común de Seguridad y Defensa — PCSD)",
+    tituloCapsula: "🎬 Pizarra del Profesor — Vídeo T27 (Parte 2): Unión Europea, Cláusulas 42.7 TUE vs 222 TFUE y Brújula Estratégica",
+    puntos: [
+      "🎬 <strong>Vídeo T27 (El Cruce Estrella: Art. 42.7 TUE vs Art. 222 TFUE):</strong> <br/>• <span class='hl-pink'>Artículo 42.7 TUE (Cláusula de Asistencia Mutua):</span> Se activa cuando un Estado miembro sufre una <strong>AGRESIÓN ARMADA en su territorio</strong>. <br/>• <span class='hl-yellow'>Artículo 222 TFUE (Cláusula de Solidaridad):</span> Se activa cuando un Estado miembro es objeto de un <strong>ATAQUE TERRORISTA o víctima de una CATÁSTROFE natural o de origen humano</strong>. <br/>• Además: el <strong>Centro de Satélites de la UE (SATCEN)</strong> está en <strong>Torrejón de Ardoz (Madrid)</strong> y la <strong>Brújula Estratégica (2022)</strong> crea una Capacidad de Despliegue Rápido de hasta <span class='hl-green'>5.000 efectivos</span>."
+    ],
+    postItsProfesor: [
+      {
+        titulo: "🎬 Vídeo T27: Art. 42.7 TUE vs Art. 222 TFUE (¡No los confundas!)",
+        texto: "• Art. 42.7 TUE (Asistencia Mutua) = AGRESIÓN ARMADA en su territorio.\n• Art. 222 TFUE (Solidaridad) = ATAQUE TERRORISTA o CATÁSTROFE.\n• SATCEN (Centro de Satélites UE) = Torrejón de Ardoz (Madrid).",
+        color: "pink",
+        tag: "🎬 Post-it Vídeo T27"
+      }
+    ]
+  },
+
+  "B3-T07": {
+    videosCubiertos: "🎬 Vídeo T28 de YouTube (España en Misiones Internacionales: ONU, OTAN y UE)",
+    tituloCapsula: "🎬 Pizarra del Profesor — Vídeo T28: España en Misiones Internacionales (1989–2026 y Liderazgo en Eslovaquia)",
+    puntos: [
+      "🎬 <strong>Vídeo T28 (Mapa de Misiones Exteriores de Examen 2025/2026):</strong> <br/>• <strong>Inicio histórico (1989):</strong> Observadores ONU en <span class='hl-yellow'>Angola (UNAVEM I)</span> y contingente aéreo en <span class='hl-yellow'>Namibia (UNTAG)</span>. <br/>• <strong>ONU:</strong> <em>FINUL / Libre Hidalgo</em> en <strong>Líbano</strong> (Base «Miguel de Cervantes» en Marjayoun) y observadores en <strong>Colombia</strong>. <br/>• <strong>OTAN:</strong> España lidera desde 2024 como <span class='hl-green'>Nación Marco (Framework Nation) la Brigada Multinacional en ESLOVAQUIA (Lešť)</span>; participa en <strong>Letonia (Adazi)</strong>, baterías Patriot en <strong>Turquía (Adana — Active Fence)</strong>, Policía Aérea del Báltico/Rumanía e <strong>Irak (NMI)</strong>. <br/>• <strong>Unión Europea (PCSD):</strong> Operación EUNAVFOR <strong>Atalanta</strong> en el Índico/Somalia (con <span class='hl-cyan'>Cuartel General OHQ en la Base Naval de ROTA, Cádiz</span>), EUTM Somalia, EUTM República Centroafricana y EUFOR Althea (Bosnia)."
+    ],
+    postItsProfesor: [
+      {
+        titulo: "🎬 Vídeo T28: Cuadro de Misiones Internacionales (OTAN / ONU / UE)",
+        texto: "• 1989 (1ª misión): Angola (UNAVEM) y Namibia (UNTAG).\n• ONU: Líbano (FINUL 'Libre Hidalgo' - Base Miguel de Cervantes).\n• OTAN: ESLOVAQUIA (Lešť - España Nación Marco desde 2024), Letonia (Adazi), Turquía (Adana Patriot), Irak (NMI).\n• UE: Atalanta (OHQ en ROTA), EUTM Somalia/RCA y Althea (Bosnia).",
+        color: "yellow",
+        tag: "🎬 Post-it Vídeo T28"
+      }
+    ]
+  }
+};
+
+// Inyectar automáticamente las Cápsulas de Vídeo en los 21 Temas de MASTER_STUDY_GUIDES
+function injectVideoCapsulesIntoStudyGuides() {
+  if (typeof MASTER_STUDY_GUIDES === "undefined" || typeof VIDEO_CLASS_CAPSULES === "undefined") return;
+  Object.keys(VIDEO_CLASS_CAPSULES).forEach(code => {
+    const cap = VIDEO_CLASS_CAPSULES[code];
+    const guide = MASTER_STUDY_GUIDES[code];
+    if (!guide) return;
+    guide.videoCapsule = cap;
+    guide.postItsProfesor = cap.postItsProfesor || [];
+    if (!Array.isArray(guide.epigrafes)) guide.epigrafes = [];
+    const alreadyAdded = guide.epigrafes.some(ep => ep.esCapsulaVideo);
+    if (!alreadyAdded) {
+      guide.epigrafes.push({
+        esCapsulaVideo: true,
+        titulo: cap.tituloCapsula,
+        explicacion: `Resumen directo de pizarra extraído de <strong>${cap.videosCubiertos}</strong> para estudiar 100% offline en maniobras (haz clic en cualquier punto para subrayarlo o pega sus Post-its arriba con 1 clic):`,
+        puntos: cap.puntos || []
+      });
+    }
+  });
+}
+
+injectVideoCapsulesIntoStudyGuides();
+window.VIDEO_CLASS_CAPSULES = VIDEO_CLASS_CAPSULES;
+

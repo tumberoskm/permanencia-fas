@@ -599,6 +599,13 @@ class AppController {
 
           <div class="flex flex-wrap items-center gap-2">
             <button
+              onclick="window.appController.loadAllTeacherVideoPostIts(); window.appController.openWarNotebookModal();"
+              class="px-3.5 py-2 rounded-xl bg-sky-600 hover:bg-sky-500 text-slate-950 font-black text-xs uppercase tracking-wider transition shadow-lg flex items-center space-x-1.5"
+              title="Pega automáticamente en los 21 temas los 49 Post-its clave extraídos de los 28 vídeos de YouTube"
+            >
+              <span>🎬</span><span>Pegar los 49 Post-its de los 28 Vídeos</span>
+            </button>
+            <button
               onclick="window.pdfGenerator.downloadCompleteWarNotebookPDF()"
               class="px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs uppercase tracking-wider transition shadow-lg flex items-center space-x-1.5"
             >
@@ -931,6 +938,87 @@ class AppController {
     }
   }
 
+  loadTeacherVideoPostIts(temaCodigo, inModal = false) {
+    const cap = (typeof VIDEO_CLASS_CAPSULES !== "undefined") ? VIDEO_CLASS_CAPSULES[temaCodigo] : null;
+    if (!cap || !Array.isArray(cap.postItsProfesor) || cap.postItsProfesor.length === 0) {
+      alert("Este tema no tiene Post-its de vídeo preconfigurados.");
+      return;
+    }
+    const existing = window.storageManager.getTopicNotes(temaCodigo);
+    const existingTitles = new Set(existing.map(n => (n.titulo || "").trim().toLowerCase()));
+    let added = 0;
+
+    cap.postItsProfesor.forEach(p => {
+      const key = (p.titulo || "").trim().toLowerCase();
+      if (!existingTitles.has(key)) {
+        window.storageManager.addTopicNote(temaCodigo, {
+          color: p.color || "yellow",
+          tag: p.tag || "🎬 Post-it Vídeo",
+          titulo: p.titulo || "",
+          texto: p.texto || ""
+        });
+        existingTitles.add(key);
+        added++;
+      }
+    });
+
+    this.updateHeaderStats();
+    if (window.cloudSyncManager && typeof window.cloudSyncManager.showTacticalToast === "function") {
+      window.cloudSyncManager.showTacticalToast(
+        added > 0
+          ? `🎬 📌 ¡${added} Post-its del Profesor (${cap.videosCubiertos}) pegados en ${temaCodigo}!`
+          : `✅ Los Post-its del vídeo ya estaban pegados en ${temaCodigo}.`,
+        "emerald"
+      );
+    }
+    if (inModal) {
+      this.openStudyGuideModal(temaCodigo);
+    }
+    if (this.currentTab === "temario") {
+      this.renderTemario();
+    } else if (this.currentTab === "dashboard") {
+      this.renderDashboard();
+    }
+  }
+
+  loadAllTeacherVideoPostIts() {
+    if (typeof VIDEO_CLASS_CAPSULES === "undefined") return;
+    let totalAdded = 0;
+    Object.keys(VIDEO_CLASS_CAPSULES).forEach(code => {
+      const cap = VIDEO_CLASS_CAPSULES[code];
+      const existing = window.storageManager.getTopicNotes(code);
+      const existingTitles = new Set(existing.map(n => (n.titulo || "").trim().toLowerCase()));
+      (cap.postItsProfesor || []).forEach(p => {
+        const key = (p.titulo || "").trim().toLowerCase();
+        if (!existingTitles.has(key)) {
+          window.storageManager.addTopicNote(code, {
+            color: p.color || "yellow",
+            tag: p.tag || "🎬 Post-it Vídeo",
+            titulo: p.titulo || "",
+            texto: p.texto || ""
+          });
+          existingTitles.add(key);
+          totalAdded++;
+        }
+      });
+    });
+
+    this.updateHeaderStats();
+    if (window.cloudSyncManager && typeof window.cloudSyncManager.showTacticalToast === "function") {
+      window.cloudSyncManager.showTacticalToast(
+        totalAdded > 0
+          ? `🎬 📌 ¡${totalAdded} Post-its de los 28 Vídeos de YouTube pegados en tus 21 Temas y sincronizados!`
+          : `✅ Ya tenías los 49 Post-its de los 28 Vídeos pegados en tu Cuaderno de Guerra.`,
+        "emerald"
+      );
+    }
+    if (this.currentTab === "temario") {
+      this.renderTemario();
+    } else if (this.currentTab === "dashboard") {
+      this.renderDashboard();
+    }
+  }
+
   renderAnnotationsWorkspaceHTML(temaCodigo, inModal = false) {
     const prefix = inModal ? "modal" : "card";
     const notes = window.storageManager.getTopicNotes(temaCodigo);
@@ -943,7 +1031,7 @@ class AppController {
       { id: "yellow", label: "🟨 Amarillo Examen", btnCls: "bg-yellow-400/20 text-yellow-200 border-yellow-400" },
       { id: "green",  label: "🟩 Verde Concepto",  btnCls: "bg-emerald-400/20 text-emerald-200 border-emerald-400" },
       { id: "pink",   label: "🟥 Rosa Trampa/Plazo", btnCls: "bg-rose-400/20 text-rose-200 border-rose-400" },
-      { id: "cyan",   label: "🟦 Azul Artículo",   btnCls: "bg-sky-400/20 text-sky-200 border-sky-400" }
+      { id: "cyan",   label: "🟦 Azul Artículo",   btnCls: "bg-sky-400/20 text-sky-400 border-sky-400" }
     ];
 
     return `
@@ -1020,7 +1108,17 @@ class AppController {
             <h5 class="text-xs font-black uppercase text-amber-300 flex items-center space-x-1.5">
               <span>📌</span><span>Mis Notas de Estudio tipo "Post-it" en ${temaCodigo} (${notes.length})</span>
             </h5>
-            <span class="text-[11px] text-slate-400">Tus Post-its quedan pegados en este tema y se imprimen en tu Resumen PDF y Chuleta PDF</span>
+            <div class="flex flex-wrap items-center gap-2">
+              <button
+                type="button"
+                onclick="window.appController.loadTeacherVideoPostIts('${temaCodigo}', ${inModal})"
+                class="px-3 py-1 rounded-lg bg-sky-600 hover:bg-sky-500 text-slate-950 font-black text-[11px] uppercase transition shadow flex items-center space-x-1"
+                title="Pega automáticamente en este tema los Post-its clave extraídos del vídeo de YouTube del profesor"
+              >
+                <span>🎬</span><span>Pegar Post-its del Vídeo del Profesor</span>
+              </button>
+              <span class="text-[11px] text-slate-400 hidden sm:inline">Se imprimen en tu Resumen PDF y Chuleta PDF</span>
+            </div>
           </div>
 
           ${notes.length > 0 ? `
@@ -1990,6 +2088,13 @@ class AppController {
           </p>
         </div>
         <div class="flex flex-wrap items-center gap-2 shrink-0">
+          <button
+            onclick="window.appController.loadAllTeacherVideoPostIts()"
+            class="px-3 py-1.5 rounded-xl bg-sky-600 hover:bg-sky-500 text-slate-950 text-xs font-black transition shadow flex items-center space-x-1"
+            title="Pega automáticamente en tus 21 temas los 49 Post-its clave extraídos de los 28 vídeos de YouTube"
+          >
+            <span>🎬</span><span>Pegar 49 Post-its de los Vídeos</span>
+          </button>
           <button
             onclick="window.appController.openWarNotebookModal()"
             class="px-3 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 text-xs font-black transition shadow"

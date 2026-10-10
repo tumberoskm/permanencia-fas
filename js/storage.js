@@ -4,7 +4,7 @@
  */
 
 const STORAGE_KEYS = {
-  QUESTIONS: "permanencia_questions_v9",
+  QUESTIONS: "permanencia_questions_v10",
   FAILED_QUESTIONS: "permanencia_failed_v1",
   STATS: "permanencia_stats_v1",
   TOPIC_STATS: "permanencia_topic_stats_v1",
@@ -67,6 +67,7 @@ class StorageManager {
     try {
       const storedRaw =
         localStorage.getItem(STORAGE_KEYS.QUESTIONS) ||
+        localStorage.getItem("permanencia_questions_v9") ||
         localStorage.getItem("permanencia_questions_v8") ||
         localStorage.getItem("permanencia_questions_v7") ||
         localStorage.getItem("permanencia_questions_v6") ||
