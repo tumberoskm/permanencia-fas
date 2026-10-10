@@ -1,4 +1,4 @@
-const CACHE_NAME = "permanencia-fas-v6";
+const CACHE_NAME = "permanencia-fas-v7";
 const ASSETS = [
   "./",
   "./index.html",
@@ -9,6 +9,7 @@ const ASSETS = [
   "./js/questions-data.js",
   "./js/questions-extra-data.js",
   "./js/questions-wave2-data.js",
+  "./js/questions-wave3-data.js",
   "./js/flashcards-data.js",
   "./js/storage.js",
   "./js/simulator.js",

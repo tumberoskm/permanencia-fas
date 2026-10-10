@@ -126,11 +126,11 @@
             <button onclick="window.appController.startSimulatorWithParams({ count: 100, bloque: 'ALL', mode: 'ponderado_100', studyMode: false })" class="px-4 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs uppercase tracking-wider shadow-lg shadow-amber-500/10 transition flex items-center space-x-1.5">
               <span>🏆</span><span>Simulacro Oficial 100p</span>
             </button>
-            <button onclick="window.appController.startSimulatorWithParams({ count: 20, bloque: 'ALL', mode: 'official', studyMode: true })" class="px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-slate-950 font-black text-xs uppercase tracking-wider transition flex items-center space-x-1.5">
-              <span>💡</span><span>Modo Estudio (20p)</span>
+            <button onclick="window.appController.startQuickChallenge('RET-EXPRESS-10', true)" class="px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-slate-950 font-black text-xs uppercase tracking-wider transition flex items-center space-x-1.5">
+              <span>⚡</span><span>Reto 3 Min (10p)</span>
             </button>
             <button id="btn-quick-sim" class="px-3.5 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-amber-300 border border-amber-500/30 font-bold text-xs uppercase tracking-wider transition flex items-center space-x-1.5">
-              <span>⚡</span><span>Test Rápido</span>
+              <span>💡</span><span>Modo Estudio (20p)</span>
             </button>
             <button onclick="window.appController.startTrapHunterTest()" class="px-3.5 py-2.5 rounded-xl bg-red-900/80 hover:bg-red-800 text-red-100 border border-red-600/50 font-bold text-xs uppercase tracking-wider transition flex items-center space-x-1.5">
               <span>🪤</span><span>Caza-Trampas</span>
@@ -169,7 +169,7 @@
         </div>
         <div class="tactical-card p-4 rounded-xl col-span-2 sm:col-span-1">
           <span class="text-xs text-slate-400 block">🗄️ Banco Etiquetado</span>
-          <span class="text-xl font-black text-amber-400 mt-1 block" id="dash-total-questions">500</span>
+          <span class="text-xl font-black text-amber-400 mt-1 block" id="dash-total-questions">650</span>
         </div>
       </div>
 
@@ -894,6 +894,7 @@
   <script src="./js/questions-data.js"></script>
   <script src="./js/questions-extra-data.js"></script>
   <script src="./js/questions-wave2-data.js"></script>
+  <script src="./js/questions-wave3-data.js"></script>
   <script src="./js/flashcards-data.js"></script>
   <script src="./js/storage.js"></script>
   <script src="./js/simulator.js"></script>

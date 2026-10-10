@@ -1466,12 +1466,22 @@ window.pdfGenerator = {
               ${guide.actualizaciones ? `<div style="margin-top:8px; padding-top:8px; border-top:1px dashed #d97706;"><strong>🚨 ACTUALIZACIÓN NORMATIVA RECIENTE DE EXAMEN:</strong> <span class="hl-pink">${guide.actualizaciones}</span></div>` : ""}
             </div>
 
-            ${(guide.epigrafes || []).map((ep, epIdx) => `
-              <div style="border:2px solid #1e293b; border-radius:10px; margin-bottom:14px; overflow:hidden; page-break-inside:avoid;">
-                <div style="background:#0f172a; color:#fbbf24; font-weight:900; font-size:13px; padding:9px 14px; text-transform:uppercase;">
-                  📌 ${ep.titulo}
-                </div>
-                <div style="padding:12px 16px; background:#ffffff; font-size:12.5px; line-height:1.6; color:#0f172a;">
+            ${(guide.epigrafes || []).map((ep, epIdx) => {
+              let epBodyHtml = "";
+              if (ep.contenido) {
+                epBodyHtml = String(ep.contenido);
+                let pIdx = 0;
+                epBodyHtml = epBodyHtml.replace(/<p>([\s\S]*?)<\/p>/gi, (_, inner) => {
+                  const c = hl.items[`ep-${epIdx}-p-${pIdx++}`];
+                  return `<p style="margin-bottom:8px;">${c ? `<span class="hl-${c}">🖍️ ${inner}</span>` : inner}</p>`;
+                });
+                let liIdx = 0;
+                epBodyHtml = epBodyHtml.replace(/<li>([\s\S]*?)<\/li>/gi, (_, inner) => {
+                  const c = hl.items[`ep-${epIdx}-li-${liIdx++}`];
+                  return `<li style="margin-bottom:6px;">${c ? `<span class="hl-${c}">🖍️ ${inner}</span>` : inner}</li>`;
+                });
+              } else {
+                epBodyHtml = `
                   <div style="margin-bottom:10px; background:#f8fafc; padding:8px 12px; border-left:4px solid #0284c7; border-radius:4px;">
                     <strong>💡 Explicación Didáctica:</strong> ${ep.explicacion || ep.explicacionSencilla || ""}
                   </div>
@@ -1483,9 +1493,19 @@ window.pdfGenerator = {
                       return `<li style="margin-bottom:6px;"><span ${cls}>${cl}</span></li>`;
                     }).join("")}
                   </ul>
+                `;
+              }
+              return `
+                <div style="border:2px solid #1e293b; border-radius:10px; margin-bottom:14px; overflow:hidden; page-break-inside:avoid;">
+                  <div style="background:#0f172a; color:#fbbf24; font-weight:900; font-size:13px; padding:9px 14px; text-transform:uppercase;">
+                    📌 ${ep.titulo}
+                  </div>
+                  <div style="padding:12px 16px; background:#ffffff; font-size:12.5px; line-height:1.6; color:#0f172a;">
+                    ${epBodyHtml}
+                  </div>
                 </div>
-              </div>
-            `).join("")}
+              `;
+            }).join("")}
           ` : `
             <div style="background:#f1f5f9; border-left:5px solid #0f172a; padding:10px 14px; border-radius:6px; font-size:12.5px; line-height:1.5; margin-bottom:14px;">
               <strong>📖 RESUMEN EJECUTIVO DEL TEMA:</strong><br/>

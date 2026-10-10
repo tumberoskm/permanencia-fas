@@ -260,7 +260,8 @@ class AppController {
   }
 
   applyPhraseHighlightsToHTML(html, phrases) {
-    if (!html || !Array.isArray(phrases) || phrases.length === 0) return html;
+    if (html === undefined || html === null) return "";
+    if (!Array.isArray(phrases) || phrases.length === 0) return String(html);
     let output = String(html);
     const sorted = [...phrases].sort((a, b) => (b.text || "").length - (a.text || "").length);
 
@@ -272,6 +273,76 @@ class AppController {
       output = output.replace(regex, `<span class="hl-${p.color || "yellow"}" title="Subrayado personal del opositor">$1</span>`);
     });
     return output;
+  }
+
+  renderEpigrafeInteractiveHTML(temaCodigo, ep, epIdx, hl, inModal = false) {
+    const safeHl = hl || { items: {}, phrases: [] };
+    if (ep && ep.contenido) {
+      let rawHtml = this.applyPhraseHighlightsToHTML(ep.contenido, safeHl.phrases);
+      rawHtml = rawHtml.replace(/<ul[^>]*>/gi, `<ul class="list-none pl-0 space-y-2 mt-2.5">`);
+
+      let pIdx = 0;
+      rawHtml = rawHtml.replace(/<p>([\s\S]*?)<\/p>/gi, (_, inner) => {
+        const itemKey = `ep-${epIdx}-p-${pIdx++}`;
+        const itemColor = safeHl.items ? safeHl.items[itemKey] : null;
+        const hlBlockCls = itemColor ? `hl-block-${itemColor}` : "";
+        return `
+          <div
+            onclick="if(!window.getSelection || !window.getSelection().toString().trim()) window.appController.togglePointHighlight('${temaCodigo}', '${itemKey}', ${inModal})"
+            title="Haz clic para subrayar / quitar subrayado fluorescente en este bloque"
+            class="cursor-pointer p-2.5 sm:p-3 rounded-xl bg-slate-900/60 hover:bg-slate-900/90 border border-slate-800/70 text-xs sm:text-sm text-slate-200 leading-relaxed transition mb-2 ${hlBlockCls}"
+          >
+            ${itemColor ? `<span class="text-xs mr-1">🖍️</span>` : ""}${inner}
+          </div>
+        `;
+      });
+
+      let liIdx = 0;
+      rawHtml = rawHtml.replace(/<li>([\s\S]*?)<\/li>/gi, (_, inner) => {
+        const itemKey = `ep-${epIdx}-li-${liIdx++}`;
+        const itemColor = safeHl.items ? safeHl.items[itemKey] : null;
+        const hlBlockCls = itemColor ? `hl-block-${itemColor}` : "";
+        return `
+          <li
+            onclick="if(!window.getSelection || !window.getSelection().toString().trim()) window.appController.togglePointHighlight('${temaCodigo}', '${itemKey}', ${inModal})"
+            title="Haz clic para subrayar / quitar subrayado fluorescente en este punto"
+            class="cursor-pointer p-2.5 sm:p-3 rounded-xl bg-slate-900/90 hover:bg-slate-900 border border-slate-800/90 text-xs sm:text-sm text-slate-100 leading-relaxed flex items-start justify-between gap-2 transition ${hlBlockCls}"
+          >
+            <div class="flex items-start space-x-2.5">
+              <span class="text-amber-400 font-black shrink-0 mt-0.5">${itemColor ? "🖍️" : "▸"}</span>
+              <div class="leading-relaxed">${inner}</div>
+            </div>
+            <span class="text-[10px] font-mono text-slate-500 shrink-0">${itemColor ? "Subrayado" : "🖍️"}</span>
+          </li>
+        `;
+      });
+
+      return rawHtml;
+    }
+
+    const expHtml = ep && ep.explicacion
+      ? `<p class="text-xs sm:text-sm text-slate-200 leading-relaxed mb-2">${this.applyPhraseHighlightsToHTML(ep.explicacion, safeHl.phrases)}</p>`
+      : "";
+    const ptsHtml = Array.isArray(ep && ep.puntos)
+      ? `<div class="space-y-2 pt-1">` + ep.puntos.map((pt, ptIdx) => {
+          const itemKey = `ep-${epIdx}-${ptIdx}`;
+          const itemColor = safeHl.items ? safeHl.items[itemKey] : null;
+          const hlBlockCls = itemColor ? `hl-block-${itemColor}` : "";
+          return `
+            <div
+              onclick="if(!window.getSelection || !window.getSelection().toString().trim()) window.appController.togglePointHighlight('${temaCodigo}', '${itemKey}', ${inModal})"
+              class="cursor-pointer p-2.5 sm:p-3 rounded-xl bg-slate-900/90 hover:bg-slate-900 border border-slate-800/90 text-xs sm:text-sm text-slate-100 leading-relaxed flex items-start justify-between gap-2 transition ${hlBlockCls}"
+            >
+              <div class="flex items-start space-x-2.5">
+                <span class="text-amber-400 font-black shrink-0 mt-0.5">${itemColor ? "🖍️" : "▸"}</span>
+                <div>${this.applyPhraseHighlightsToHTML(pt, safeHl.phrases)}</div>
+              </div>
+              <span class="text-[10px] font-mono text-slate-500 shrink-0">${itemColor ? "Subrayado" : "🖍️"}</span>
+            </div>
+          `;
+        }).join("") + `</div>`
+      : "";
+    return expHtml + ptsHtml;
   }
 
   setHighlighterColor(color, temaCodigo, inModal = false) {
@@ -611,7 +682,7 @@ class AppController {
               </span>
             </div>
             <h3 class="text-lg sm:text-2xl font-black leading-snug" style="color:${pal.titleColor};">
-              ${guide ? guide.subtituloDidactico : tema.titulo}
+              ${guide && guide.subtituloDidactico ? guide.subtituloDidactico : tema.titulo}
             </h3>
             <p class="text-xs font-mono text-slate-400">📜 Normativa Oficial: ${tema.normativa}</p>
           </div>
@@ -695,7 +766,7 @@ class AppController {
           <div class="space-y-4">
             <div class="flex flex-wrap items-center justify-between gap-2 border-b border-slate-800 pb-2">
               <h4 class="text-sm font-black uppercase tracking-wider text-white">
-                📚 Desarrollo Completo del Tema Explicado Paso a Paso (Haz clic en cualquier punto ▸ para subrayarlo)
+                📚 Desarrollo Completo del Tema Explicado Paso a Paso (Haz clic en cualquier bloque o punto ▸ para subrayarlo)
               </h4>
               <span class="text-[11px] font-mono text-amber-400">🖍️ Rotulador activo: ${this.activeHighlighterColor.toUpperCase()}</span>
             </div>
@@ -704,28 +775,8 @@ class AppController {
                 <h5 class="text-sm sm:text-base font-black text-amber-300 uppercase tracking-wide">
                   ${ep.titulo}
                 </h5>
-                <p class="text-xs sm:text-sm text-slate-200 leading-relaxed">
-                  ${this.applyPhraseHighlightsToHTML(ep.explicacion, hl.phrases)}
-                </p>
-                <div class="space-y-2 pt-1">
-                  ${(ep.puntos || []).map((pt, ptIdx) => {
-                    const itemKey = `ep-${epIdx}-${ptIdx}`;
-                    const itemColor = hl.items[itemKey];
-                    const hlBlockCls = itemColor ? `hl-block-${itemColor}` : "";
-                    return `
-                      <div
-                        onclick="window.appController.togglePointHighlight('${tema.codigo}', '${itemKey}', true)"
-                        title="Haz clic para subrayar / quitar subrayado con tu rotulador fluorescente"
-                        class="cursor-pointer p-2.5 sm:p-3 rounded-xl bg-slate-900/90 hover:bg-slate-900 border border-slate-800/90 text-xs sm:text-sm text-slate-100 leading-relaxed flex items-start justify-between gap-2 transition ${hlBlockCls}"
-                      >
-                        <div class="flex items-start space-x-2.5">
-                          <span class="text-amber-400 font-black shrink-0 mt-0.5">${itemColor ? "🖍️" : "▸"}</span>
-                          <div>${this.applyPhraseHighlightsToHTML(pt, hl.phrases)}</div>
-                        </div>
-                        <span class="text-[10px] font-mono text-slate-500 shrink-0">${itemColor ? "Subrayado" : "🖍️"}</span>
-                      </div>
-                    `;
-                  }).join("")}
+                <div class="space-y-2">
+                  ${this.renderEpigrafeInteractiveHTML(tema.codigo, ep, epIdx, hl, true)}
                 </div>
               </div>
             `).join("")}
@@ -832,7 +883,7 @@ class AppController {
     if (guide) {
       text += `Consejo del Jefe de Estudios: ${stripHtml(guide.consejoJefeEstudios)}. Actualizaciones clave: ${stripHtml(guide.actualizaciones)}. `;
       (guide.epigrafes || []).forEach(ep => {
-        text += `${stripHtml(ep.titulo)}: ${stripHtml(ep.explicacion)}. ${ep.puntos.map(stripHtml).join(". ")}. `;
+        text += `${stripHtml(ep.titulo)}: ${stripHtml(ep.contenido || ep.explicacion || "")}. ${Array.isArray(ep.puntos) ? ep.puntos.map(stripHtml).join(". ") : ""}. `;
       });
     } else {
       text += stripHtml(tema.resumen);
@@ -1024,6 +1075,60 @@ class AppController {
           >
             ⏱️ Repaso 2 Min: Tarjetas de Plazos y Sanciones (42)
           </button>
+        </div>
+
+        <!-- ⚡ RETOS RÁPIDOS / GUARDIA EXPRESS (3 A 5 MINUTOS) -->
+        <div class="p-3.5 rounded-xl bg-slate-950/90 border border-amber-500/30 space-y-2.5">
+          <div class="flex flex-wrap items-center justify-between gap-2">
+            <div class="flex items-center space-x-2">
+              <span class="px-2 py-0.5 rounded bg-amber-500 text-slate-950 font-black text-[10px] uppercase">
+                ⚡ Retos Rápidos / Guardia Express (3 a 5 Minutos)
+              </span>
+              <span class="text-[11px] text-slate-400">Micro-entrenamientos intensivos con corrección al instante</span>
+            </div>
+          </div>
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2">
+            <button
+              onclick="window.appController.startQuickChallenge('RET-EXPRESS-10', true)"
+              class="p-2.5 rounded-xl bg-amber-950/30 hover:bg-amber-900/40 border border-amber-500/50 text-left transition flex flex-col justify-between"
+            >
+              <div class="flex items-center justify-between text-[10px] font-mono text-amber-300 font-bold">
+                <span>⚡ 3 MIN • 10 PREG</span>
+                <span class="px-1.5 py-0.5 rounded bg-amber-500 text-slate-950 font-black">EXPRESS</span>
+              </div>
+              <div class="text-xs font-black text-white mt-1">Guardia Express 3 Bloques</div>
+            </button>
+            <button
+              onclick="window.appController.startQuickChallenge('RET-PLAZOS-10', true)"
+              class="p-2.5 rounded-xl bg-rose-950/30 hover:bg-rose-900/40 border border-rose-500/50 text-left transition flex flex-col justify-between"
+            >
+              <div class="flex items-center justify-between text-[10px] font-mono text-rose-300 font-bold">
+                <span>⏱️ 3 MIN • 10 PREG</span>
+                <span class="px-1.5 py-0.5 rounded bg-rose-500 text-white font-black">PLAZOS</span>
+              </div>
+              <div class="text-xs font-black text-white mt-1">Sprint de Plazos y Mayorías</div>
+            </button>
+            <button
+              onclick="window.appController.startQuickChallenge('RET-TRAMPAS-10', true)"
+              class="p-2.5 rounded-xl bg-purple-950/30 hover:bg-purple-900/40 border border-purple-500/50 text-left transition flex flex-col justify-between"
+            >
+              <div class="flex items-center justify-between text-[10px] font-mono text-purple-300 font-bold">
+                <span>🪤 3 MIN • 10 PREG</span>
+                <span class="px-1.5 py-0.5 rounded bg-purple-500 text-white font-black">TRAMPAS</span>
+              </div>
+              <div class="text-xs font-black text-white mt-1">Duelo Caza-Trampas Express</div>
+            </button>
+            <button
+              onclick="window.appController.startQuickChallenge('RET-IMPRESCINDIBLES-15', true)"
+              class="p-2.5 rounded-xl bg-emerald-950/30 hover:bg-emerald-900/40 border border-emerald-500/50 text-left transition flex flex-col justify-between"
+            >
+              <div class="flex items-center justify-between text-[10px] font-mono text-emerald-300 font-bold">
+                <span>🔥 5 MIN • 15 PREG</span>
+                <span class="px-1.5 py-0.5 rounded bg-emerald-500 text-slate-950 font-black">TOP 6 PARETO</span>
+              </div>
+              <div class="text-xs font-black text-white mt-1">15 Imprescindibles Examen</div>
+            </button>
+          </div>
         </div>
       </div>
     `;
@@ -1274,7 +1379,7 @@ class AppController {
         const guide = (typeof MASTER_STUDY_GUIDES !== "undefined") ? MASTER_STUDY_GUIDES[t.codigo] : null;
         const notesText = window.storageManager.getTopicNotes(t.codigo).map(n => `${n.titulo} ${n.texto}`).join(" ");
         const guideText = guide
-          ? [guide.consejoJefeEstudios, guide.actualizaciones, ...(guide.epigrafes || []).map(e => `${e.titulo} ${e.explicacion} ${(e.puntos || []).join(" ")}`)].join(" ")
+          ? [guide.consejoJefeEstudios, guide.actualizaciones, ...(guide.epigrafes || []).map(e => `${e.titulo} ${e.contenido || ""} ${e.explicacion || ""} ${(e.puntos || []).join(" ")}`)].join(" ")
           : "";
         const haystack = [
           t.codigo,
@@ -1563,9 +1668,9 @@ class AppController {
                         <div class="flex flex-wrap items-center justify-between gap-2 border-b border-slate-800 pb-2.5">
                           <div>
                             <span class="text-xs font-black uppercase text-amber-400">
-                              📖 PASO 1: ${guide.subtituloDidactico} (${guide.tiempoLectura})
+                              📖 PASO 1: ${guide.subtituloDidactico || tema.titulo} (${guide.tiempoLectura || "10 min"})
                             </span>
-                            <p class="text-[11px] text-slate-400">Haz clic sobre cualquier punto <code>▸</code> para subrayarlo con el rotulador fluorescente activo.</p>
+                            <p class="text-[11px] text-slate-400">Haz clic sobre cualquier párrafo o punto <code>▸</code> para subrayarlo con el rotulador fluorescente activo.</p>
                           </div>
                           <div class="flex flex-wrap gap-1.5">
                             <button
@@ -1597,24 +1702,9 @@ class AppController {
                           ${(guide.epigrafes || []).map((ep, epIdx) => `
                             <div class="p-3.5 rounded-xl bg-slate-900/90 border border-slate-800 space-y-2" style="border-left: 4px solid ${pal.accent};">
                               <div class="text-xs sm:text-sm font-black text-amber-300 uppercase">${ep.titulo}</div>
-                              <p class="text-xs text-slate-200 leading-relaxed">${this.applyPhraseHighlightsToHTML(ep.explicacion, hl.phrases)}</p>
-                              <ul class="space-y-1.5 text-xs text-slate-100">
-                                ${(ep.puntos || []).map((pt, ptIdx) => {
-                                  const itemKey = `ep-${epIdx}-${ptIdx}`;
-                                  const itemColor = hl.items[itemKey];
-                                  const hlBlockCls = itemColor ? `hl-block-${itemColor}` : "";
-                                  return `
-                                    <li
-                                      onclick="window.appController.togglePointHighlight('${tema.codigo}', '${itemKey}', false)"
-                                      title="Haz clic para subrayar / quitar subrayado fluorescente"
-                                      class="cursor-pointer p-2 rounded bg-slate-950/80 hover:bg-slate-950 border border-slate-800/80 leading-relaxed flex items-start justify-between gap-2 transition ${hlBlockCls}"
-                                    >
-                                      <span>${itemColor ? "🖍️" : "▸"} ${this.applyPhraseHighlightsToHTML(pt, hl.phrases)}</span>
-                                      <span class="text-[10px] font-mono text-slate-500 shrink-0">${itemColor ? "Subrayado" : "🖍️"}</span>
-                                    </li>
-                                  `;
-                                }).join("")}
-                              </ul>
+                              <div class="space-y-2">
+                                ${this.renderEpigrafeInteractiveHTML(tema.codigo, ep, epIdx, hl, false)}
+                              </div>
                             </div>
                           `).join("")}
                         </div>
@@ -1861,8 +1951,71 @@ class AppController {
       green:   { border: "border-green-500/60",   bg: "bg-green-950/15",   badge: "bg-green-400 text-slate-950" }
     };
 
+    const quickChallengesHTML = (typeof QUICK_CHALLENGE_PACKS !== "undefined" && Array.isArray(QUICK_CHALLENGE_PACKS))
+      ? `
+        <div class="p-4 rounded-2xl bg-slate-950/95 border-2 border-emerald-500/50 space-y-3">
+          <div class="flex flex-wrap items-center justify-between gap-2">
+            <div>
+              <div class="flex flex-wrap items-center gap-2">
+                <span class="px-2.5 py-0.5 rounded bg-emerald-500 text-slate-950 font-black text-[11px] uppercase">
+                  ⚡ Retos Rápidos / Guardia Express (3 a 5 Minutos)
+                </span>
+                <span class="text-xs font-mono text-amber-300 font-bold">
+                  Entrenamiento de alta intensidad para tiempos muertos en el cuartel
+                </span>
+              </div>
+              <p class="text-xs text-slate-300 mt-1">
+                Completa un micro-reto en <strong>180 segundos</strong> con preguntas de examen, plazos numéricos, trampas del tribunal o los 6 temas Pareto.
+              </p>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+            ${QUICK_CHALLENGE_PACKS.map(ch => {
+              const rec = packScores[ch.id];
+              const recBadge = rec
+                ? `<span class="px-1.5 py-0.5 rounded text-[9px] font-mono font-black border ${rec.passed ? "bg-emerald-950 text-emerald-300 border-emerald-500" : "bg-red-950 text-red-300 border-red-500"}">
+                     🏆 ${rec.bestScoreOutOf10}/10 (${rec.attempts}x)
+                   </span>`
+                : `<span class="px-1.5 py-0.5 rounded text-[9px] font-mono bg-slate-900 text-slate-400 border border-slate-700">Nuevo</span>`;
+              return `
+                <div class="p-3.5 rounded-xl border-2 ${ch.borderClass || "border-amber-500/50 bg-amber-950/15"} flex flex-col justify-between space-y-2.5">
+                  <div class="space-y-1.5">
+                    <div class="flex items-center justify-between gap-1">
+                      <span class="px-2 py-0.5 rounded text-[9px] font-black uppercase ${ch.badgeColor || "bg-amber-500 text-slate-950"}">${ch.badge}</span>
+                      ${recBadge}
+                    </div>
+                    <h4 class="text-xs sm:text-sm font-black text-white leading-snug">${ch.titulo}</h4>
+                    <p class="text-[11px] text-slate-300 leading-relaxed">${ch.descripcion}</p>
+                  </div>
+                  <div class="grid grid-cols-2 gap-1.5 pt-2 border-t border-slate-800/80">
+                    <button
+                      type="button"
+                      onclick="window.appController.startQuickChallenge('${ch.id}', true)"
+                      class="py-1.5 px-2 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-slate-950 font-black text-[10px] uppercase transition text-center"
+                    >
+                      💡 Estudio (${ch.durationMinutes}m)
+                    </button>
+                    <button
+                      type="button"
+                      onclick="window.appController.startQuickChallenge('${ch.id}', false)"
+                      class="py-1.5 px-2 rounded-lg bg-slate-900 hover:bg-slate-800 text-amber-300 border border-amber-500/50 font-black text-[10px] uppercase transition text-center"
+                    >
+                      ⚔️ Crono Puro
+                    </button>
+                  </div>
+                </div>
+              `;
+            }).join("")}
+          </div>
+        </div>
+      `
+      : "";
+
     container.innerHTML = `
       <div class="space-y-4 mb-6">
+        ${quickChallengesHTML}
+
         <div class="p-4 rounded-2xl bg-slate-950/95 border-2 border-amber-500/50 flex flex-wrap items-center justify-between gap-3">
           <div>
             <div class="flex flex-wrap items-center gap-2">
@@ -1946,9 +2099,34 @@ class AppController {
     `;
   }
 
+  startQuickChallenge(challengeId, studyModeOverride = null) {
+    if (typeof QUICK_CHALLENGE_PACKS !== "undefined") {
+      const ch = QUICK_CHALLENGE_PACKS.find(c => c.id === challengeId);
+      if (ch) {
+        const useStudy = studyModeOverride !== null ? Boolean(studyModeOverride) : Boolean(ch.studyMode);
+        this.startSimulatorWithParams({
+          count: ch.count || 10,
+          bloque: ch.bloque || "ALL",
+          mode: ch.mode || "official",
+          studyMode: useStudy,
+          tagFilter: ch.tagFilter || "ALL",
+          packId: ch.id,
+          packTitle: ch.titulo,
+          packRule: ch.packRule || null,
+          customMinutes: ch.durationMinutes || 3
+        });
+        return;
+      }
+    }
+    this.startExamPack(challengeId, studyModeOverride);
+  }
+
   startExamPack(packId, studyModeOverride = null) {
-    if (typeof OFFICIAL_EXAM_PACKS === "undefined") return;
-    const pack = OFFICIAL_EXAM_PACKS.find(p => p.id === packId);
+    const allPacks = [
+      ...(typeof OFFICIAL_EXAM_PACKS !== "undefined" ? OFFICIAL_EXAM_PACKS : []),
+      ...(typeof QUICK_CHALLENGE_PACKS !== "undefined" ? QUICK_CHALLENGE_PACKS : [])
+    ];
+    const pack = allPacks.find(p => p.id === packId);
     if (!pack) return;
 
     const useStudy = studyModeOverride !== null ? Boolean(studyModeOverride) : Boolean(pack.studyMode);
