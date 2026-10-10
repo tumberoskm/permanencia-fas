@@ -1,4 +1,4 @@
-const CACHE_NAME = "permanencia-fas-v9";
+const CACHE_NAME = "permanencia-fas-v10";
 const ASSETS = [
   "./",
   "./index.html",
@@ -43,19 +43,29 @@ self.addEventListener("activate", (event) => {
 });
 
 // Estrategia Network-First con respaldo Offline para tener siempre la última versión
+// (Las llamadas a la Base de Datos en la Nube nunca se interceptan por caché del SW)
 self.addEventListener("fetch", (event) => {
-  if (event.request.url.includes("/api/")) {
+  const url = event.request.url;
+  if (
+    event.request.method !== "GET" ||
+    url.includes("/api/") ||
+    url.includes("restful-api.dev") ||
+    url.includes("keyvalue.immanuel.co") ||
+    url.includes("firebaseio.com") ||
+    url.includes("firebasedatabase.app") ||
+    url.includes("supabase.co")
+  ) {
     return;
   }
   event.respondWith(
     fetch(event.request)
       .then((networkResponse) => {
-        if (event.request.method === "GET" && networkResponse && networkResponse.status === 200) {
+        if (networkResponse && networkResponse.status === 200) {
           const clone = networkResponse.clone();
           caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone));
         }
         return networkResponse;
       })
-      .catch(() => caches.match(event.request))
+      .catch(() => caches.match(event.request, { ignoreSearch: true }))
   );
 });

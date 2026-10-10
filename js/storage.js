@@ -144,6 +144,7 @@ class StorageManager {
       topicStats[key].wrong++;
     }
     localStorage.setItem(STORAGE_KEYS.TOPIC_STATS, JSON.stringify(topicStats));
+    this._notifyCloudSync("topic_stats");
   }
 
   // BOLSA DE PREGUNTAS FALLADAS
@@ -174,6 +175,7 @@ class StorageManager {
       });
     }
     localStorage.setItem(STORAGE_KEYS.FAILED_QUESTIONS, JSON.stringify(list));
+    this._notifyCloudSync("failed_bag");
   }
 
   recordFailedBagReview(questionId, wasCorrect) {
@@ -191,16 +193,19 @@ class StorageManager {
         list[index].attempts = (list[index].attempts || 1) + 1;
       }
       localStorage.setItem(STORAGE_KEYS.FAILED_QUESTIONS, JSON.stringify(list));
+      this._notifyCloudSync("failed_bag");
     }
   }
 
   removeFailedQuestion(questionId) {
     const list = this.getFailedQuestions().filter(item => item.id !== questionId);
     localStorage.setItem(STORAGE_KEYS.FAILED_QUESTIONS, JSON.stringify(list));
+    this._notifyCloudSync("failed_bag");
   }
 
   clearFailedQuestions() {
     localStorage.setItem(STORAGE_KEYS.FAILED_QUESTIONS, JSON.stringify([]));
+    this._notifyCloudSync("failed_bag");
   }
 
   // ESTADÍSTICAS GLOBALES Y XP

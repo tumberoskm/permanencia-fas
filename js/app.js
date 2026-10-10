@@ -3398,39 +3398,62 @@ Devuelve ÚNICAMENTE el bloque JSON válido.`;
     if (!container || !window.cloudSyncManager) return;
 
     const cfg = window.cloudSyncManager.getConfig();
+    const queue = window.cloudSyncManager.queue || { pendingCount: 0, reasons: [] };
+    const isOffline = window.cloudSyncManager.isDeviceOffline();
     const lastSyncFormatted = cfg.lastSyncAt
       ? new Date(cfg.lastSyncAt).toLocaleString("es-ES")
-      : "Pendiente de primera sincronización";
+      : "Sincronizando automáticamente...";
+
+    // Contabilizar datos vivos para mostrar en telemetría
+    const stats = window.storageManager.getStats();
+    const allNotes = window.storageManager.getAllTopicNotes();
+    const allHl = window.storageManager.getAllTopicHighlights();
+    const failedCount = window.storageManager.getFailedQuestions().length;
+    const baremoCalc = this.calculateBaremoBreakdown(window.storageManager.getBaremo());
+    const notesCount = Object.values(allNotes).reduce((acc, arr) => acc + (Array.isArray(arr) ? arr.length : 0), 0);
+    const hlCount = Object.values(allHl).reduce(
+      (acc, h) => acc + Object.keys((h && h.items) || {}).length + (((h && h.phrases) || []).length),
+      0
+    );
+
+    const publicUrl = "https://tumberoskm.github.io/permanencia-fas/";
 
     container.innerHTML = `
-      <div class="tactical-card rounded-2xl p-6 border-2 border-sky-500/50 bg-gradient-to-br from-slate-950 via-slate-900/95 to-sky-950/20 space-y-5">
+      <div class="tactical-card rounded-2xl p-6 border-2 ${isOffline ? "border-amber-500/80 bg-gradient-to-br from-slate-950 via-amber-950/20 to-slate-900" : "border-emerald-500/60 bg-gradient-to-br from-slate-950 via-slate-900/95 to-emerald-950/25"} space-y-5">
         <div class="flex flex-wrap items-center justify-between gap-3 border-b border-slate-800 pb-4">
           <div class="flex items-center space-x-3">
-            <span class="text-3xl">☁️</span>
+            <span class="text-3xl">${isOffline ? "🪖" : "☁️"}</span>
             <div>
               <div class="flex flex-wrap items-center gap-2">
-                <span class="px-2.5 py-0.5 rounded bg-sky-500 text-slate-950 font-black text-xs uppercase">
-                  Base de Datos en la Nube • Multi-Dispositivo
+                <span class="px-2.5 py-0.5 rounded ${isOffline ? "bg-amber-500 text-slate-950" : "bg-emerald-500 text-slate-950"} font-black text-xs uppercase">
+                  ${isOffline ? "🪖 MODO MANIOBRAS ACTIVO (SIN COBERTURA)" : "🟢 NUBE CONECTADA EN VIVO (AUTO-SYNC 24/7)"}
                 </span>
-                <span class="text-xs font-mono ${cfg.enabled ? "text-emerald-400" : "text-amber-300"}">
-                  ${cfg.enabled ? "🟢 Auto-Sync Activo (Últ. sync: " + lastSyncFormatted + ")" : "⚙️ Listo para conectar"}
+                <span class="text-xs font-mono text-sky-300">
+                  PIN de Unidad: <strong>${cfg.syncKey || "TROPA-PERMANENTE-2026"}</strong> • Últ. sync: ${lastSyncFormatted}
                 </span>
               </div>
               <h2 class="text-lg sm:text-xl font-black text-white mt-1">
-                Sincronización en Tiempo Real (PC ↔ Móvil ↔ Tablet)
+                Base de Datos en la Nube + Modo Maniobras (Offline-First Automático)
               </h2>
               <p class="text-xs text-slate-300">
-                Sincroniza automáticamente tus <strong>Subrayados Fluorescentes, Post-its, Calculadora de Baremo, Bolsa de Fallos, Racha, XP y Récords de los 16 Simulacros</strong>.
+                Olvídate de descargar o subir archivos: estudia en el campo de maniobras <strong>sin cobertura</strong> y, en cuanto tu móvil o tablet detecte <strong>1 raya de 4G/5G o Wi-Fi</strong>, la app fusionará y subirá todos tus progresos sola a la Nube.
               </p>
             </div>
           </div>
 
           <div class="flex flex-wrap gap-2">
-            <button onclick="window.appController.triggerCloudPush()" class="px-4 py-2.5 rounded-xl bg-sky-500 hover:bg-sky-400 text-slate-950 font-black text-xs uppercase tracking-wider transition shadow-lg flex items-center space-x-1.5">
-              <span>☁️⬆️</span><span>Subir a la Nube Ahora</span>
+            <button
+              onclick="window.cloudSyncManager.toggleSimulatedOffline()"
+              class="px-4 py-2.5 rounded-xl ${isOffline ? "bg-emerald-500 hover:bg-emerald-400 text-slate-950 animate-bounce" : "bg-amber-950/90 hover:bg-amber-900 text-amber-300 border border-amber-500/60"} font-black text-xs uppercase tracking-wider transition shadow-lg flex items-center space-x-1.5"
+            >
+              <span>${isOffline ? "📡" : "🪖"}</span>
+              <span>${isOffline ? "Recuperar Cobertura Ahora (Auto-Sync)" : "Probar Modo Maniobras (Cortar Cobertura)"}</span>
             </button>
-            <button onclick="window.appController.triggerCloudPull()" class="px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-black text-xs uppercase tracking-wider transition shadow-lg flex items-center space-x-1.5">
-              <span>☁️⬇️</span><span>Descargar de la Nube</span>
+            <button
+              onclick="window.appController.triggerCloudPush()"
+              class="px-4 py-2.5 rounded-xl bg-sky-500 hover:bg-sky-400 text-slate-950 font-black text-xs uppercase tracking-wider transition shadow-lg flex items-center space-x-1.5"
+            >
+              <span>🔄</span><span>Sincronizar Ahora</span>
             </button>
           </div>
         </div>
@@ -3441,97 +3464,138 @@ Devuelve ÚNICAMENTE el bloque JSON válido.`;
           </div>
         ` : ""}
 
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 text-xs">
-          <!-- Columna 1: Selector de Motor Cloud y Clave Militar -->
-          <div class="p-4 rounded-xl bg-slate-950/80 border border-slate-800 space-y-3">
-            <h3 class="font-black text-sky-300 uppercase">1️⃣ Motor de Base de Datos & Identificador</h3>
-            <div>
-              <label class="block text-[11px] text-slate-300 font-semibold">Proveedor de Base de Datos en la Nube:</label>
-              <select id="cloud-provider-select" onchange="window.appController.onCloudProviderSelectChange(this.value)" class="w-full mt-1 p-2 rounded-lg bg-slate-900 border border-slate-700 text-white font-semibold">
-                <option value="local_server" ${cfg.provider === "local_server" ? "selected" : ""}>🖥️ Servidor Node Local / Wi-Fi LAN (Sin registro)</option>
-                <option value="firebase" ${cfg.provider === "firebase" ? "selected" : ""}>🔥 Firebase Realtime DB (Internet 24/7 • Recomendado Móvil)</option>
-                <option value="github_gist" ${cfg.provider === "github_gist" ? "selected" : ""}>🐙 GitHub Cloud Vault (Gist Privado en tu cuenta GitHub)</option>
-                <option value="supabase" ${cfg.provider === "supabase" ? "selected" : ""}>⚡ Supabase PostgreSQL Cloud API</option>
-              </select>
-            </div>
-            <div>
-              <label class="block text-[11px] text-slate-300 font-semibold">Clave / PIN Militar de Usuario (pon la misma en PC y Móvil):</label>
-              <input id="cloud-sync-key-input" type="text" value="${cfg.syncKey || "TROPA-PERMANENTE-2026"}" placeholder="Ej: TROPA-TUMBEROS-2026" class="w-full mt-1 p-2 rounded-lg bg-slate-900 border border-slate-700 text-amber-300 font-mono font-bold" />
-            </div>
-            <label class="flex items-center space-x-2 pt-1 cursor-pointer">
-              <input id="cloud-autosync-checkbox" type="checkbox" ${cfg.autoSync !== false ? "checked" : ""} class="rounded border-slate-700 text-sky-500" />
-              <span class="text-slate-200 font-semibold">Sincronizar automáticamente al subrayar o terminar un test</span>
-            </label>
+        <!-- Telemetría en Tiempo Real de la Nube y Cola de Maniobras -->
+        <div class="grid grid-cols-2 sm:grid-cols-5 gap-3">
+          <div class="p-3.5 rounded-xl bg-slate-950/90 border ${queue.pendingCount > 0 ? "border-amber-500 bg-amber-950/30" : "border-slate-800"}">
+            <span class="text-[11px] font-mono uppercase text-slate-400 block">📦 Cola de Maniobras</span>
+            <span class="text-xl font-black ${queue.pendingCount > 0 ? "text-amber-400" : "text-emerald-400"} mt-0.5 block">
+              ${queue.pendingCount > 0 ? `${queue.pendingCount} en cola` : "0 pendientes"}
+            </span>
+            <span class="text-[10px] text-slate-400">
+              ${queue.pendingCount > 0 ? "Se subirán al detectar red" : "Todo subido a la Nube"}
+            </span>
           </div>
 
-          <!-- Columna 2: Credenciales según el Motor Elegido -->
-          <div class="p-4 rounded-xl bg-slate-950/80 border border-slate-800 space-y-3">
-            <h3 class="font-black text-amber-300 uppercase">2️⃣ Conexión del Motor Seleccionado</h3>
+          <div class="p-3.5 rounded-xl bg-slate-950/90 border border-slate-800">
+            <span class="text-[11px] font-mono uppercase text-slate-400 block">📌 Post-its & 🖍️ Subr.</span>
+            <span class="text-xl font-black text-amber-300 mt-0.5 block">${notesCount} / ${hlCount}</span>
+            <span class="text-[10px] text-slate-400">Sincronizados en Nube</span>
+          </div>
 
-            <div id="cloud-fields-local" class="${cfg.provider === "local_server" ? "" : "hidden"} space-y-2">
-              <p class="text-slate-300 leading-relaxed">
-                ✅ <strong>¡Ya está activo en tu servidor local (<code class="text-emerald-300">/api/cloud-sync</code>)!</strong> Guarda automáticamente tu base de datos en <code class="text-amber-300">data/cloud-sync-db.json</code>.
-              </p>
-              <p class="text-[11px] text-slate-400">
-                Si abres la app desde tu móvil conectado al mismo Wi-Fi que tu PC (o en <code class="text-sky-300">localhost:3000</code>), se sincroniza al instante sin cuentas externas. Para sincronizar fuera de casa por 4G/5G desde GitHub Pages, elige <strong>Firebase</strong> o <strong>GitHub Cloud Vault</strong>.
-              </p>
+          <div class="p-3.5 rounded-xl bg-slate-950/90 border border-slate-800">
+            <span class="text-[11px] font-mono uppercase text-slate-400 block">🎖️ Mi Baremo Cloud</span>
+            <span class="text-xl font-black text-emerald-300 mt-0.5 block">${baremoCalc.concursoTotal} pts</span>
+            <span class="text-[10px] text-slate-400">Concurso sobre 100</span>
+          </div>
+
+          <div class="p-3.5 rounded-xl bg-slate-950/90 border border-slate-800">
+            <span class="text-[11px] font-mono uppercase text-slate-400 block">⚠️ Bolsa de Fallos</span>
+            <span class="text-xl font-black text-red-400 mt-0.5 block">${failedCount} preg.</span>
+            <span class="text-[10px] text-slate-400">Fusión inteligente activa</span>
+          </div>
+
+          <div class="p-3.5 rounded-xl bg-slate-950/90 border border-slate-800 col-span-2 sm:col-span-1">
+            <span class="text-[11px] font-mono uppercase text-slate-400 block">⚡ Experiencia Militar</span>
+            <span class="text-xl font-black text-sky-400 mt-0.5 block">${stats.xp || 150} XP</span>
+            <span class="text-[10px] text-slate-400">Racha: ${stats.streakDays || 1} días</span>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 text-xs">
+          <!-- Columna 1: Cómo funciona el Modo Maniobras -->
+          <div class="p-4 rounded-xl bg-slate-950/85 border border-emerald-500/30 space-y-2.5">
+            <h3 class="font-black text-emerald-300 uppercase flex items-center space-x-1.5">
+              <span>🪖</span><span>1️⃣ ¿Cómo funciona cuando estás de Maniobras?</span>
+            </h3>
+            <ul class="space-y-1.5 text-slate-300 leading-relaxed text-[11px]">
+              <li>• <strong>100% Offline en el campo:</strong> Gracias al motor PWA (<code class="text-amber-300">sw.js v10</code>), los 21/28 temas, las 1.000 preguntas y los 16 simulacros viven dentro de tu móvil aunque estés en modo avión o en mitad del campo de maniobras.</li>
+              <li>• <strong>Cola Persistente Automática:</strong> Cada pregunta que contestes, frase que subrayes o Post-it que pegues sin cobertura se guarda en la <strong>Cola de Maniobras</strong>.</li>
+              <li>• <strong>Reconexión Inteligente (Smart Merge):</strong> En el instante en que cojas cobertura, la app compara tus datos del móvil con los del PC y <strong>los fusiona sin borrar nada</strong>.</li>
+            </ul>
+          </div>
+
+          <!-- Columna 2: Configuración del PIN y Motor Cloud -->
+          <div class="p-4 rounded-xl bg-slate-950/85 border border-sky-500/30 space-y-3">
+            <h3 class="font-black text-sky-300 uppercase">2️⃣ Tu Identificador Cloud (PC ↔ Móvil ↔ Tablet)</h3>
+            <div>
+              <label class="block text-[11px] text-slate-300 font-semibold">Motor de Base de Datos en la Nube:</label>
+              <select id="cloud-provider-select" onchange="window.appController.onCloudProviderSelectChange(this.value)" class="w-full mt-1 p-2 rounded-lg bg-slate-900 border border-slate-700 text-white font-semibold">
+                <option value="pfas_cloud" ${cfg.provider === "pfas_cloud" ? "selected" : ""}>☁️ Nube Automática PFAS 24/7 (Pre-conectada • Sin registro)</option>
+                <option value="firebase" ${cfg.provider === "firebase" ? "selected" : ""}>🔥 Firebase Realtime DB Personalizada</option>
+                <option value="github_gist" ${cfg.provider === "github_gist" ? "selected" : ""}>🐙 GitHub Cloud Vault (Gist Privado)</option>
+                <option value="supabase" ${cfg.provider === "supabase" ? "selected" : ""}>⚡ Supabase PostgreSQL Cloud API</option>
+                <option value="local_server" ${cfg.provider === "local_server" ? "selected" : ""}>🖥️ Solo Servidor Local LAN (/api/cloud-sync)</option>
+              </select>
+            </div>
+
+            <div>
+              <label class="block text-[11px] text-slate-300 font-semibold">PIN Militar de Sincronización (el mismo en tus dispositivos):</label>
+              <input id="cloud-sync-key-input" type="text" value="${cfg.syncKey || "TROPA-PERMANENTE-2026"}" placeholder="TROPA-PERMANENTE-2026" class="w-full mt-1 p-2 rounded-lg bg-slate-900 border border-amber-500/50 text-amber-300 font-mono font-bold" />
+            </div>
+
+            <div id="cloud-fields-pfas" class="${cfg.provider === "pfas_cloud" ? "" : "hidden"} p-2.5 rounded-lg bg-emerald-950/30 border border-emerald-700/50 text-[11px] text-emerald-200">
+              ✅ <strong>Base de Datos Cloud Activa:</strong> Nodo <code class="text-amber-300">${(cfg.cloudObjectId || "ff808181...").slice(0, 16)}...</code> conectado por HTTPS. No necesitas configurar nada más.
+            </div>
+
+            <div id="cloud-fields-local" class="${cfg.provider === "local_server" ? "" : "hidden"} text-[11px] text-slate-300">
+              Guarda en <code class="text-amber-300">data/cloud-sync-db.json</code> dentro de tu servidor Node local.
             </div>
 
             <div id="cloud-fields-firebase" class="${cfg.provider === "firebase" ? "" : "hidden"} space-y-2">
-              <div>
-                <label class="block text-[11px] text-slate-300 font-semibold">URL de tu Firebase Realtime Database:</label>
-                <input id="cloud-firebase-url-input" type="text" value="${cfg.firebaseUrl || ""}" placeholder="https://tu-proyecto-default-rtdb.europe-west1.firebasedatabase.app" class="w-full mt-1 p-2 rounded-lg bg-slate-900 border border-slate-700 text-white font-mono text-[11px]" />
-              </div>
-              <div>
-                <label class="block text-[11px] text-slate-300 font-semibold">Database Secret / Auth Token (opcional si reglas públicas):</label>
-                <input id="cloud-firebase-secret-input" type="password" value="${cfg.firebaseSecret || ""}" placeholder="Opcional" class="w-full mt-1 p-2 rounded-lg bg-slate-900 border border-slate-700 text-white font-mono text-[11px]" />
-              </div>
-              <p class="text-[10px] text-slate-400">
-                💡 Crea gratis una Realtime Database en <em>console.firebase.google.com</em>, pega aquí la URL en tu PC y en tu móvil y tendrás sincronización 24/7 por Internet.
-              </p>
+              <input id="cloud-firebase-url-input" type="text" value="${cfg.firebaseUrl || ""}" placeholder="https://tu-db.firebasedatabase.app" class="w-full p-2 rounded-lg bg-slate-900 border border-slate-700 text-white font-mono text-[11px]" />
+              <input id="cloud-firebase-secret-input" type="password" value="${cfg.firebaseSecret || ""}" placeholder="Database Secret (opcional)" class="w-full p-2 rounded-lg bg-slate-900 border border-slate-700 text-white font-mono text-[11px]" />
             </div>
 
             <div id="cloud-fields-github" class="${cfg.provider === "github_gist" ? "" : "hidden"} space-y-2">
-              <div>
-                <label class="block text-[11px] text-slate-300 font-semibold">GitHub Personal Access Token (con permiso <code class="text-amber-300">gist</code>):</label>
-                <input id="cloud-github-token-input" type="password" value="${cfg.githubToken || ""}" placeholder="ghp_xxxxxxxxxxxx" class="w-full mt-1 p-2 rounded-lg bg-slate-900 border border-slate-700 text-white font-mono text-[11px]" />
-              </div>
-              <div>
-                <label class="block text-[11px] text-slate-300 font-semibold">ID del Gist (se rellena solo al subir la 1ª vez):</label>
-                <input id="cloud-gist-id-input" type="text" value="${cfg.gistId || ""}" placeholder="Auto-creado al pulsar Subir a la Nube" class="w-full mt-1 p-2 rounded-lg bg-slate-900 border border-slate-700 text-emerald-300 font-mono text-[11px]" />
-              </div>
+              <input id="cloud-github-token-input" type="password" value="${cfg.githubToken || ""}" placeholder="GitHub Token (ghp_...)" class="w-full p-2 rounded-lg bg-slate-900 border border-slate-700 text-white font-mono text-[11px]" />
+              <input id="cloud-gist-id-input" type="text" value="${cfg.gistId || ""}" placeholder="Gist ID (auto-creado)" class="w-full p-2 rounded-lg bg-slate-900 border border-slate-700 text-emerald-300 font-mono text-[11px]" />
             </div>
 
             <div id="cloud-fields-supabase" class="${cfg.provider === "supabase" ? "" : "hidden"} space-y-2">
-              <div>
-                <label class="block text-[11px] text-slate-300 font-semibold">Supabase Project URL:</label>
-                <input id="cloud-supabase-url-input" type="text" value="${cfg.supabaseUrl || ""}" placeholder="https://xxxx.supabase.co" class="w-full mt-1 p-2 rounded-lg bg-slate-900 border border-slate-700 text-white font-mono text-[11px]" />
-              </div>
-              <div>
-                <label class="block text-[11px] text-slate-300 font-semibold">Supabase Anon API Key:</label>
-                <input id="cloud-supabase-key-input" type="password" value="${cfg.supabaseKey || ""}" placeholder="eyJhbGci..." class="w-full mt-1 p-2 rounded-lg bg-slate-900 border border-slate-700 text-white font-mono text-[11px]" />
-              </div>
+              <input id="cloud-supabase-url-input" type="text" value="${cfg.supabaseUrl || ""}" placeholder="https://xxxx.supabase.co" class="w-full p-2 rounded-lg bg-slate-900 border border-slate-700 text-white font-mono text-[11px]" />
+              <input id="cloud-supabase-key-input" type="password" value="${cfg.supabaseKey || ""}" placeholder="Supabase Anon Key" class="w-full p-2 rounded-lg bg-slate-900 border border-slate-700 text-white font-mono text-[11px]" />
             </div>
 
-            <button onclick="window.appController.saveCloudConfigFromUI()" class="w-full py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs uppercase tracking-wider transition">
-              💾 Guardar Configuración & Activar Nube
+            <label class="flex items-center space-x-2 cursor-pointer">
+              <input id="cloud-autosync-checkbox" type="checkbox" ${cfg.autoSync !== false ? "checked" : ""} class="rounded border-slate-700 text-sky-500" />
+              <span class="text-slate-200 font-semibold text-[11px]">Auto-Sync inmediato al hacer cambios o recuperar cobertura</span>
+            </label>
+
+            <button onclick="window.appController.saveCloudConfigFromUI()" class="w-full py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs uppercase tracking-wider transition">
+              💾 Guardar & Sincronizar con la Nube
             </button>
           </div>
 
-          <!-- Columna 3: Código Rápido de Transferencia Instantánea (WhatsApp / Telegram) -->
-          <div class="p-4 rounded-xl bg-slate-950/80 border border-slate-800 space-y-2.5 flex flex-col justify-between">
+          <!-- Columna 3: Acceso Directo en Móvil / Tablet (URL + QR) -->
+          <div class="p-4 rounded-xl bg-slate-950/85 border border-amber-500/30 space-y-3 flex flex-col justify-between">
             <div class="space-y-2">
-              <h3 class="font-black text-emerald-300 uppercase">3️⃣ Pase Rápido por Código (PC ↔ Móvil en 3 seg)</h3>
+              <h3 class="font-black text-amber-300 uppercase">3️⃣ Abre tu WebApp en Móvil o Tablet</h3>
               <p class="text-[11px] text-slate-300 leading-relaxed">
-                ¿Quieres pasar ahora mismo todo tu progreso al móvil o tablet por WhatsApp o Telegram sin configurar nada? Copia tu <strong>Código Militar Comprimido</strong> y pégalo en el otro dispositivo:
+                Tu aplicación está desplegada en Internet y conectada a esta misma Base de Datos en la Nube. Escanea el QR con tu móvil o abre el enlace:
               </p>
-              <button onclick="window.appController.copyInstantTransferCode()" class="w-full py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-amber-300 border border-amber-500/40 font-black text-xs uppercase transition">
-                📋 Copiar Código de Transferencia (PFAS9)
-              </button>
-              <textarea id="instant-transfer-code-input" rows="2" placeholder="O pega aquí el código PFAS9:... recibido desde tu otro dispositivo" class="w-full p-2 rounded-lg bg-slate-900 border border-slate-700 text-[10px] font-mono text-slate-200"></textarea>
+              <div class="flex items-center space-x-3 p-2.5 rounded-xl bg-slate-900 border border-slate-800">
+                <img
+                  src="https://api.qrserver.com/v1/create-qr-code/?size=110x110&data=${encodeURIComponent(publicUrl)}"
+                  alt="QR WebApp Permanencia FAS"
+                  class="w-20 h-20 rounded-lg border border-amber-500/40 bg-white p-1 shrink-0"
+                  onerror="this.style.display='none'"
+                />
+                <div class="space-y-1.5 overflow-hidden">
+                  <a href="${publicUrl}" target="_blank" rel="noopener noreferrer" class="text-xs font-mono font-bold text-emerald-400 hover:underline break-all block">
+                    ${publicUrl} ↗
+                  </a>
+                  <span class="text-[10px] text-slate-400 block">
+                    💡 En el móvil: abre el menú del navegador y pulsa <strong>"Añadir a pantalla de inicio / Instalar App"</strong> para llevarla de maniobras.
+                  </span>
+                </div>
+              </div>
             </div>
-            <button onclick="window.appController.applyInstantTransferCodeFromUI()" class="w-full py-2 rounded-xl bg-emerald-700 hover:bg-emerald-600 text-white font-black text-xs uppercase transition">
-              ⚡ Aplicar Código en este Dispositivo
+
+            <button
+              onclick="navigator.clipboard.writeText('${publicUrl}').then(() => window.cloudSyncManager.showTacticalToast('🔗 Enlace de la WebApp copiado al portapapeles', 'emerald'))"
+              class="w-full py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-amber-300 border border-amber-500/40 font-black text-xs uppercase transition"
+            >
+              🔗 Copiar Enlace de Internet para mi Móvil
             </button>
           </div>
         </div>
@@ -3540,11 +3604,12 @@ Devuelve ÚNICAMENTE el bloque JSON válido.`;
   }
 
   onCloudProviderSelectChange(provider) {
-    ["local", "firebase", "github", "supabase"].forEach(k => {
+    ["pfas", "local", "firebase", "github", "supabase"].forEach(k => {
       const el = document.getElementById(`cloud-fields-${k}`);
       if (el) el.classList.add("hidden");
     });
     const map = {
+      pfas_cloud: "cloud-fields-pfas",
       local_server: "cloud-fields-local",
       firebase: "cloud-fields-firebase",
       github_gist: "cloud-fields-github",
@@ -3555,7 +3620,7 @@ Devuelve ÚNICAMENTE el bloque JSON válido.`;
   }
 
   _collectCloudConfigFromInputs() {
-    const provider = (document.getElementById("cloud-provider-select") || {}).value || "local_server";
+    const provider = (document.getElementById("cloud-provider-select") || {}).value || "pfas_cloud";
     const syncKey = ((document.getElementById("cloud-sync-key-input") || {}).value || "TROPA-PERMANENTE-2026").trim();
     const autoSync = Boolean((document.getElementById("cloud-autosync-checkbox") || {}).checked);
     const firebaseUrl = ((document.getElementById("cloud-firebase-url-input") || {}).value || "").trim();
@@ -3581,31 +3646,31 @@ Devuelve ÚNICAMENTE el bloque JSON válido.`;
 
   async saveCloudConfigFromUI() {
     this._collectCloudConfigFromInputs();
-    const res = await window.cloudSyncManager.pushToCloud({ silent: true });
+    const res = await window.cloudSyncManager.syncNow({ announceToast: true });
     this.renderCloudSyncPanel({
       ok: res.ok,
       message: res.ok
-        ? `✅ Configuración guardada y primera sincronización completada (${res.message}).`
-        : `⚠️ Configuración guardada, pero revisa la conexión del proveedor: ${res.message}`
+        ? `✅ Sincronización bidireccional completada (${res.message}).`
+        : `⚠️ ${res.message}`
     });
   }
 
   async triggerCloudPush() {
     this._collectCloudConfigFromInputs();
-    const res = await window.cloudSyncManager.pushToCloud({ silent: true });
+    const res = await window.cloudSyncManager.syncNow({ announceToast: true });
     this.renderCloudSyncPanel({
       ok: res.ok,
-      message: res.ok ? `☁️⬆️ ¡Éxito! ${res.message}` : `❌ Error al subir a la nube: ${res.message}`
+      message: res.ok ? `☁️ ¡Sincronización completada! ${res.message}` : `⚠️ ${res.message}`
     });
   }
 
   async triggerCloudPull() {
     this._collectCloudConfigFromInputs();
-    const res = await window.cloudSyncManager.pullFromCloud({ silent: true });
+    const res = await window.cloudSyncManager.pullFromCloud({ silent: false });
     this.updateHeaderStats();
     this.renderCloudSyncPanel({
       ok: res.ok,
-      message: res.ok ? `☁️⬇️ ¡Éxito! ${res.message}` : `❌ Error al descargar de la nube: ${res.message}`
+      message: res.ok ? `☁️⬇️ ¡Éxito! ${res.message}` : `❌ ${res.message}`
     });
   }
 
