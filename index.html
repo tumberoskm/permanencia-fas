@@ -123,11 +123,17 @@
           </div>
 
           <div class="flex flex-wrap gap-2">
-            <button id="btn-quick-sim" class="px-4 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs uppercase tracking-wider shadow-lg shadow-amber-500/10 transition flex items-center space-x-2">
-              <span>⚡</span><span>Test Rápido (20 preg.)</span>
+            <button onclick="window.appController.startSimulatorWithParams({ count: 100, bloque: 'ALL', mode: 'ponderado_100', studyMode: false })" class="px-4 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs uppercase tracking-wider shadow-lg shadow-amber-500/10 transition flex items-center space-x-1.5">
+              <span>🏆</span><span>Simulacro Oficial 100p</span>
             </button>
-            <button onclick="window.appController.startTrapHunterTest()" class="px-4 py-2.5 rounded-xl bg-red-900/80 hover:bg-red-800 text-red-100 border border-red-600/50 font-bold text-xs uppercase tracking-wider transition flex items-center space-x-2">
-              <span>🪤</span><span>Test Caza-Trampas</span>
+            <button onclick="window.appController.startSimulatorWithParams({ count: 20, bloque: 'ALL', mode: 'official', studyMode: true })" class="px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-slate-950 font-black text-xs uppercase tracking-wider transition flex items-center space-x-1.5">
+              <span>💡</span><span>Modo Estudio (20p)</span>
+            </button>
+            <button id="btn-quick-sim" class="px-3.5 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-amber-300 border border-amber-500/30 font-bold text-xs uppercase tracking-wider transition flex items-center space-x-1.5">
+              <span>⚡</span><span>Test Rápido</span>
+            </button>
+            <button onclick="window.appController.startTrapHunterTest()" class="px-3.5 py-2.5 rounded-xl bg-red-900/80 hover:bg-red-800 text-red-100 border border-red-600/50 font-bold text-xs uppercase tracking-wider transition flex items-center space-x-1.5">
+              <span>🪤</span><span>Caza-Trampas</span>
             </button>
           </div>
         </div>
@@ -163,7 +169,7 @@
         </div>
         <div class="tactical-card p-4 rounded-xl col-span-2 sm:col-span-1">
           <span class="text-xs text-slate-400 block">🗄️ Banco Activo</span>
-          <span class="text-xl font-black text-amber-400 mt-1 block" id="dash-total-questions">53</span>
+          <span class="text-xl font-black text-amber-400 mt-1 block" id="dash-total-questions">156</span>
         </div>
       </div>
 
@@ -238,14 +244,14 @@
       </div>
     </section>
 
-    <!-- 2. SECCIÓN: VISOR DE TEMARIO TÁCTICO (21 TEMAS / 3 BLOQUES + AUDIO) -->
+    <!-- 2. SECCIÓN: VISOR DE TEMARIO TÁCTICO (21 TEMAS / 3 BLOQUES + BUSCADOR INSTANTÁNEO + AUDIO) -->
     <section id="tab-temario" class="hidden space-y-6">
-      <div class="tactical-card rounded-2xl p-5 sm:p-6 border border-emerald-500/30">
+      <div class="tactical-card rounded-2xl p-5 sm:p-6 border border-emerald-500/30 space-y-4">
         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
             <h2 class="text-xl font-black text-white uppercase">📖 Temario Oficial Estructurado (21 Temas BOD — Orden DEF/1341/2017)</h2>
             <p class="text-xs text-slate-400 mt-1">
-              Resúmenes ejecutivos de tu cuaderno NotebookLM, porcentaje de preguntas que caen por tema cada año, trampas del tribunal, <strong>🔊 Audio Táctico</strong> y test directo.
+              Resúmenes ejecutivos de tu cuaderno NotebookLM, porcentaje de preguntas que caen por tema cada año, trampas del tribunal, <strong>🔊 Audio Táctico</strong>, <strong>💡 Modo Estudio</strong> y <strong>🔍 Buscador Instantáneo</strong>.
             </p>
           </div>
 
@@ -264,7 +270,40 @@
             </button>
           </div>
         </div>
+
+        <!-- Buscador Táctico Instantáneo de Plazos, Órganos, Leyes y Artículos -->
+        <div class="pt-3 border-t border-slate-800/80">
+          <div class="relative">
+            <input
+              type="text"
+              id="temario-search-input"
+              oninput="window.appController.searchTemario(this.value)"
+              placeholder="🔍 Busca cualquier plazo ('2 meses', '15 días'), órgano ('DIGEID', 'COPERFAS', 'MCANA', 'Jefe de Compañía'), ley o artículo..."
+              class="w-full pl-4 pr-24 py-3 rounded-xl bg-slate-950/90 border border-amber-500/40 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-amber-400"
+            />
+            <button
+              type="button"
+              onclick="window.appController.clearTemarioSearch()"
+              class="absolute right-2.5 top-1/2 -translate-y-1/2 px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-[11px] font-bold text-slate-300 transition"
+            >
+              Limpiar ✕
+            </button>
+          </div>
+          <div class="flex flex-wrap items-center gap-1.5 mt-2">
+            <span class="text-[11px] text-slate-400 font-semibold mr-1">⚡ Búsquedas frecuentes de examen:</span>
+            <button onclick="const i=document.getElementById('temario-search-input'); i.value='2 meses'; window.appController.searchTemario('2 meses');" class="px-2 py-0.5 rounded bg-slate-900 hover:bg-slate-800 text-[11px] text-amber-300 border border-slate-700 font-mono">2 meses</button>
+            <button onclick="const i=document.getElementById('temario-search-input'); i.value='Jefe de Compañía'; window.appController.searchTemario('Jefe de Compañía');" class="px-2 py-0.5 rounded bg-slate-900 hover:bg-slate-800 text-[11px] text-amber-300 border border-slate-700 font-mono">Jefe de Compañía</button>
+            <button onclick="const i=document.getElementById('temario-search-input'); i.value='DIGEID'; window.appController.searchTemario('DIGEID');" class="px-2 py-0.5 rounded bg-slate-900 hover:bg-slate-800 text-[11px] text-amber-300 border border-slate-700 font-mono">DIGEID (2024)</button>
+            <button onclick="const i=document.getElementById('temario-search-input'); i.value='COPERFAS'; window.appController.searchTemario('COPERFAS');" class="px-2 py-0.5 rounded bg-slate-900 hover:bg-slate-800 text-[11px] text-amber-300 border border-slate-700 font-mono">COPERFAS</button>
+            <button onclick="const i=document.getElementById('temario-search-input'); i.value='MCANA'; window.appController.searchTemario('MCANA');" class="px-2 py-0.5 rounded bg-slate-900 hover:bg-slate-800 text-[11px] text-amber-300 border border-slate-700 font-mono">MCANA vs FUTER</button>
+            <button onclick="const i=document.getElementById('temario-search-input'); i.value='Alzada'; window.appController.searchTemario('Alzada');" class="px-2 py-0.5 rounded bg-slate-900 hover:bg-slate-800 text-[11px] text-amber-300 border border-slate-700 font-mono">Recurso Alzada</button>
+            <button onclick="const i=document.getElementById('temario-search-input'); i.value='Eslovaquia'; window.appController.searchTemario('Eslovaquia');" class="px-2 py-0.5 rounded bg-slate-900 hover:bg-slate-800 text-[11px] text-amber-300 border border-slate-700 font-mono">Eslovaquia / OTAN</button>
+          </div>
+        </div>
       </div>
+
+      <!-- Resultados de Preguntas en Vivo al Buscar -->
+      <div id="temario-search-questions-container" class="hidden"></div>
 
       <div id="temario-topics-container" class="space-y-4"></div>
     </section>
@@ -281,7 +320,7 @@
             <p class="text-xs text-slate-300 mt-1">
               Entrena exclusivamente las preguntas donde el tribunal cruza plazos (2 meses vs 3 meses en LO 8/2014), novedades del RD 205/2024 (DIGEID), MCANA vs FUTER o artículos parecidos.
             </p>
-            <span id="trap-questions-count" class="text-xs font-mono text-amber-400 block mt-2">45 preguntas trampa listas</span>
+            <span id="trap-questions-count" class="text-xs font-mono text-amber-400 block mt-2">95+ preguntas trampa listas</span>
           </div>
           <button onclick="window.appController.startTrapHunterTest()" class="mt-4 w-full py-3 rounded-xl bg-red-600 hover:bg-red-500 text-white font-black text-xs uppercase tracking-wider transition">
             🪤 Iniciar Test Caza-Trampas Ahora ➔
@@ -297,7 +336,7 @@
             <p class="text-xs text-slate-300 mt-1">
               Simulacro con preguntas de convocatorias oficiales anteriores y actualizaciones 2024/2025 con ubicación exacta en el temario y truco de academia.
             </p>
-            <span id="official-questions-count" class="text-xs font-mono text-emerald-400 block mt-2">53 preguntas oficiales listas</span>
+            <span id="official-questions-count" class="text-xs font-mono text-emerald-400 block mt-2">156 preguntas oficiales listas</span>
           </div>
           <button onclick="window.appController.startOfficialExamTest()" class="mt-4 w-full py-3 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs uppercase tracking-wider transition">
             🏛️ Iniciar Simulacro de Preguntas Oficiales ➔
@@ -322,37 +361,57 @@
         <div class="flex items-center space-x-3 mb-4">
           <span class="text-3xl">🎯</span>
           <div>
-            <h2 class="text-xl font-black text-white uppercase">Motor de Simulacro Oficial Militar</h2>
+            <h2 class="text-xl font-black text-white uppercase">Motor de Simulacro Oficial Militar & Modo Estudio</h2>
             <p class="text-xs text-slate-400">Calificación con penalización reglamentaria: <strong class="text-amber-400">Nota = Aciertos - (Errores / 3)</strong></p>
           </div>
         </div>
 
         <div class="p-4 rounded-xl bg-slate-900/80 border border-slate-800 mb-6 text-xs text-slate-300 space-y-1.5">
-          <div class="font-bold text-amber-400 uppercase">📌 Normas de la Prueba Oficial:</div>
-          <p>• Cada respuesta acertada suma <strong>+1,00 punto</strong>.</p>
-          <p>• Cada respuesta errónea resta <strong>-0,33 puntos (1/3 de acierto)</strong>.</p>
-          <p>• Las preguntas con <strong>"Dejar en blanco"</strong> no puntúan ni penalizan (0 puntos).</p>
-          <p>• Todos los fallos se envían automáticamente a tu <strong>Bolsa de Preguntas Falladas</strong> y actualizan tu <strong>Radar de Temas</strong>.</p>
+          <div class="font-bold text-amber-400 uppercase">📌 Normas de la Prueba Oficial y Modos de Entrenamiento:</div>
+          <p>• Cada respuesta acertada suma <strong>+1,00 punto</strong>; cada errónea resta <strong>-0,33 puntos (1/3 de acierto)</strong>; en blanco <strong>0 puntos</strong>.</p>
+          <p>• <strong>🏆 Simulacro Oficial Ponderado BOD (100 preg. / 120 min):</strong> Replica exactamente el reparto estadístico real de la oposición (<strong>34 Bloque 1 + 40 Bloque 2 + 26 Bloque 3</strong>).</p>
+          <p>• <strong>💡 Modo Estudio Guiado (Corrección Instantánea):</strong> Al marcar una opción ves al instante la explicación jurídica, la ubicación exacta en el temario y el truco de academia.</p>
         </div>
 
-        <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400 mb-3">Selecciona la modalidad de examen:</h3>
+        <h3 class="text-xs font-bold uppercase tracking-wider text-amber-400 mb-3">🔥 Modalidades Destacadas (Convocatoria Oficial):</h3>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+          <button onclick="window.appController.startSimulatorWithParams({ count: 100, bloque: 'ALL', mode: 'ponderado_100', studyMode: false })" class="tactical-card tactical-card-hover p-5 rounded-xl text-left border-2 border-amber-500/60 bg-amber-950/15">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-mono text-amber-400 font-black uppercase">🏆 EXAMEN OFICIAL PONDERADO • 120 MINUTOS</span>
+              <span class="px-2 py-0.5 rounded bg-amber-500 text-slate-950 font-black text-[10px]">100 PREGUNTAS</span>
+            </div>
+            <h4 class="text-lg font-black text-white mt-1.5">Simulacro Oficial BOD (34 B1 + 40 B2 + 26 B3)</h4>
+            <p class="text-xs text-slate-300 mt-1">Exactamente con la proporción real del examen oficial de Permanencia y cronómetro reglamentario de 2 horas.</p>
+          </button>
+
+          <button onclick="window.appController.startSimulatorWithParams({ count: 25, bloque: 'ALL', mode: 'official', studyMode: true })" class="tactical-card tactical-card-hover p-5 rounded-xl text-left border-2 border-emerald-500/60 bg-emerald-950/15">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-mono text-emerald-400 font-black uppercase">💡 CORRECCIÓN INSTANTÁNEA PREGUNTA A PREGUNTA</span>
+              <span class="px-2 py-0.5 rounded bg-emerald-500 text-slate-950 font-black text-[10px]">MODO ESTUDIO</span>
+            </div>
+            <h4 class="text-lg font-black text-white mt-1.5">Entrenamiento Guiado con Truco de Academia (25 preg.)</h4>
+            <p class="text-xs text-slate-300 mt-1">Corrige cada pregunta en el acto al responder y lee la referencia exacta del artículo y el aviso caza-trampas.</p>
+          </button>
+        </div>
+
+        <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400 mb-3">Otras modalidades de entrenamiento por tiempo:</h3>
         <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <button onclick="window.appController.startSimulatorWithParams({ count: 15, bloque: 'ALL', mode: 'official' })" class="tactical-card tactical-card-hover p-5 rounded-xl text-left border border-slate-800">
+          <button onclick="window.appController.startSimulatorWithParams({ count: 15, bloque: 'ALL', mode: 'official', studyMode: false })" class="tactical-card tactical-card-hover p-5 rounded-xl text-left border border-slate-800">
             <span class="text-xs font-mono text-amber-400 font-bold">15 MINUTOS</span>
             <h4 class="text-lg font-black text-white mt-1">Patrulla Rápida (15 preg.)</h4>
             <p class="text-xs text-slate-400 mt-1">Ideal para repasar en el móvil en cualquier descanso.</p>
           </button>
 
-          <button onclick="window.appController.startSimulatorWithParams({ count: 30, bloque: 'ALL', mode: 'official' })" class="tactical-card tactical-card-hover p-5 rounded-xl text-left border border-amber-500/40">
+          <button onclick="window.appController.startSimulatorWithParams({ count: 30, bloque: 'ALL', mode: 'official', studyMode: false })" class="tactical-card tactical-card-hover p-5 rounded-xl text-left border border-amber-500/40">
             <span class="text-xs font-mono text-emerald-400 font-bold">30 MINUTOS • RECOMENDADO</span>
             <h4 class="text-lg font-black text-white mt-1">Maniobra Táctica (30 preg.)</h4>
             <p class="text-xs text-slate-400 mt-1">Mezcla equilibrada de los 3 Bloques Oficiales.</p>
           </button>
 
-          <button onclick="window.appController.startSimulatorWithParams({ count: 100, bloque: 'ALL', mode: 'official' })" class="tactical-card tactical-card-hover p-5 rounded-xl text-left border border-slate-800">
-            <span class="text-xs font-mono text-red-400 font-bold">EXAMEN COMPLETO</span>
-            <h4 class="text-lg font-black text-white mt-1">Simulacro Oficial (Máx. Banco)</h4>
-            <p class="text-xs text-slate-400 mt-1">Todas las preguntas disponibles con cronómetro real.</p>
+          <button onclick="window.appController.startSimulatorWithParams({ count: 156, bloque: 'ALL', mode: 'official', studyMode: true })" class="tactical-card tactical-card-hover p-5 rounded-xl text-left border border-slate-800">
+            <span class="text-xs font-mono text-sky-400 font-bold">MARATÓN COMPLETA (156 PREG.)</span>
+            <h4 class="text-lg font-black text-white mt-1">Banco Completo en Modo Estudio</h4>
+            <p class="text-xs text-slate-400 mt-1">Las 156 preguntas de los 21 temas con corrección instantánea.</p>
           </button>
         </div>
       </div>
@@ -370,7 +429,16 @@
           </span>
         </div>
 
-        <div class="flex items-center space-x-3">
+        <div class="flex flex-wrap items-center gap-2">
+          <button
+            type="button"
+            id="sim-btn-study-mode"
+            onclick="window.appController.toggleSimStudyMode()"
+            class="px-3 py-1.5 rounded-lg border border-slate-700 bg-slate-900/90 text-slate-300 text-xs font-bold transition"
+            title="Activa o desactiva la corrección instantánea pregunta a pregunta"
+          >
+            💡 Corrección Instantánea: OFF
+          </button>
           <div class="flex items-center space-x-1.5 px-3 py-1 rounded-lg bg-slate-950 border border-slate-800">
             <span class="text-xs">⏱️</span>
             <span class="font-mono font-bold text-sm text-amber-400" id="sim-timer-display">20:00</span>
@@ -397,15 +465,29 @@
 
         <div id="sim-options-container" class="space-y-3 mb-6"></div>
 
+        <!-- Panel de Corrección Instantánea (Modo Estudio / Comprobar Respuesta) -->
+        <div id="sim-instant-feedback" class="hidden mb-6"></div>
+
         <div class="pt-4 border-t border-slate-800/80 flex flex-wrap items-center justify-between gap-3">
-          <button 
-            type="button" 
-            id="sim-btn-blank"
-            onclick="window.appController.leaveCurrentBlank()"
-            class="px-4 py-2.5 rounded-xl border border-slate-700 bg-slate-900/90 hover:bg-slate-800 text-xs font-bold text-slate-300 transition flex items-center space-x-2"
-          >
-            <span>⚪</span><span>Dejar en blanco (0 pts)</span>
-          </button>
+          <div class="flex flex-wrap items-center gap-2">
+            <button 
+              type="button" 
+              id="sim-btn-blank"
+              onclick="window.appController.leaveCurrentBlank()"
+              class="px-4 py-2.5 rounded-xl border border-slate-700 bg-slate-900/90 hover:bg-slate-800 text-xs font-bold text-slate-300 transition flex items-center space-x-2"
+            >
+              <span>⚪</span><span>Dejar en blanco (0 pts)</span>
+            </button>
+
+            <button
+              type="button"
+              onclick="window.appController.checkCurrentQuestionNow()"
+              class="px-3.5 py-2.5 rounded-xl border border-emerald-600/50 bg-emerald-950/50 hover:bg-emerald-900/60 text-xs font-bold text-emerald-300 transition flex items-center space-x-1.5"
+              title="Ver respuesta correcta, artículo del temario y truco de academia ahora mismo"
+            >
+              <span>🔍</span><span>Ver Explicación / Corregir</span>
+            </button>
+          </div>
 
           <div class="flex items-center space-x-2.5 ml-auto">
             <button 

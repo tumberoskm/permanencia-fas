@@ -1,7 +1,10 @@
 /**
- * MOTOR DE SIMULACRO OFICIAL MILITAR v2.0
+ * MOTOR DE SIMULACRO OFICIAL MILITAR v4.0
  * Fórmula Oficial Permanencia FAS: Puntuación = Aciertos - (Errores / 3)
- * Soporta: Simulacro Oficial, Test por Tema, Caza-Trampas, Examen Oficial Real y Bolsa de Fallos.
+ * Soporta:
+ * - Simulacro Oficial Ponderado 100 Preguntas (34% B1 + 40% B2 + 26% B3, 120 min)
+ * - Modo Estudio Guiado / Academia (Corrección instantánea pregunta a pregunta)
+ * - Simulacro por Bloques, Test por Tema, Caza-Trampas, Examen Oficial Real y Bolsa de Fallos.
  */
 
 class SimulatorEngine {
@@ -9,8 +12,10 @@ class SimulatorEngine {
     this.questions = [];
     this.currentIndex = 0;
     this.answers = {};
+    this.revealed = new Set(); // Índices cuya respuesta ya se ha comprobado en Modo Estudio
     this.flagged = new Set();
-    this.mode = "official"; // "official" | "trampas" | "examen_real" | "failed_bag" | "tema"
+    this.mode = "official"; // "official" | "ponderado_100" | "trampas" | "examen_real" | "failed_bag" | "tema"
+    this.studyMode = false; // Si true, corrige al instante tras seleccionar opción
     this.filterBloque = "ALL";
     this.filterTema = null;
     this.timerInterval = null;
@@ -19,59 +24,84 @@ class SimulatorEngine {
     this.isFinished = false;
   }
 
-  startSession({ count = 20, bloque = "ALL", mode = "official", temaCodigo = null }) {
+  shuffleArray(arr) {
+    const copy = [...arr];
+    for (let i = copy.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [copy[i], copy[j]] = [copy[j], copy[i]];
+    }
+    return copy;
+  }
+
+  startSession({ count = 20, bloque = "ALL", mode = "official", temaCodigo = null, studyMode = false }) {
     this.mode = mode;
+    this.studyMode = Boolean(studyMode);
     this.filterBloque = bloque;
     this.filterTema = temaCodigo;
     this.currentIndex = 0;
     this.answers = {};
+    this.revealed = new Set();
     this.flagged = new Set();
     this.isFinished = false;
     this.secondsElapsed = 0;
 
     const allQuestions = window.storageManager.getQuestions();
-    let pool = [];
+    let selectedQuestions = [];
 
-    if (mode === "failed_bag") {
-      const failedItems = window.storageManager.getFailedQuestions();
-      const failedIds = new Set(failedItems.map(f => f.id));
-      pool = allQuestions.filter(q => failedIds.has(q.id));
-    } else if (mode === "trampas") {
-      pool = allQuestions.filter(q => q.dificultad === "trampa");
-    } else if (mode === "examen_real") {
-      pool = allQuestions.filter(q => q.esExamenOficial === true);
-    } else if (temaCodigo) {
-      pool = allQuestions.filter(q => q.temaCodigo === temaCodigo);
-    } else if (bloque !== "ALL") {
-      pool = allQuestions.filter(q => q.bloque === bloque);
+    if (mode === "ponderado_100") {
+      // Reparto estadístico real del Examen Oficial de 100 preguntas: 34 B1 + 40 B2 + 26 B3
+      const b1 = this.shuffleArray(allQuestions.filter(q => q.bloque === "Bloque 1: Organización")).slice(0, 34);
+      const b2 = this.shuffleArray(allQuestions.filter(q => q.bloque === "Bloque 2: Jurídico-Social")).slice(0, 40);
+      const b3 = this.shuffleArray(allQuestions.filter(q => q.bloque === "Bloque 3: Seguridad Nacional")).slice(0, 26);
+      selectedQuestions = [...b1, ...b2, ...b3];
+      // Si el banco tuviera menos de 100 por algún motivo, rellenar con las restantes
+      if (selectedQuestions.length < 100) {
+        const usedIds = new Set(selectedQuestions.map(q => q.id));
+        const rest = this.shuffleArray(allQuestions.filter(q => !usedIds.has(q.id)));
+        selectedQuestions.push(...rest.slice(0, 100 - selectedQuestions.length));
+      }
     } else {
-      pool = [...allQuestions];
+      let pool = [];
+      if (mode === "failed_bag") {
+        const failedItems = window.storageManager.getFailedQuestions();
+        const failedIds = new Set(failedItems.map(f => f.id));
+        pool = allQuestions.filter(q => failedIds.has(q.id));
+      } else if (mode === "trampas") {
+        pool = allQuestions.filter(q => q.dificultad === "trampa");
+      } else if (mode === "examen_real") {
+        pool = allQuestions.filter(q => q.esExamenOficial === true);
+      } else if (temaCodigo) {
+        pool = allQuestions.filter(q => q.temaCodigo === temaCodigo);
+      } else if (bloque !== "ALL") {
+        pool = allQuestions.filter(q => q.bloque === bloque);
+      } else {
+        pool = [...allQuestions];
+      }
+
+      if (pool.length === 0) {
+        return {
+          ok: false,
+          message: mode === "failed_bag"
+            ? "¡Enhorabuena! No tienes preguntas pendientes en la bolsa de falladas."
+            : "No hay preguntas disponibles para este filtro todavía."
+        };
+      }
+
+      const shuffled = this.shuffleArray(pool);
+      const selectedCount = Math.min(count, shuffled.length);
+      selectedQuestions = shuffled.slice(0, selectedCount);
     }
 
-    if (pool.length === 0) {
-      return {
-        ok: false,
-        message: mode === "failed_bag"
-          ? "¡Enhorabuena! No tienes preguntas pendientes en la bolsa de falladas."
-          : "No hay preguntas disponibles para este filtro todavía."
-      };
-    }
-
-    // Mezclar aleatoriamente (Fisher-Yates)
-    const shuffled = [...pool];
-    for (let i = shuffled.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
-    }
-
-    const selectedCount = Math.min(count, shuffled.length);
-    this.questions = shuffled.slice(0, selectedCount);
+    this.questions = selectedQuestions;
 
     for (let i = 0; i < this.questions.length; i++) {
       this.answers[i] = null;
     }
 
-    this.secondsRemaining = this.questions.length * 60;
+    // Examen oficial de 100 preguntas = 120 minutos (7200s); resto = 1.2 min por pregunta
+    this.secondsRemaining = mode === "ponderado_100"
+      ? 120 * 60
+      : Math.round(this.questions.length * 72);
     this.startTimer();
 
     return {
@@ -132,11 +162,31 @@ class SimulatorEngine {
   selectOption(optionIdx) {
     if (this.isFinished) return;
     this.answers[this.currentIndex] = optionIdx;
+    if (this.studyMode) {
+      this.revealed.add(this.currentIndex);
+    }
   }
 
   leaveBlank() {
     if (this.isFinished) return;
     this.answers[this.currentIndex] = null;
+    this.revealed.delete(this.currentIndex);
+  }
+
+  toggleStudyMode() {
+    this.studyMode = !this.studyMode;
+    if (this.studyMode && this.answers[this.currentIndex] !== null && this.answers[this.currentIndex] !== undefined) {
+      this.revealed.add(this.currentIndex);
+    }
+    return this.studyMode;
+  }
+
+  revealCurrentQuestion() {
+    this.revealed.add(this.currentIndex);
+  }
+
+  isCurrentRevealed() {
+    return this.revealed.has(this.currentIndex);
   }
 
   toggleFlag() {

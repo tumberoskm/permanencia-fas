@@ -9,6 +9,7 @@ class AppController {
     this.fcIndex = 0;
     this.fcList = [];
     this.selectedSyllabusFilter = "ALL";
+    this.temarioSearchQuery = "";
     this.isSpeaking = false;
     this.init();
   }
@@ -258,21 +259,119 @@ class AppController {
   }
 
   // ==========================================
-  // VISOR DE TEMARIO TÁCTICO (21 TEMAS / 3 BLOQUES)
+  // VISOR DE TEMARIO TÁCTICO (21 TEMAS / 3 BLOQUES + BUSCADOR DE PLAZOS Y ARTÍCULOS)
   // ==========================================
   filterTemario(bloque) {
     this.selectedSyllabusFilter = bloque;
     this.renderTemario();
   }
 
+  searchTemario(query) {
+    this.temarioSearchQuery = (query || "").trim();
+    this.renderTemario();
+  }
+
+  clearTemarioSearch() {
+    this.temarioSearchQuery = "";
+    const input = document.getElementById("temario-search-input");
+    if (input) input.value = "";
+    this.renderTemario();
+  }
+
   renderTemario() {
     const container = document.getElementById("temario-topics-container");
+    const searchResultsContainer = document.getElementById("temario-search-questions-container");
     if (!container || typeof OFFICIAL_SYLLABUS === "undefined") return;
 
     const allQuestions = window.storageManager.getQuestions();
-    const filtered = this.selectedSyllabusFilter === "ALL"
+    const rawQuery = (this.temarioSearchQuery || "").toLowerCase();
+
+    let filtered = this.selectedSyllabusFilter === "ALL"
       ? OFFICIAL_SYLLABUS
       : OFFICIAL_SYLLABUS.filter(t => t.bloque === this.selectedSyllabusFilter);
+
+    if (rawQuery) {
+      filtered = filtered.filter(t => {
+        const haystack = [
+          t.codigo,
+          t.bloque,
+          t.titulo,
+          t.normativa,
+          t.resumen,
+          ...(t.puntosCalientes || []),
+          ...(t.trampas || [])
+        ].join(" ").toLowerCase();
+        return haystack.includes(rawQuery);
+      });
+
+      // Buscar también preguntas del banco que coincidan con el término buscado
+      const matchingQuestions = allQuestions.filter(q => {
+        const qHaystack = [
+          q.temaCodigo,
+          q.materia,
+          q.pregunta,
+          ...(q.opciones || []),
+          q.referencia,
+          q.ubicacionTemario,
+          q.consejoAcademia,
+          q.justificacion
+        ].join(" ").toLowerCase();
+        return qHaystack.includes(rawQuery);
+      });
+
+      if (searchResultsContainer) {
+        searchResultsContainer.classList.remove("hidden");
+        if (matchingQuestions.length === 0) {
+          searchResultsContainer.innerHTML = `
+            <div class="p-4 rounded-xl bg-slate-900/80 border border-slate-800 text-xs text-slate-400">
+              🔍 No se encontraron preguntas específicas con el término <strong>"${this.temarioSearchQuery}"</strong>.
+            </div>
+          `;
+        } else {
+          searchResultsContainer.innerHTML = `
+            <div class="tactical-card rounded-2xl p-5 border border-amber-500/50 space-y-3">
+              <div class="flex flex-wrap items-center justify-between gap-2">
+                <h3 class="text-sm font-black uppercase text-amber-400">
+                  🎯 ${matchingQuestions.length} Preguntas de Examen encontradas para "${this.temarioSearchQuery}"
+                </h3>
+                <button onclick="window.appController.clearTemarioSearch()" class="text-xs text-slate-400 hover:text-white underline">
+                  Limpiar búsqueda ✕
+                </button>
+              </div>
+              <div class="space-y-3 max-h-[520px] overflow-y-auto pr-1">
+                ${matchingQuestions.slice(0, 20).map(q => `
+                  <div class="p-3.5 rounded-xl bg-slate-950/90 border border-slate-800 space-y-2 text-xs">
+                    <div class="flex flex-wrap items-center justify-between gap-2">
+                      <span class="px-2 py-0.5 rounded bg-amber-950 text-amber-300 border border-amber-700 font-mono font-bold">${q.temaCodigo} • ${q.materia}</span>
+                      <span class="text-emerald-400 font-mono">${q.referencia || ""}</span>
+                    </div>
+                    ${q.ubicacionTemario ? `<div class="text-[11px] font-mono text-slate-400">📍 ${q.ubicacionTemario}</div>` : ""}
+                    <p class="text-slate-100 font-bold text-sm">${q.pregunta}</p>
+                    <div class="p-2.5 rounded-lg bg-emerald-950/30 border border-emerald-700/50 text-emerald-300">
+                      <strong>✅ Respuesta Oficial:</strong> ${q.opciones[q.correcta]}
+                    </div>
+                    <p class="text-slate-300 leading-relaxed">${q.justificacion}</p>
+                    ${q.consejoAcademia ? `<div class="p-2 rounded bg-amber-950/30 border border-amber-700/40 text-amber-200">💡 <strong>Truco Academia:</strong> ${q.consejoAcademia}</div>` : ""}
+                  </div>
+                `).join("")}
+              </div>
+            </div>
+          `;
+        }
+      }
+    } else if (searchResultsContainer) {
+      searchResultsContainer.classList.add("hidden");
+      searchResultsContainer.innerHTML = "";
+    }
+
+    if (filtered.length === 0) {
+      container.innerHTML = `
+        <div class="tactical-card rounded-2xl p-8 text-center text-slate-400">
+          No hay temas que coincidan con el filtro actual.
+        </div>
+      `;
+      return;
+    }
 
     container.innerHTML = filtered.map(tema => {
       const qCount = allQuestions.filter(q => q.temaCodigo === tema.codigo).length;
@@ -297,19 +396,27 @@ class AppController {
               ${freqBadge}
             </div>
 
-            <div class="flex items-center space-x-2">
+            <div class="flex flex-wrap items-center gap-2">
               <button 
                 onclick="window.appController.speakTopic('${tema.codigo}')"
                 class="px-3 py-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 border border-slate-700 text-xs font-bold text-amber-400 flex items-center space-x-1 transition"
                 title="Escuchar resumen y puntos calientes en voz alta"
               >
-                <span>🔊</span><span>Audio Táctico</span>
+                <span>🔊</span><span>Audio</span>
+              </button>
+              <button 
+                onclick="window.appController.startTopicStudy('${tema.codigo}')"
+                class="px-3 py-1.5 rounded-lg bg-emerald-700 hover:bg-emerald-600 text-white text-xs font-black uppercase tracking-wider transition"
+                title="Corrige cada pregunta al instante mostrándote la ley y el truco de academia"
+              >
+                💡 Modo Estudio (${qCount})
               </button>
               <button 
                 onclick="window.appController.startTopicTest('${tema.codigo}')"
                 class="px-3 py-1.5 rounded-lg bg-amber-500 hover:bg-amber-400 text-slate-950 text-xs font-black uppercase tracking-wider transition"
+                title="Modo examen con corrección final"
               >
-                🎯 Test del Tema (${qCount})
+                🎯 Test Examen (${qCount})
               </button>
             </div>
           </div>
@@ -347,6 +454,9 @@ class AppController {
 
   openTopicDetail(temaCodigo) {
     this.selectedSyllabusFilter = "ALL";
+    this.temarioSearchQuery = "";
+    const input = document.getElementById("temario-search-input");
+    if (input) input.value = "";
     this.showTab("temario");
     setTimeout(() => {
       const el = document.getElementById(`topic-card-${temaCodigo}`);
@@ -358,8 +468,12 @@ class AppController {
     }, 100);
   }
 
+  startTopicStudy(temaCodigo) {
+    this.startSimulatorWithParams({ count: 30, bloque: "ALL", mode: "tema", temaCodigo, studyMode: true });
+  }
+
   startTopicTest(temaCodigo) {
-    this.startSimulatorWithParams({ count: 20, bloque: "ALL", mode: "tema", temaCodigo });
+    this.startSimulatorWithParams({ count: 30, bloque: "ALL", mode: "tema", temaCodigo, studyMode: false });
   }
 
   // ==========================================
@@ -490,18 +604,18 @@ class AppController {
   }
 
   startTrapHunterTest() {
-    this.startSimulatorWithParams({ count: 25, bloque: "ALL", mode: "trampas" });
+    this.startSimulatorWithParams({ count: 30, bloque: "ALL", mode: "trampas", studyMode: true });
   }
 
   startOfficialExamTest() {
-    this.startSimulatorWithParams({ count: 35, bloque: "ALL", mode: "examen_real" });
+    this.startSimulatorWithParams({ count: 40, bloque: "ALL", mode: "examen_real", studyMode: false });
   }
 
   // ==========================================
   // SIMULADOR: CONFIGURACIÓN E INICIO
   // ==========================================
-  startSimulatorWithParams({ count = 20, bloque = "ALL", mode = "official", temaCodigo = null }) {
-    const res = window.simulatorEngine.startSession({ count, bloque, mode, temaCodigo });
+  startSimulatorWithParams({ count = 20, bloque = "ALL", mode = "official", temaCodigo = null, studyMode = false }) {
+    const res = window.simulatorEngine.startSession({ count, bloque, mode, temaCodigo, studyMode });
     if (!res.ok) {
       alert(res.message);
       return;
@@ -512,15 +626,44 @@ class AppController {
     this.renderSimulatorGrid();
   }
 
+  toggleSimStudyMode() {
+    window.simulatorEngine.toggleStudyMode();
+    this.renderSimulatorQuestion();
+  }
+
+  checkCurrentQuestionNow() {
+    const idx = window.simulatorEngine.currentIndex;
+    const ans = window.simulatorEngine.answers[idx];
+    if (ans === null || ans === undefined) {
+      alert("Selecciona primero una opción (A, B, C o D) para comprobar la respuesta.");
+      return;
+    }
+    window.simulatorEngine.revealCurrentQuestion();
+    this.renderSimulatorQuestion();
+  }
+
   renderSimulatorQuestion() {
     const q = window.simulatorEngine.getCurrentQuestion();
     const idx = window.simulatorEngine.currentIndex;
     const total = window.simulatorEngine.questions.length;
     const userAnswer = window.simulatorEngine.answers[idx];
     const isFlagged = window.simulatorEngine.flagged.has(idx);
+    const isStudyMode = window.simulatorEngine.studyMode;
+    const isRevealed = window.simulatorEngine.isCurrentRevealed() && userAnswer !== null && userAnswer !== undefined;
 
     const counterEl = document.getElementById("sim-question-counter");
     if (counterEl) counterEl.textContent = `Pregunta ${idx + 1} de ${total}`;
+
+    const studyBtn = document.getElementById("sim-btn-study-mode");
+    if (studyBtn) {
+      if (isStudyMode) {
+        studyBtn.innerHTML = `💡 <span>Modo Estudio: ON</span>`;
+        studyBtn.className = "px-3 py-1 rounded-lg bg-emerald-950 text-emerald-300 border border-emerald-600 text-xs font-bold transition";
+      } else {
+        studyBtn.innerHTML = `💡 <span>Modo Estudio: OFF</span>`;
+        studyBtn.className = "px-3 py-1 rounded-lg bg-slate-900 text-slate-400 border border-slate-700 text-xs font-bold transition";
+      }
+    }
 
     const bloqueBadge = document.getElementById("sim-q-bloque-badge");
     const materiaBadge = document.getElementById("sim-q-materia-badge");
@@ -559,14 +702,27 @@ class AppController {
     if (container) {
       container.innerHTML = q.opciones.map((opt, oIdx) => {
         const isSelected = userAnswer === oIdx;
-        const selectedClass = isSelected ? "selected border-amber-500 bg-amber-950/30 ring-1 ring-amber-500" : "";
+        const isCorrectOpt = q.correcta === oIdx;
+        let selectedClass = isSelected ? "selected border-amber-500 bg-amber-950/30 ring-1 ring-amber-500" : "";
+        let badgeStyle = isSelected ? "bg-amber-500 text-slate-950" : "bg-slate-800 text-slate-300";
+
+        if (isRevealed) {
+          if (isCorrectOpt) {
+            selectedClass = "border-emerald-500 bg-emerald-950/40 ring-2 ring-emerald-500";
+            badgeStyle = "bg-emerald-500 text-slate-950";
+          } else if (isSelected && !isCorrectOpt) {
+            selectedClass = "border-red-500 bg-red-950/40 ring-1 ring-red-500";
+            badgeStyle = "bg-red-500 text-white";
+          }
+        }
+
         return `
           <button 
             type="button" 
             onclick="window.appController.selectSimOption(${oIdx})"
             class="option-btn w-full p-4 rounded-xl text-left flex items-start space-x-3.5 ${selectedClass}"
           >
-            <span class="w-8 h-8 rounded-lg flex items-center justify-center text-xs font-black shrink-0 ${isSelected ? "bg-amber-500 text-slate-950" : "bg-slate-800 text-slate-300"}">
+            <span class="w-8 h-8 rounded-lg flex items-center justify-center text-xs font-black shrink-0 ${badgeStyle}">
               ${letters[oIdx]}
             </span>
             <span class="text-sm sm:text-base leading-relaxed text-slate-200 mt-1">
@@ -575,6 +731,47 @@ class AppController {
           </button>
         `;
       }).join("");
+    }
+
+    // Panel de retroalimentación instantánea (Modo Estudio / Comprobar respuesta)
+    const feedbackEl = document.getElementById("sim-instant-feedback");
+    if (feedbackEl) {
+      if (isRevealed) {
+        const isRight = userAnswer === q.correcta;
+        feedbackEl.classList.remove("hidden");
+        feedbackEl.innerHTML = `
+          <div class="p-4 rounded-xl border ${isRight ? "bg-emerald-950/30 border-emerald-600/60" : "bg-red-950/30 border-red-600/60"} space-y-2.5 text-xs">
+            <div class="flex flex-wrap items-center justify-between gap-2">
+              <span class="font-black text-sm uppercase ${isRight ? "text-emerald-400" : "text-red-400"}">
+                ${isRight ? "✅ ¡ACIERTO OFICIAL! (+1.00 pt)" : `❌ FALLO (-0.33 pts) • La respuesta correcta es la ${letters[q.correcta]}`}
+              </span>
+              <span class="px-2 py-0.5 rounded bg-slate-900 text-amber-400 font-mono border border-slate-700">
+                ${q.referencia || "Temario Oficial BOD"}
+              </span>
+            </div>
+
+            ${q.ubicacionTemario ? `
+              <div class="px-2.5 py-1.5 rounded bg-slate-950/80 border border-slate-800 text-emerald-300 font-mono text-[11px]">
+                📍 <strong>Ubicación en el Temario:</strong> ${q.ubicacionTemario}
+              </div>
+            ` : ""}
+
+            <p class="text-slate-200 leading-relaxed">
+              <strong class="text-amber-400">⚖️ Fundamentación Normativa:</strong> ${q.justificacion}
+            </p>
+
+            ${q.consejoAcademia ? `
+              <div class="p-2.5 rounded-lg bg-amber-950/40 border border-amber-700/50 text-amber-200 leading-relaxed">
+                <strong class="text-amber-400 uppercase block mb-0.5">💡 Truco / Sugerencia de Academia:</strong>
+                ${q.consejoAcademia}
+              </div>
+            ` : ""}
+          </div>
+        `;
+      } else {
+        feedbackEl.classList.add("hidden");
+        feedbackEl.innerHTML = "";
+      }
     }
 
     const prevBtn = document.getElementById("sim-btn-prev");
@@ -602,14 +799,21 @@ class AppController {
 
     gridContainer.innerHTML = Array.from({ length: total }, (_, i) => {
       const isCurrent = i === currentIdx;
-      const isAnswered = window.simulatorEngine.answers[i] !== null && window.simulatorEngine.answers[i] !== undefined;
+      const ans = window.simulatorEngine.answers[i];
+      const isAnswered = ans !== null && ans !== undefined;
       const isFlagged = window.simulatorEngine.flagged.has(i);
+      const isRevealed = window.simulatorEngine.revealed.has(i) && isAnswered;
+      const q = window.simulatorEngine.questions[i];
 
       let bgClass = "bg-slate-800/80 text-slate-400 border-slate-700";
       if (isCurrent) {
         bgClass = "ring-2 ring-amber-400 font-black text-amber-300 bg-slate-800";
       } else if (isFlagged) {
         bgClass = "bg-amber-950/60 text-amber-300 border-amber-600";
+      } else if (isRevealed && q) {
+        bgClass = ans === q.correcta
+          ? "bg-emerald-950/80 text-emerald-300 border-emerald-500"
+          : "bg-red-950/80 text-red-300 border-red-500";
       } else if (isAnswered) {
         bgClass = "bg-emerald-950/60 text-emerald-400 border-emerald-600";
       }
