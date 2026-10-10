@@ -1,0 +1,20 @@
+{
+  "name": "permanencia-fas",
+  "version": "1.0.0",
+  "description": "Plataforma de preparación para la Oposición de Permanencia de Tropa (Ejército de Tierra)",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "keywords": [
+    "permanencia",
+    "fas",
+    "ejercito-de-tierra",
+    "oposicion",
+    "test-militar",
+    "simulacro"
+  ],
+  "author": "Frank",
+  "license": "MIT"
+}
