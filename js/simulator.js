@@ -1,29 +1,28 @@
 /**
- * MOTOR DE SIMULACRO OFICIAL MILITAR
+ * MOTOR DE SIMULACRO OFICIAL MILITAR v2.0
  * Fórmula Oficial Permanencia FAS: Puntuación = Aciertos - (Errores / 3)
- * Las respuestas en blanco no penalizan (0 puntos).
+ * Soporta: Simulacro Oficial, Test por Tema, Caza-Trampas, Examen Oficial Real y Bolsa de Fallos.
  */
 
 class SimulatorEngine {
   constructor() {
     this.questions = [];
     this.currentIndex = 0;
-    this.answers = {}; // { index: optionIndex (0..3) | null (blanco) }
-    this.flagged = new Set(); // Índices marcados con bandera de duda
-    this.mode = "official"; // "official" | "tutor" | "failed_bag"
+    this.answers = {};
+    this.flagged = new Set();
+    this.mode = "official"; // "official" | "trampas" | "examen_real" | "failed_bag" | "tema"
     this.filterBloque = "ALL";
+    this.filterTema = null;
     this.timerInterval = null;
     this.secondsRemaining = 0;
     this.secondsElapsed = 0;
     this.isFinished = false;
   }
 
-  /**
-   * Inicia una nueva sesión de simulacro o test por bloques
-   */
-  startSession({ count = 20, bloque = "ALL", mode = "official" }) {
+  startSession({ count = 20, bloque = "ALL", mode = "official", temaCodigo = null }) {
     this.mode = mode;
     this.filterBloque = bloque;
+    this.filterTema = temaCodigo;
     this.currentIndex = 0;
     this.answers = {};
     this.flagged = new Set();
@@ -37,6 +36,12 @@ class SimulatorEngine {
       const failedItems = window.storageManager.getFailedQuestions();
       const failedIds = new Set(failedItems.map(f => f.id));
       pool = allQuestions.filter(q => failedIds.has(q.id));
+    } else if (mode === "trampas") {
+      pool = allQuestions.filter(q => q.dificultad === "trampa");
+    } else if (mode === "examen_real") {
+      pool = allQuestions.filter(q => q.esExamenOficial === true);
+    } else if (temaCodigo) {
+      pool = allQuestions.filter(q => q.temaCodigo === temaCodigo);
     } else if (bloque !== "ALL") {
       pool = allQuestions.filter(q => q.bloque === bloque);
     } else {
@@ -48,7 +53,7 @@ class SimulatorEngine {
         ok: false,
         message: mode === "failed_bag"
           ? "¡Enhorabuena! No tienes preguntas pendientes en la bolsa de falladas."
-          : "No hay preguntas disponibles para este bloque."
+          : "No hay preguntas disponibles para este filtro todavía."
       };
     }
 
@@ -62,12 +67,10 @@ class SimulatorEngine {
     const selectedCount = Math.min(count, shuffled.length);
     this.questions = shuffled.slice(0, selectedCount);
 
-    // Inicializar todas las respuestas como null (en blanco)
     for (let i = 0; i < this.questions.length; i++) {
       this.answers[i] = null;
     }
 
-    // Configurar temporizador (1 minuto por pregunta en modo oficial, o 90 seg)
     this.secondsRemaining = this.questions.length * 60;
     this.startTimer();
 
@@ -80,7 +83,7 @@ class SimulatorEngine {
   startTimer() {
     this.stopTimer();
     const timerDisplay = document.getElementById("sim-timer-display");
-    
+
     this.timerInterval = setInterval(() => {
       if (this.isFinished) {
         this.stopTimer();
@@ -90,8 +93,7 @@ class SimulatorEngine {
       this.secondsElapsed++;
       if (this.secondsRemaining > 0) {
         this.secondsRemaining--;
-      } else if (this.mode === "official") {
-        // Tiempo agotado en simulacro oficial
+      } else {
         this.stopTimer();
         if (window.appController) {
           window.appController.finishSimulator(true);
@@ -146,10 +148,6 @@ class SimulatorEngine {
     return this.flagged.has(this.currentIndex);
   }
 
-  /**
-   * Calcula el resultado aplicando la FÓRMULA OFICIAL MILITAR:
-   * Puntuación Directa = Aciertos - (Errores / 3)
-   */
   evaluateExam() {
     this.isFinished = true;
     this.stopTimer();
@@ -173,6 +171,8 @@ class SimulatorEngine {
       }
       byBloque[q.bloque].total++;
 
+      window.storageManager.recordQuestionOutcome(q, isCorrect, isBlank);
+
       if (isBlank) {
         blank++;
         byBloque[q.bloque].blank++;
@@ -185,7 +185,6 @@ class SimulatorEngine {
       } else {
         wrong++;
         byBloque[q.bloque].wrong++;
-        // Registrar automáticamente en la bolsa de preguntas falladas
         window.storageManager.addFailedQuestion(q.id, userAnswer);
       }
 
@@ -198,7 +197,6 @@ class SimulatorEngine {
     });
 
     const total = this.questions.length;
-    // FÓRMULA OFICIAL: Aciertos - (Errores / 3)
     const rawScore = Math.max(0, correct - (wrong / 3));
     const penaltyPoints = wrong / 3;
     const scoreOutOf10 = total > 0 ? Math.max(0, (rawScore / total) * 10) : 0;

@@ -1,5 +1,5 @@
 /**
- * CONTROLADOR PRINCIPAL DE LA SPA (SINGLE PAGE APPLICATION)
+ * CONTROLADOR PRINCIPAL DE LA SPA (SINGLE PAGE APPLICATION) v2.0
  * Permanencia FAS - Ejército de Tierra
  */
 
@@ -8,6 +8,8 @@ class AppController {
     this.currentTab = "dashboard";
     this.fcIndex = 0;
     this.fcList = [];
+    this.selectedSyllabusFilter = "ALL";
+    this.isSpeaking = false;
     this.init();
   }
 
@@ -18,7 +20,6 @@ class AppController {
   }
 
   bindEvents() {
-    // Navegación principal (tabs)
     document.querySelectorAll("[data-tab]").forEach(btn => {
       btn.addEventListener("click", e => {
         const tab = e.currentTarget.getAttribute("data-tab");
@@ -26,7 +27,6 @@ class AppController {
       });
     });
 
-    // Delegación para botones de acción rápida en el dashboard
     const startQuickSimBtn = document.getElementById("btn-quick-sim");
     if (startQuickSimBtn) {
       startQuickSimBtn.addEventListener("click", () => {
@@ -41,7 +41,6 @@ class AppController {
       });
     }
 
-    // Modal de confirmación o finalización
     const confirmFinishBtn = document.getElementById("btn-finish-sim-modal");
     if (confirmFinishBtn) {
       confirmFinishBtn.addEventListener("click", () => {
@@ -54,7 +53,6 @@ class AppController {
     const stats = window.storageManager.getStats();
     const rankInfo = window.storageManager.getMilitaryRank(stats.xp || 0);
 
-    // Actualizar elementos en el header
     const xpEl = document.getElementById("header-xp");
     const streakEl = document.getElementById("header-streak");
     const rankBadgeEl = document.getElementById("header-rank-badge");
@@ -67,9 +65,9 @@ class AppController {
   }
 
   showTab(tabName) {
+    this.stopAudio();
     this.currentTab = tabName;
 
-    // Actualizar clases activas en botones de navegación
     document.querySelectorAll("[data-tab]").forEach(btn => {
       const active = btn.getAttribute("data-tab") === tabName;
       if (active) {
@@ -81,13 +79,13 @@ class AppController {
       }
     });
 
-    // Ocultar todas las secciones principales
     const sections = [
       "tab-dashboard",
       "tab-simulator-config",
       "tab-simulator-active",
       "tab-simulator-results",
-      "tab-bloques",
+      "tab-temario",
+      "tab-trampas",
       "tab-failed-bag",
       "tab-flashcards",
       "tab-importer"
@@ -98,18 +96,18 @@ class AppController {
       if (el) el.classList.add("hidden");
     });
 
-    // Mostrar sección correspondiente
     const targetSection = document.getElementById(`tab-${tabName}`);
     if (targetSection) {
       targetSection.classList.remove("hidden");
       window.scrollTo({ top: 0, behavior: "smooth" });
     }
 
-    // Renderizar datos de la pestaña activa
     if (tabName === "dashboard") {
       this.renderDashboard();
-    } else if (tabName === "bloques") {
-      this.renderBloques();
+    } else if (tabName === "temario") {
+      this.renderTemario();
+    } else if (tabName === "trampas") {
+      this.renderTrampas();
     } else if (tabName === "failed-bag") {
       this.renderFailedBag();
     } else if (tabName === "flashcards") {
@@ -122,7 +120,7 @@ class AppController {
   }
 
   // ==========================================
-  // DASHBOARD
+  // DASHBOARD + MAPA DE CALOR DE DEBILIDADES
   // ==========================================
   renderDashboard() {
     const stats = window.storageManager.getStats();
@@ -131,7 +129,6 @@ class AppController {
     const failed = window.storageManager.getFailedQuestions();
     const history = window.storageManager.getSimulatorHistory();
 
-    // Rango Militar
     const dashRankBadge = document.getElementById("dash-rank-badge");
     const dashRankTitle = document.getElementById("dash-rank-title");
     const dashRankSub = document.getElementById("dash-rank-sub");
@@ -143,7 +140,6 @@ class AppController {
     if (dashRankSub) dashRankSub.textContent = rankInfo.current.sub;
     if (dashRankProgress) {
       dashRankProgress.style.width = `${rankInfo.progressPercent}%`;
-      dashRankProgress.setAttribute("aria-valuenow", rankInfo.progressPercent);
     }
     if (dashRankNext) {
       dashRankNext.textContent = rankInfo.next
@@ -151,7 +147,6 @@ class AppController {
         : "¡Rango Máximo Alcanzado!";
     }
 
-    // Métricas clave
     const dashStreak = document.getElementById("dash-streak-count");
     const dashTotalQuestions = document.getElementById("dash-total-questions");
     const dashFailedCount = document.getElementById("dash-failed-count");
@@ -163,7 +158,6 @@ class AppController {
     if (dashFailedCount) dashFailedCount.textContent = failed.length;
     if (dashSimCount) dashSimCount.textContent = stats.simulatorsCompleted || 0;
 
-    // Precisión neta militar global
     const totalAns = (stats.totalCorrect || 0) + (stats.totalWrong || 0);
     if (dashNetAccuracy) {
       if (totalAns > 0) {
@@ -175,14 +169,15 @@ class AppController {
       }
     }
 
-    // Historial reciente de simulacros
+    this.renderHeatmap();
+
     const historyContainer = document.getElementById("dash-history-list");
     if (historyContainer) {
       if (history.length === 0) {
         historyContainer.innerHTML = `
           <div class="text-center py-6 text-slate-400">
             <span class="text-3xl block mb-2">🎯</span>
-            Aún no has completado ningún simulacro. Pulsa en <strong>Simulacro Oficial</strong> para iniciar el primero.
+            Aún no has completado ningún simulacro. Pulsa en <strong>Test Rápido</strong> o explora el <strong>Temario Oficial</strong>.
           </div>
         `;
       } else {
@@ -221,11 +216,242 @@ class AppController {
     }
   }
 
+  renderHeatmap() {
+    const container = document.getElementById("dash-heatmap-grid");
+    if (!container || typeof OFFICIAL_SYLLABUS === "undefined") return;
+
+    const topicStats = window.storageManager.getTopicStats();
+
+    container.innerHTML = OFFICIAL_SYLLABUS.map(tema => {
+      const st = topicStats[tema.codigo] || { correct: 0, wrong: 0 };
+      const total = st.correct + st.wrong;
+      let pctText = "Sin datos";
+      let colorClass = "border-slate-800 bg-slate-900/50 text-slate-400";
+
+      if (total > 0) {
+        const net = Math.max(0, st.correct - st.wrong / 3);
+        const pct = Math.round((net / total) * 100);
+        pctText = `${pct}% neto`;
+        if (pct >= 70) {
+          colorClass = "border-emerald-700/60 bg-emerald-950/30 text-emerald-300";
+        } else if (pct >= 50) {
+          colorClass = "border-amber-600/60 bg-amber-950/30 text-amber-300";
+        } else {
+          colorClass = "border-red-600/60 bg-red-950/30 text-red-300";
+        }
+      }
+
+      return `
+        <div 
+          onclick="window.appController.openTopicDetail('${tema.codigo}')"
+          class="p-2.5 rounded-xl border ${colorClass} cursor-pointer hover:border-amber-400 transition flex flex-col justify-between"
+          title="Haz clic para abrir el tema o hacer test"
+        >
+          <div class="flex items-center justify-between text-[10px] font-mono font-bold">
+            <span>${tema.codigo}</span>
+            <span>${pctText}</span>
+          </div>
+          <div class="text-xs font-bold text-white truncate mt-1">${tema.titulo}</div>
+        </div>
+      `;
+    }).join("");
+  }
+
+  // ==========================================
+  // VISOR DE TEMARIO TÁCTICO (18 TEMAS / 3 BLOQUES)
+  // ==========================================
+  filterTemario(bloque) {
+    this.selectedSyllabusFilter = bloque;
+    this.renderTemario();
+  }
+
+  renderTemario() {
+    const container = document.getElementById("temario-topics-container");
+    if (!container || typeof OFFICIAL_SYLLABUS === "undefined") return;
+
+    const allQuestions = window.storageManager.getQuestions();
+    const filtered = this.selectedSyllabusFilter === "ALL"
+      ? OFFICIAL_SYLLABUS
+      : OFFICIAL_SYLLABUS.filter(t => t.bloque === this.selectedSyllabusFilter);
+
+    container.innerHTML = filtered.map(tema => {
+      const qCount = allQuestions.filter(q => q.temaCodigo === tema.codigo).length;
+      const badgeColor = tema.bloque.includes("Bloque 1")
+        ? "bg-emerald-950 text-emerald-400 border-emerald-700"
+        : tema.bloque.includes("Bloque 2")
+          ? "bg-amber-950 text-amber-400 border-amber-700"
+          : "bg-sky-950 text-sky-400 border-sky-700";
+
+      return `
+        <div id="topic-card-${tema.codigo}" class="tactical-card rounded-2xl p-5 border border-slate-800 space-y-4">
+          <div class="flex flex-wrap items-center justify-between gap-2">
+            <div class="flex items-center space-x-2">
+              <span class="px-2.5 py-0.5 rounded text-xs font-mono font-black border ${badgeColor}">
+                ${tema.codigo}
+              </span>
+              <span class="text-xs font-bold text-slate-400">${tema.bloque}</span>
+            </div>
+
+            <div class="flex items-center space-x-2">
+              <button 
+                onclick="window.appController.speakTopic('${tema.codigo}')"
+                class="px-3 py-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 border border-slate-700 text-xs font-bold text-amber-400 flex items-center space-x-1 transition"
+                title="Escuchar resumen y puntos calientes en voz alta"
+              >
+                <span>🔊</span><span>Audio Táctico</span>
+              </button>
+              <button 
+                onclick="window.appController.startTopicTest('${tema.codigo}')"
+                class="px-3 py-1.5 rounded-lg bg-amber-500 hover:bg-amber-400 text-slate-950 text-xs font-black uppercase tracking-wider transition"
+              >
+                🎯 Test del Tema (${qCount})
+              </button>
+            </div>
+          </div>
+
+          <div>
+            <h3 class="text-lg font-black text-white">${tema.titulo}</h3>
+            <p class="text-xs font-mono text-emerald-400 mt-0.5">📜 ${tema.normativa}</p>
+          </div>
+
+          <!-- Resumen Ejecutivo -->
+          <div class="p-3.5 rounded-xl bg-slate-950/70 border border-slate-800/80 text-xs sm:text-sm text-slate-200 leading-relaxed">
+            <strong class="text-amber-400 uppercase text-xs block mb-1">📌 Resumen Ejecutivo:</strong>
+            ${tema.resumen}
+          </div>
+
+          <!-- Puntos Calientes de Examen -->
+          <div class="p-3.5 rounded-xl bg-emerald-950/20 border border-emerald-900/50 space-y-1.5">
+            <strong class="text-emerald-400 uppercase text-xs block">🔥 Puntos Calientes de Examen (Lo más preguntado en el BOD):</strong>
+            <ul class="space-y-1 text-xs text-slate-200">
+              ${tema.puntosCalientes.map(p => `<li class="leading-relaxed">• ${p}</li>`).join("")}
+            </ul>
+          </div>
+
+          <!-- Trampas Frecuentes del Tribunal -->
+          <div class="p-3.5 rounded-xl bg-red-950/25 border border-red-900/50 space-y-1.5">
+            <strong class="text-red-400 uppercase text-xs block">🪤 Trampas Frecuentes del Tribunal (¡No caigas aquí!):</strong>
+            <ul class="space-y-1 text-xs text-red-200">
+              ${tema.trampas.map(t => `<li class="leading-relaxed">${t}</li>`).join("")}
+            </ul>
+          </div>
+        </div>
+      `;
+    }).join("");
+  }
+
+  openTopicDetail(temaCodigo) {
+    this.selectedSyllabusFilter = "ALL";
+    this.showTab("temario");
+    setTimeout(() => {
+      const el = document.getElementById(`topic-card-${temaCodigo}`);
+      if (el) {
+        el.scrollIntoView({ behavior: "smooth", block: "center" });
+        el.classList.add("ring-2", "ring-amber-400");
+        setTimeout(() => el.classList.remove("ring-2", "ring-amber-400"), 2500);
+      }
+    }, 100);
+  }
+
+  startTopicTest(temaCodigo) {
+    this.startSimulatorWithParams({ count: 20, bloque: "ALL", mode: "tema", temaCodigo });
+  }
+
+  // ==========================================
+  // MODO AUDIO TÁCTICO (MANOS LIBRES)
+  // ==========================================
+  speakTopic(temaCodigo) {
+    if (!("speechSynthesis" in window)) {
+      alert("Tu navegador no soporta síntesis de voz.");
+      return;
+    }
+
+    if (this.isSpeaking) {
+      this.stopAudio();
+      return;
+    }
+
+    const tema = OFFICIAL_SYLLABUS.find(t => t.codigo === temaCodigo);
+    if (!tema) return;
+
+    const textToRead = `Tema ${tema.codigo}: ${tema.titulo}. Resumen ejecutivo: ${tema.resumen}. Puntos calientes de examen: ${tema.puntosCalientes.join(". ")}. Atención a las trampas del tribunal: ${tema.trampas.join(". ")}`;
+
+    window.speechSynthesis.cancel();
+    const utterance = new SpeechSynthesisUtterance(textToRead);
+    utterance.lang = "es-ES";
+    utterance.rate = 1.02;
+    utterance.onend = () => {
+      this.isSpeaking = false;
+    };
+    this.isSpeaking = true;
+    window.speechSynthesis.speak(utterance);
+  }
+
+  stopAudio() {
+    if ("speechSynthesis" in window) {
+      window.speechSynthesis.cancel();
+    }
+    this.isSpeaking = false;
+  }
+
+  // ==========================================
+  // LABORATORIO CAZA-TRAMPAS Y TABLAS COMPARATIVAS
+  // ==========================================
+  renderTrampas() {
+    const tablesContainer = document.getElementById("comparative-tables-container");
+    if (!tablesContainer || typeof COMPARATIVE_TABLES === "undefined") return;
+
+    const allQuestions = window.storageManager.getQuestions();
+    const trapCount = allQuestions.filter(q => q.dificultad === "trampa").length;
+    const officialCount = allQuestions.filter(q => q.esExamenOficial === true).length;
+
+    const trapCountEl = document.getElementById("trap-questions-count");
+    const officialCountEl = document.getElementById("official-questions-count");
+    if (trapCountEl) trapCountEl.textContent = `${trapCount} preguntas trampa listas`;
+    if (officialCountEl) officialCountEl.textContent = `${officialCount} preguntas oficiales BOD`;
+
+    tablesContainer.innerHTML = COMPARATIVE_TABLES.map(tab => `
+      <div class="tactical-card rounded-2xl p-5 border border-amber-500/30 overflow-hidden">
+        <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
+          <h3 class="text-sm sm:text-base font-black text-white">${tab.titulo}</h3>
+          <span class="px-2.5 py-0.5 rounded text-[11px] font-bold bg-slate-900 text-amber-400 border border-slate-700">
+            ${tab.bloque}
+          </span>
+        </div>
+
+        <div class="overflow-x-auto">
+          <table class="w-full text-left border-collapse text-xs">
+            <thead>
+              <tr class="border-b border-slate-700 bg-slate-900/90 text-amber-400 uppercase">
+                ${tab.headers.map(h => `<th class="p-2.5 font-black">${h}</th>`).join("")}
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-800/80">
+              ${tab.rows.map(row => `
+                <tr class="hover:bg-slate-900/40">
+                  ${row.map((cell, idx) => `<td class="p-2.5 ${idx === 0 ? "font-bold text-emerald-400" : "text-slate-200"}">${cell}</td>`).join("")}
+                </tr>
+              `).join("")}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    `).join("");
+  }
+
+  startTrapHunterTest() {
+    this.startSimulatorWithParams({ count: 25, bloque: "ALL", mode: "trampas" });
+  }
+
+  startOfficialExamTest() {
+    this.startSimulatorWithParams({ count: 35, bloque: "ALL", mode: "examen_real" });
+  }
+
   // ==========================================
   // SIMULADOR: CONFIGURACIÓN E INICIO
   // ==========================================
-  startSimulatorWithParams({ count = 20, bloque = "ALL", mode = "official" }) {
-    const res = window.simulatorEngine.startSession({ count, bloque, mode });
+  startSimulatorWithParams({ count = 20, bloque = "ALL", mode = "official", temaCodigo = null }) {
+    const res = window.simulatorEngine.startSession({ count, bloque, mode, temaCodigo });
     if (!res.ok) {
       alert(res.message);
       return;
@@ -243,20 +469,21 @@ class AppController {
     const userAnswer = window.simulatorEngine.answers[idx];
     const isFlagged = window.simulatorEngine.flagged.has(idx);
 
-    // Contadores superiores
     const counterEl = document.getElementById("sim-question-counter");
     if (counterEl) counterEl.textContent = `Pregunta ${idx + 1} de ${total}`;
 
     const bloqueBadge = document.getElementById("sim-q-bloque-badge");
     const materiaBadge = document.getElementById("sim-q-materia-badge");
     if (bloqueBadge) bloqueBadge.textContent = q.bloque;
-    if (materiaBadge) materiaBadge.textContent = q.materia || "Materia Oficial";
+    if (materiaBadge) {
+      const trapTag = q.dificultad === "trampa" ? " • 🪤 PREGUNTA TRAMPA" : "";
+      const officialTag = q.esExamenOficial ? ` • 🏛️ OFICIAL ${q.anioConvocatoria || "BOD"}` : "";
+      materiaBadge.textContent = `${q.temaCodigo || ""} ${q.materia || "Materia Oficial"}${trapTag}${officialTag}`;
+    }
 
-    // Texto de la pregunta
     const textEl = document.getElementById("sim-q-text");
     if (textEl) textEl.textContent = q.pregunta;
 
-    // Botón de bandera
     const flagBtn = document.getElementById("sim-btn-flag");
     if (flagBtn) {
       if (isFlagged) {
@@ -268,7 +495,6 @@ class AppController {
       }
     }
 
-    // Botón Dejar en Blanco
     const blankBtn = document.getElementById("sim-btn-blank");
     if (blankBtn) {
       if (userAnswer === null || userAnswer === undefined) {
@@ -278,7 +504,6 @@ class AppController {
       }
     }
 
-    // Opciones A, B, C, D
     const container = document.getElementById("sim-options-container");
     const letters = ["A", "B", "C", "D"];
     if (container) {
@@ -302,7 +527,6 @@ class AppController {
       }).join("");
     }
 
-    // Botones de navegación
     const prevBtn = document.getElementById("sim-btn-prev");
     const nextBtn = document.getElementById("sim-btn-next");
     if (prevBtn) prevBtn.disabled = idx === 0;
@@ -381,7 +605,6 @@ class AppController {
       window.simulatorEngine.currentIndex++;
       this.renderSimulatorQuestion();
     } else {
-      // Fin del cuestionario, abrir diálogo de entrega
       this.finishSimulator();
     }
   }
@@ -449,7 +672,6 @@ class AppController {
     if (timeEl) timeEl.textContent = summary.timeFormatted;
     if (xpEl) xpEl.textContent = `+${summary.earnedXP} XP`;
 
-    // Desglose por bloques
     const bloqueContainer = document.getElementById("res-bloques-breakdown");
     if (bloqueContainer) {
       bloqueContainer.innerHTML = Object.entries(summary.byBloque).map(([bloqueName, data]) => {
@@ -472,7 +694,6 @@ class AppController {
       }).join("");
     }
 
-    // Lista detallada de revisión pregunta por pregunta
     const reviewContainer = document.getElementById("res-review-container");
     const letters = ["A", "B", "C", "D"];
     if (reviewContainer) {
@@ -487,7 +708,7 @@ class AppController {
         return `
           <div class="p-4 rounded-xl border ${item.isCorrect ? "bg-emerald-950/10 border-emerald-900/40" : item.isBlank ? "bg-slate-900/30 border-slate-800" : "bg-red-950/15 border-red-900/50"}">
             <div class="flex items-center justify-between mb-2">
-              <span class="text-xs font-bold text-slate-400">Pregunta ${idx + 1} • ${q.bloque}</span>
+              <span class="text-xs font-bold text-slate-400">Pregunta ${idx + 1} • ${q.temaCodigo || ""} ${q.bloque}</span>
               ${statusBadge}
             </div>
             <p class="text-sm font-semibold text-slate-100 mb-3">${q.pregunta}</p>
@@ -517,24 +738,6 @@ class AppController {
         `;
       }).join("");
     }
-  }
-
-  // ==========================================
-  // ESTUDIO POR BLOQUES OFICIALES
-  // ==========================================
-  renderBloques() {
-    const allQuestions = window.storageManager.getQuestions();
-    const b1 = allQuestions.filter(q => q.bloque === "Bloque 1: Organización").length;
-    const b2 = allQuestions.filter(q => q.bloque === "Bloque 2: Jurídico-Social").length;
-    const b3 = allQuestions.filter(q => q.bloque === "Bloque 3: Seguridad Nacional").length;
-
-    const b1CountEl = document.getElementById("b1-question-count");
-    const b2CountEl = document.getElementById("b2-question-count");
-    const b3CountEl = document.getElementById("b3-question-count");
-
-    if (b1CountEl) b1CountEl.textContent = `${b1} preguntas disponibles`;
-    if (b2CountEl) b2CountEl.textContent = `${b2} preguntas disponibles`;
-    if (b3CountEl) b3CountEl.textContent = `${b3} preguntas disponibles`;
   }
 
   startBlockTest(bloqueName) {
@@ -575,7 +778,7 @@ class AppController {
       return `
         <div class="p-4 tactical-card rounded-xl border border-red-900/30">
           <div class="flex items-center justify-between mb-2">
-            <span class="text-xs font-bold text-amber-400">${q.bloque}</span>
+            <span class="text-xs font-bold text-amber-400">${q.temaCodigo || ""} • ${q.bloque}</span>
             <div class="flex items-center space-x-2">
               <span class="text-xs bg-red-950/80 text-red-300 px-2 py-0.5 rounded border border-red-800">
                 Fallada ${item.attempts || 1} veces
@@ -665,9 +868,7 @@ class AppController {
 
   flipFlashcard() {
     const inner = document.getElementById("fc-inner");
-    if (inner) {
-      inner.classList.toggle("is-flipped");
-    }
+    if (inner) inner.classList.toggle("is-flipped");
   }
 
   prevFlashcard() {
@@ -695,15 +896,17 @@ class AppController {
   // IMPORTADOR NOTEBOOKLM & BACKUP
   // ==========================================
   renderImporter() {
-    // Generar prompt de ejemplo para NotebookLM
-    const promptTemplate = `Actúa como preparador militar para el examen de Permanencia de Tropa (Ejército de Tierra). 
-A partir del texto o temario adjunto, genera un array JSON con 10 preguntas tipo test estrictamente en este formato:
+    const promptTemplate = `Actúa como Tribunal Militar de la oposición de Permanencia de Tropa (Ejército de Tierra).
+A partir del temario de este cuaderno, genera un array JSON con 15 preguntas tipo test (incluyendo preguntas trampa de plazos y competencias) estrictamente en este formato:
 
 [
   {
-    "pregunta": "¿Texto claro de la pregunta?",
-    "bloque": "Bloque 1: Organización", 
-    "materia": "Estructura Orgánica",
+    "temaCodigo": "B2-T03",
+    "bloque": "Bloque 2: Jurídico-Social",
+    "materia": "Régimen Disciplinario LO 8/2014",
+    "dificultad": "trampa",
+    "esExamenOficial": true,
+    "pregunta": "¿Texto claro y riguroso de la pregunta?",
     "opciones": [
       "Opción A",
       "Opción B",
@@ -711,15 +914,15 @@ A partir del texto o temario adjunto, genera un array JSON con 10 preguntas tipo
       "Opción D"
     ],
     "correcta": 1,
-    "justificacion": "Explicación detallada con el fundamento legal exacto.",
-    "referencia": "Ley o RD y Artículo"
+    "justificacion": "Explicación detallada citando el artículo exacto.",
+    "referencia": "LO 8/2014, Art. 24"
   }
 ]
 
-IMPORTANTE: 
-1. Los bloques válidos son únicamente: "Bloque 1: Organización", "Bloque 2: Jurídico-Social" o "Bloque 3: Seguridad Nacional".
-2. "correcta" debe ser un número entero (0 para A, 1 para B, 2 para C, 3 para D).
-3. Devuelve ÚNICAMENTE el bloque JSON sin explicaciones adicionales.`;
+IMPORTANTE:
+1. "bloque" debe ser: "Bloque 1: Organización", "Bloque 2: Jurídico-Social" o "Bloque 3: Seguridad Nacional".
+2. "temaCodigo" va de "B1-T01" a "B1-T06", "B2-T01" a "B2-T06" o "B3-T01" a "B3-T06".
+3. "correcta" es 0 (A), 1 (B), 2 (C) o 3 (D). Devuelve SOLO el bloque JSON.`;
 
     const promptEl = document.getElementById("notebooklm-prompt-text");
     if (promptEl) promptEl.value = promptTemplate;
@@ -730,7 +933,7 @@ IMPORTANTE:
     if (promptEl) {
       promptEl.select();
       navigator.clipboard.writeText(promptEl.value).then(() => {
-        alert("📋 ¡Prompt para NotebookLM copiado al portapapeles!\n\nPégalo en NotebookLM o en ChatGPT junto con tus apuntes/PDFs.");
+        alert("📋 ¡Prompt copiado al portapapeles!\nPégalo en tu cuaderno de NotebookLM y te devolverá las preguntas listas para pegar abajo.");
       });
     }
   }
@@ -748,10 +951,9 @@ IMPORTANTE:
         throw new Error("El JSON debe ser un array [ ... ] de preguntas.");
       }
 
-      // Validar estructura de cada pregunta
       data.forEach((q, i) => {
         if (!q.pregunta || !Array.isArray(q.opciones) || q.opciones.length !== 4 || typeof q.correcta !== "number") {
-          throw new Error(`La pregunta en posición ${i + 1} no cumple con la estructura requerida (pregunta, 4 opciones y respuesta correcta 0..3).`);
+          throw new Error(`La pregunta en posición ${i + 1} no cumple con la estructura requerida.`);
         }
       });
 
@@ -785,7 +987,7 @@ IMPORTANTE:
       try {
         const json = JSON.parse(e.target.result);
         window.storageManager.importFullBackup(json);
-        alert("✅ Respaldo restaurado con éxito. Se han actualizado estadísticas, bolsa de errores y banco de preguntas.");
+        alert("✅ Respaldo restaurado con éxito.");
         this.updateHeaderStats();
         this.showTab("dashboard");
       } catch (err) {
@@ -796,7 +998,7 @@ IMPORTANTE:
   }
 
   resetAll() {
-    if (confirm("⚠️ ¿Estás totalmente seguro de que deseas reiniciar todos los datos? Se restablecerán las preguntas de fábrica, tu racha y tus estadísticas.")) {
+    if (confirm("⚠️ ¿Deseas restablecer los datos de fábrica?")) {
       window.storageManager.resetAllData();
       alert("Datos restablecidos.");
       this.updateHeaderStats();
@@ -805,7 +1007,6 @@ IMPORTANTE:
   }
 }
 
-// Inicializar la aplicación cuando el DOM esté listo
 document.addEventListener("DOMContentLoaded", () => {
   window.appController = new AppController();
 });

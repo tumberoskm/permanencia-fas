@@ -1,12 +1,13 @@
 /**
- * GESTOR DE ALMACENAMIENTO Y ESTADO PERSISTENTE (LOCALSTORAGE)
+ * GESTOR DE ALMACENAMIENTO Y ESTADO PERSISTENTE (LOCALSTORAGE + CLOUD SYNC READY)
  * Permanencia FAS - Ejército de Tierra
  */
 
 const STORAGE_KEYS = {
-  QUESTIONS: "permanencia_questions_v1",
+  QUESTIONS: "permanencia_questions_v2",
   FAILED_QUESTIONS: "permanencia_failed_v1",
   STATS: "permanencia_stats_v1",
+  TOPIC_STATS: "permanencia_topic_stats_v1",
   HISTORY: "permanencia_sim_history_v1",
   FLASHCARDS: "permanencia_flashcards_v1",
   LEARNED_FLASHCARDS: "permanencia_fc_learned_v1"
@@ -27,10 +28,9 @@ class StorageManager {
   }
 
   init() {
-    // Si no existen preguntas en localStorage, guardar las iniciales
-    if (!localStorage.getItem(STORAGE_KEYS.QUESTIONS)) {
-      this.saveQuestions(DEFAULT_QUESTIONS);
-    }
+    // Sincronizar preguntas base con cualquier pregunta personalizada guardada
+    this.syncDefaultQuestions();
+
     // Inicializar estadísticas si no existen
     if (!localStorage.getItem(STORAGE_KEYS.STATS)) {
       const initialStats = {
@@ -49,13 +49,25 @@ class StorageManager {
     }
   }
 
+  syncDefaultQuestions() {
+    try {
+      const storedRaw = localStorage.getItem(STORAGE_KEYS.QUESTIONS);
+      const customQuestions = storedRaw
+        ? JSON.parse(storedRaw).filter(q => String(q.id).startsWith("CUSTOM-"))
+        : [];
+      const merged = [...DEFAULT_QUESTIONS, ...customQuestions];
+      this.saveQuestions(merged);
+    } catch (e) {
+      this.saveQuestions(DEFAULT_QUESTIONS);
+    }
+  }
+
   // PREGUNTAS
   getQuestions() {
     try {
       const data = localStorage.getItem(STORAGE_KEYS.QUESTIONS);
       return data ? JSON.parse(data) : DEFAULT_QUESTIONS;
     } catch (e) {
-      console.error("Error leyendo preguntas:", e);
       return DEFAULT_QUESTIONS;
     }
   }
@@ -72,13 +84,44 @@ class StorageManager {
     newQuestions.forEach((q, idx) => {
       const id = q.id || `CUSTOM-${Date.now()}-${idx}`;
       if (!existingIds.has(id)) {
-        current.push({ ...q, id });
+        current.push({
+          ...q,
+          id,
+          temaCodigo: q.temaCodigo || "B1-T01",
+          dificultad: q.dificultad || "media",
+          esExamenOficial: Boolean(q.esExamenOficial)
+        });
         addedCount++;
       }
     });
 
     this.saveQuestions(current);
     return addedCount;
+  }
+
+  // ESTADÍSTICAS POR TEMA (MAPA DE CALOR Y DEBILIDADES)
+  getTopicStats() {
+    try {
+      const data = localStorage.getItem(STORAGE_KEYS.TOPIC_STATS);
+      return data ? JSON.parse(data) : {};
+    } catch (e) {
+      return {};
+    }
+  }
+
+  recordQuestionOutcome(question, isCorrect, isBlank) {
+    if (isBlank) return;
+    const key = question.temaCodigo || question.bloque;
+    const topicStats = this.getTopicStats();
+    if (!topicStats[key]) {
+      topicStats[key] = { correct: 0, wrong: 0 };
+    }
+    if (isCorrect) {
+      topicStats[key].correct++;
+    } else {
+      topicStats[key].wrong++;
+    }
+    localStorage.setItem(STORAGE_KEYS.TOPIC_STATS, JSON.stringify(topicStats));
   }
 
   // BOLSA DE PREGUNTAS FALLADAS
@@ -118,7 +161,6 @@ class StorageManager {
     if (index >= 0) {
       if (wasCorrect) {
         list[index].correctConsecutive = (list[index].correctConsecutive || 0) + 1;
-        // Si se acierta 2 veces consecutivas, se retira de la bolsa de falladas
         if (list[index].correctConsecutive >= 2) {
           list.splice(index, 1);
         }
@@ -139,7 +181,7 @@ class StorageManager {
     localStorage.setItem(STORAGE_KEYS.FAILED_QUESTIONS, JSON.stringify([]));
   }
 
-  // ESTADÍSTICAS Y XP
+  // ESTADÍSTICAS GLOBALES Y XP
   getStats() {
     try {
       const data = localStorage.getItem(STORAGE_KEYS.STATS);
@@ -153,7 +195,7 @@ class StorageManager {
     localStorage.setItem(STORAGE_KEYS.STATS, JSON.stringify(stats));
   }
 
-  addXP(amount, reason = "") {
+  addXP(amount) {
     const stats = this.getStats();
     stats.xp = (stats.xp || 0) + amount;
     this.saveStats(stats);
@@ -168,19 +210,15 @@ class StorageManager {
     if (!lastDate) {
       stats.lastActiveDate = today;
       stats.streakDays = 1;
-    } else if (lastDate === today) {
-      // Mismo día, no cambia la racha
-    } else {
+    } else if (lastDate !== today) {
       const todayDate = new Date(today);
       const prevDate = new Date(lastDate);
       const diffDays = Math.round((todayDate - prevDate) / (1000 * 60 * 60 * 24));
 
       if (diffDays === 1) {
-        // Días consecutivos
         stats.streakDays = (stats.streakDays || 1) + 1;
-        stats.xp = (stats.xp || 0) + 40; // Bonus de racha
+        stats.xp = (stats.xp || 0) + 40;
       } else if (diffDays > 1) {
-        // Se rompió la racha
         stats.streakDays = 1;
       }
       stats.lastActiveDate = today;
@@ -230,19 +268,16 @@ class StorageManager {
       id: `SIM-${Date.now()}`,
       date: new Date().toISOString()
     });
-    // Conservar últimos 30 simulacros
     if (history.length > 30) history.pop();
     localStorage.setItem(STORAGE_KEYS.HISTORY, JSON.stringify(history));
 
-    // Actualizar stats agregadas
     const stats = this.getStats();
     stats.simulatorsCompleted = (stats.simulatorsCompleted || 0) + 1;
     stats.totalAnswered = (stats.totalAnswered || 0) + result.total;
     stats.totalCorrect = (stats.totalCorrect || 0) + result.correct;
     stats.totalWrong = (stats.totalWrong || 0) + result.wrong;
     stats.totalBlank = (stats.totalBlank || 0) + result.blank;
-    
-    // XP otorgada por examen: base + por aciertos
+
     const earnedXP = Math.max(20, Math.round(result.correct * 5 - result.wrong * 1));
     stats.xp = (stats.xp || 0) + earnedXP;
 
@@ -266,19 +301,20 @@ class StorageManager {
       list = list.filter(id => id !== cardId);
     } else {
       list.push(cardId);
-      this.addXP(15, "Flashcard dominada");
+      this.addXP(15);
     }
     localStorage.setItem(STORAGE_KEYS.LEARNED_FLASHCARDS, JSON.stringify(list));
     return list.includes(cardId);
   }
 
-  // BACKUP COMPLETO (EXPORTAR / IMPORTAR)
+  // BACKUP COMPLETO
   exportFullBackup() {
     return {
       appName: "Permanencia FAS - WebApp",
       exportDate: new Date().toISOString(),
-      version: "1.0",
+      version: "2.0",
       stats: this.getStats(),
+      topicStats: this.getTopicStats(),
       questions: this.getQuestions(),
       failedQuestions: this.getFailedQuestions(),
       simulatorHistory: this.getSimulatorHistory(),
@@ -290,12 +326,14 @@ class StorageManager {
     if (!backupData || typeof backupData !== "object") {
       throw new Error("El archivo de respaldo no es un objeto JSON válido.");
     }
-
     if (backupData.questions && Array.isArray(backupData.questions)) {
       this.saveQuestions(backupData.questions);
     }
     if (backupData.stats) {
       this.saveStats(backupData.stats);
+    }
+    if (backupData.topicStats) {
+      localStorage.setItem(STORAGE_KEYS.TOPIC_STATS, JSON.stringify(backupData.topicStats));
     }
     if (backupData.failedQuestions && Array.isArray(backupData.failedQuestions)) {
       localStorage.setItem(STORAGE_KEYS.FAILED_QUESTIONS, JSON.stringify(backupData.failedQuestions));
@@ -306,19 +344,13 @@ class StorageManager {
     if (backupData.learnedFlashcards && Array.isArray(backupData.learnedFlashcards)) {
       localStorage.setItem(STORAGE_KEYS.LEARNED_FLASHCARDS, JSON.stringify(backupData.learnedFlashcards));
     }
-
     return true;
   }
 
   resetAllData() {
-    localStorage.removeItem(STORAGE_KEYS.QUESTIONS);
-    localStorage.removeItem(STORAGE_KEYS.FAILED_QUESTIONS);
-    localStorage.removeItem(STORAGE_KEYS.STATS);
-    localStorage.removeItem(STORAGE_KEYS.HISTORY);
-    localStorage.removeItem(STORAGE_KEYS.LEARNED_FLASHCARDS);
+    Object.values(STORAGE_KEYS).forEach(k => localStorage.removeItem(k));
     this.init();
   }
 }
 
-// Instancia global del gestor de almacenamiento
 window.storageManager = new StorageManager();

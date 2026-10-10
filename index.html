@@ -43,7 +43,6 @@
        ===================================================== -->
   <header class="sticky top-0 z-40 border-b border-emerald-950/80 bg-[#0d130b]/90 backdrop-blur-md">
     <div class="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
-      <!-- Identidad -->
       <div class="flex items-center space-x-3 cursor-pointer" onclick="window.appController.showTab('dashboard')">
         <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-[#2d3b26] to-[#172013] border border-amber-500/40 flex items-center justify-center shadow-lg">
           <span class="text-xl" id="header-rank-badge">🎖️</span>
@@ -76,23 +75,26 @@
 
     <!-- Barra de Navegación Desktop -->
     <nav class="hidden md:block border-t border-slate-800/70 bg-[#11170e]/80">
-      <div class="max-w-6xl mx-auto px-4 flex space-x-1">
-        <button data-tab="dashboard" class="nav-item px-4 py-2.5 text-xs font-bold uppercase tracking-wider border-b-2 border-amber-500 text-amber-400 flex items-center space-x-2 transition">
-          <span>📊</span><span>Panel de Mando</span>
+      <div class="max-w-6xl mx-auto px-4 flex space-x-1 overflow-x-auto">
+        <button data-tab="dashboard" class="nav-item px-3.5 py-2.5 text-xs font-bold uppercase tracking-wider border-b-2 border-amber-500 text-amber-400 flex items-center space-x-1.5 transition shrink-0">
+          <span>📊</span><span>Mando</span>
         </button>
-        <button data-tab="simulator-config" class="nav-item px-4 py-2.5 text-xs font-bold uppercase tracking-wider border-b-2 border-transparent text-slate-400 hover:text-slate-200 flex items-center space-x-2 transition">
-          <span>🎯</span><span>Simulacro Oficial</span>
+        <button data-tab="temario" class="nav-item px-3.5 py-2.5 text-xs font-bold uppercase tracking-wider border-b-2 border-transparent text-slate-400 hover:text-slate-200 flex items-center space-x-1.5 transition shrink-0">
+          <span>📖</span><span>Temario (18 Temas)</span>
         </button>
-        <button data-tab="bloques" class="nav-item px-4 py-2.5 text-xs font-bold uppercase tracking-wider border-b-2 border-transparent text-slate-400 hover:text-slate-200 flex items-center space-x-2 transition">
-          <span>📚</span><span>Bloques Oficiales</span>
+        <button data-tab="simulator-config" class="nav-item px-3.5 py-2.5 text-xs font-bold uppercase tracking-wider border-b-2 border-transparent text-slate-400 hover:text-slate-200 flex items-center space-x-1.5 transition shrink-0">
+          <span>🎯</span><span>Simulacro</span>
         </button>
-        <button data-tab="failed-bag" class="nav-item px-4 py-2.5 text-xs font-bold uppercase tracking-wider border-b-2 border-transparent text-slate-400 hover:text-slate-200 flex items-center space-x-2 transition">
-          <span>⚠️</span><span>Bolsa de Fallos</span>
+        <button data-tab="trampas" class="nav-item px-3.5 py-2.5 text-xs font-bold uppercase tracking-wider border-b-2 border-transparent text-slate-400 hover:text-slate-200 flex items-center space-x-1.5 transition shrink-0">
+          <span>🪤</span><span>Caza-Trampas & Tablas</span>
         </button>
-        <button data-tab="flashcards" class="nav-item px-4 py-2.5 text-xs font-bold uppercase tracking-wider border-b-2 border-transparent text-slate-400 hover:text-slate-200 flex items-center space-x-2 transition">
+        <button data-tab="failed-bag" class="nav-item px-3.5 py-2.5 text-xs font-bold uppercase tracking-wider border-b-2 border-transparent text-slate-400 hover:text-slate-200 flex items-center space-x-1.5 transition shrink-0">
+          <span>⚠️</span><span>Bolsa Fallos</span>
+        </button>
+        <button data-tab="flashcards" class="nav-item px-3.5 py-2.5 text-xs font-bold uppercase tracking-wider border-b-2 border-transparent text-slate-400 hover:text-slate-200 flex items-center space-x-1.5 transition shrink-0">
           <span>🃏</span><span>Flashcards</span>
         </button>
-        <button data-tab="importer" class="nav-item px-4 py-2.5 text-xs font-bold uppercase tracking-wider border-b-2 border-transparent text-slate-400 hover:text-slate-200 flex items-center space-x-2 transition">
+        <button data-tab="importer" class="nav-item px-3.5 py-2.5 text-xs font-bold uppercase tracking-wider border-b-2 border-transparent text-slate-400 hover:text-slate-200 flex items-center space-x-1.5 transition shrink-0">
           <span>🔄</span><span>NotebookLM & Backup</span>
         </button>
       </div>
@@ -124,13 +126,12 @@
             <button id="btn-quick-sim" class="px-4 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs uppercase tracking-wider shadow-lg shadow-amber-500/10 transition flex items-center space-x-2">
               <span>⚡</span><span>Test Rápido (20 preg.)</span>
             </button>
-            <button id="btn-full-sim" class="px-4 py-2.5 rounded-xl bg-emerald-800/80 hover:bg-emerald-700 text-emerald-100 border border-emerald-600/50 font-bold text-xs uppercase tracking-wider transition flex items-center space-x-2">
-              <span>🎯</span><span>Simulacro (50 preg.)</span>
+            <button onclick="window.appController.startTrapHunterTest()" class="px-4 py-2.5 rounded-xl bg-red-900/80 hover:bg-red-800 text-red-100 border border-red-600/50 font-bold text-xs uppercase tracking-wider transition flex items-center space-x-2">
+              <span>🪤</span><span>Test Caza-Trampas</span>
             </button>
           </div>
         </div>
 
-        <!-- Barra de XP -->
         <div class="mt-5">
           <div class="flex justify-between text-xs mb-1.5">
             <span class="font-semibold text-slate-300">Progreso de Ascenso</span>
@@ -162,7 +163,7 @@
         </div>
         <div class="tactical-card p-4 rounded-xl col-span-2 sm:col-span-1">
           <span class="text-xs text-slate-400 block">🗄️ Banco Activo</span>
-          <span class="text-xl font-black text-amber-400 mt-1 block" id="dash-total-questions">36</span>
+          <span class="text-xl font-black text-amber-400 mt-1 block" id="dash-total-questions">40</span>
         </div>
       </div>
 
@@ -170,41 +171,59 @@
       <div>
         <div class="flex items-center justify-between mb-3">
           <h3 class="text-sm font-black uppercase tracking-wider text-slate-200 flex items-center space-x-2">
-            <span>🛡️</span><span>Entrenamiento Directo por Bloques BOD</span>
+            <span>🛡️</span><span>Entrenamiento por los 3 Bloques Oficiales de la Oposición</span>
           </h3>
-          <button onclick="window.appController.showTab('bloques')" class="text-xs text-amber-400 hover:underline font-semibold">
-            Ver detalle temario ➔
+          <button onclick="window.appController.showTab('temario')" class="text-xs text-amber-400 hover:underline font-semibold">
+            Abrir Temario Completo (18 Temas) ➔
           </button>
         </div>
 
         <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div onclick="window.appController.startBlockTest('Bloque 1: Organización')" class="tactical-card tactical-card-hover p-4 rounded-xl cursor-pointer">
             <div class="flex items-center justify-between mb-2">
-              <span class="px-2.5 py-0.5 rounded text-[11px] font-black bg-emerald-950 text-emerald-400 border border-emerald-700">BLOQUE 1</span>
+              <span class="px-2.5 py-0.5 rounded text-[11px] font-black bg-emerald-950 text-emerald-400 border border-emerald-700">BLOQUE 1 • 6 TEMAS</span>
               <span class="text-lg">🏛️</span>
             </div>
             <h4 class="font-bold text-white text-base">Organización</h4>
-            <p class="text-xs text-slate-400 mt-1">Constitución, MINISDEF, Estructura FAS y ET, Reales Ordenanzas.</p>
+            <p class="text-xs text-slate-400 mt-1">Constitución, LODN 5/2005, Ley 39 y 40/2015, MINISDEF, ET y Reales Ordenanzas.</p>
           </div>
 
           <div onclick="window.appController.startBlockTest('Bloque 2: Jurídico-Social')" class="tactical-card tactical-card-hover p-4 rounded-xl cursor-pointer">
             <div class="flex items-center justify-between mb-2">
-              <span class="px-2.5 py-0.5 rounded text-[11px] font-black bg-amber-950 text-amber-400 border border-amber-700">BLOQUE 2</span>
+              <span class="px-2.5 py-0.5 rounded text-[11px] font-black bg-amber-950 text-amber-400 border border-amber-700">BLOQUE 2 • 6 TEMAS</span>
               <span class="text-lg">⚖️</span>
             </div>
             <h4 class="font-bold text-white text-base">Jurídico - Social</h4>
-            <p class="text-xs text-slate-400 mt-1">Ley Carrera Militar, Tropa y Marinería (8/2006), Régimen Disciplinario, Derechos.</p>
+            <p class="text-xs text-slate-400 mt-1">Tropa y Marinería (8/2006), Carrera Militar (39/2007), Disciplinario (8/2014), Derechos, Quejas e Igualdad.</p>
           </div>
 
           <div onclick="window.appController.startBlockTest('Bloque 3: Seguridad Nacional')" class="tactical-card tactical-card-hover p-4 rounded-xl cursor-pointer">
             <div class="flex items-center justify-between mb-2">
-              <span class="px-2.5 py-0.5 rounded text-[11px] font-black bg-sky-950 text-sky-400 border border-sky-700">BLOQUE 3</span>
+              <span class="px-2.5 py-0.5 rounded text-[11px] font-black bg-sky-950 text-sky-400 border border-sky-700">BLOQUE 3 • 6 TEMAS</span>
               <span class="text-lg">🌍</span>
             </div>
             <h4 class="font-bold text-white text-base">Seguridad Nacional</h4>
-            <p class="text-xs text-slate-400 mt-1">Ley 36/2015, Estrategia de Seguridad Nacional, OTAN, UE y ONU.</p>
+            <p class="text-xs text-slate-400 mt-1">Ley 36/2015, Estrategia Seg. Nacional, Doctrina PDC-01, ONU, OTAN y Unión Europea.</p>
           </div>
         </div>
+      </div>
+
+      <!-- Mapa de Calor de Dominio de los 18 Temas Oficiales -->
+      <div class="tactical-card rounded-2xl p-5">
+        <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
+          <div>
+            <h3 class="text-sm font-black uppercase tracking-wider text-slate-200">
+              📡 Radar y Mapa de Calor de los 18 Temas Oficiales
+            </h3>
+            <p class="text-xs text-slate-400">Pulsa en cualquier tema para abrir su resumen táctico, escuchar el audio o lanzar su test.</p>
+          </div>
+          <div class="flex items-center space-x-3 text-[11px]">
+            <span class="text-emerald-400">🟢 ≥70% Dominado</span>
+            <span class="text-amber-400">🟡 50-69% En progreso</span>
+            <span class="text-red-400">🔴 &lt;50% Reforzar</span>
+          </div>
+        </div>
+        <div id="dash-heatmap-grid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-2.5"></div>
       </div>
 
       <!-- Historial de Simulacros -->
@@ -219,7 +238,82 @@
       </div>
     </section>
 
-    <!-- 2. SECCIÓN: CONFIGURADOR DE SIMULACRO OFICIAL -->
+    <!-- 2. SECCIÓN: VISOR DE TEMARIO TÁCTICO (18 TEMAS / 3 BLOQUES + AUDIO) -->
+    <section id="tab-temario" class="hidden space-y-6">
+      <div class="tactical-card rounded-2xl p-5 sm:p-6 border border-emerald-500/30">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div>
+            <h2 class="text-xl font-black text-white uppercase">📖 Temario Oficial Estructurado (18 Temas BOD)</h2>
+            <p class="text-xs text-slate-400 mt-1">
+              Resúmenes ejecutivos, artículos más preguntados, trampas del tribunal, modo <strong>🔊 Audio Táctico</strong> y test directo por tema.
+            </p>
+          </div>
+
+          <div class="flex flex-wrap gap-1.5">
+            <button onclick="window.appController.filterTemario('ALL')" class="px-3 py-1.5 rounded-lg bg-amber-500 text-slate-950 font-black text-xs uppercase">
+              Todos (18)
+            </button>
+            <button onclick="window.appController.filterTemario('Bloque 1: Organización')" class="px-3 py-1.5 rounded-lg bg-emerald-950 text-emerald-300 border border-emerald-700 font-bold text-xs">
+              Bloque 1 (6)
+            </button>
+            <button onclick="window.appController.filterTemario('Bloque 2: Jurídico-Social')" class="px-3 py-1.5 rounded-lg bg-amber-950 text-amber-300 border border-amber-700 font-bold text-xs">
+              Bloque 2 (6)
+            </button>
+            <button onclick="window.appController.filterTemario('Bloque 3: Seguridad Nacional')" class="px-3 py-1.5 rounded-lg bg-sky-950 text-sky-300 border border-sky-700 font-bold text-xs">
+              Bloque 3 (6)
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div id="temario-topics-container" class="space-y-4"></div>
+    </section>
+
+    <!-- 3. SECCIÓN: LABORATORIO CAZA-TRAMPAS Y TABLAS COMPARATIVAS -->
+    <section id="tab-trampas" class="hidden space-y-6">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div class="tactical-card rounded-2xl p-5 border border-red-500/40 flex flex-col justify-between">
+          <div>
+            <span class="px-2.5 py-0.5 rounded text-xs font-black bg-red-950 text-red-400 border border-red-700 uppercase">
+              Entrenamiento de Élite
+            </span>
+            <h2 class="text-lg font-black text-white mt-2">🪤 Modo Caza-Trampas del Tribunal</h2>
+            <p class="text-xs text-slate-300 mt-1">
+              Entrena exclusivamente las preguntas donde el tribunal cruza plazos (2 meses vs 3 meses en LO 8/2014), autoridades sancionadoras o artículos parecidos.
+            </p>
+            <span id="trap-questions-count" class="text-xs font-mono text-amber-400 block mt-2">15 preguntas trampa listas</span>
+          </div>
+          <button onclick="window.appController.startTrapHunterTest()" class="mt-4 w-full py-3 rounded-xl bg-red-600 hover:bg-red-500 text-white font-black text-xs uppercase tracking-wider transition">
+            🪤 Iniciar Test Caza-Trampas Ahora ➔
+          </button>
+        </div>
+
+        <div class="tactical-card rounded-2xl p-5 border border-amber-500/40 flex flex-col justify-between">
+          <div>
+            <span class="px-2.5 py-0.5 rounded text-xs font-black bg-amber-950 text-amber-400 border border-amber-700 uppercase">
+              Histórico de Convocatorias
+            </span>
+            <h2 class="text-lg font-black text-white mt-2">🏛️ Modo Preguntas de Examen Oficial (BOD)</h2>
+            <p class="text-xs text-slate-300 mt-1">
+              Simulacro con preguntas seleccionadas de convocatorias oficiales anteriores (2021–2024) con cálculo de nota de corte oficial.
+            </p>
+            <span id="official-questions-count" class="text-xs font-mono text-emerald-400 block mt-2">30 preguntas oficiales listas</span>
+          </div>
+          <button onclick="window.appController.startOfficialExamTest()" class="mt-4 w-full py-3 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs uppercase tracking-wider transition">
+            🏛️ Iniciar Simulacro de Preguntas Oficiales ➔
+          </button>
+        </div>
+      </div>
+
+      <div class="space-y-4">
+        <h3 class="text-sm font-black uppercase tracking-wider text-slate-200">
+          📊 Tablas Comparativas Tácticas de Bolsillo (Cruces de Examen)
+        </h3>
+        <div id="comparative-tables-container" class="space-y-4"></div>
+      </div>
+    </section>
+
+    <!-- 4. SECCIÓN: CONFIGURADOR DE SIMULACRO OFICIAL -->
     <section id="tab-simulator-config" class="hidden space-y-6">
       <div class="tactical-card rounded-2xl p-6 border border-amber-500/30">
         <div class="flex items-center space-x-3 mb-4">
@@ -235,7 +329,7 @@
           <p>• Cada respuesta acertada suma <strong>+1,00 punto</strong>.</p>
           <p>• Cada respuesta errónea resta <strong>-0,33 puntos (1/3 de acierto)</strong>.</p>
           <p>• Las preguntas con <strong>"Dejar en blanco"</strong> no puntúan ni penalizan (0 puntos).</p>
-          <p>• Todos los fallos se envían automáticamente a tu <strong>Bolsa de Preguntas Falladas</strong>.</p>
+          <p>• Todos los fallos se envían automáticamente a tu <strong>Bolsa de Preguntas Falladas</strong> y actualizan tu <strong>Radar de Temas</strong>.</p>
         </div>
 
         <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400 mb-3">Selecciona la modalidad de examen:</h3>
@@ -261,9 +355,8 @@
       </div>
     </section>
 
-    <!-- 3. SECCIÓN: SIMULADOR EN CURSO (VISTA DE EXAMEN ACTIVO) -->
+    <!-- 5. SECCIÓN: SIMULADOR EN CURSO (VISTA DE EXAMEN ACTIVO) -->
     <section id="tab-simulator-active" class="hidden space-y-5">
-      <!-- Barra superior de estado del examen -->
       <div class="tactical-card rounded-xl p-3.5 flex flex-wrap items-center justify-between gap-2 border border-amber-500/30">
         <div class="flex items-center space-x-3">
           <span class="px-3 py-1 rounded-lg bg-amber-500 text-slate-950 font-black text-xs uppercase" id="sim-question-counter">
@@ -285,7 +378,6 @@
         </div>
       </div>
 
-      <!-- Tarjeta Principal de la Pregunta -->
       <div class="tactical-card rounded-2xl p-5 sm:p-7">
         <div class="flex items-center justify-between mb-3">
           <span class="text-xs font-bold uppercase tracking-wider text-amber-400" id="sim-q-materia-badge">
@@ -300,10 +392,8 @@
           Cargando enunciado de la pregunta...
         </h3>
 
-        <!-- Opciones A, B, C, D -->
         <div id="sim-options-container" class="space-y-3 mb-6"></div>
 
-        <!-- Barra de Acciones del Examen (Botón Dejar en Blanco + Anterior/Siguiente) -->
         <div class="pt-4 border-t border-slate-800/80 flex flex-wrap items-center justify-between gap-3">
           <button 
             type="button" 
@@ -335,7 +425,6 @@
         </div>
       </div>
 
-      <!-- Hoja de Respuestas / Parrilla de Navegación -->
       <div class="tactical-card rounded-xl p-4">
         <div class="flex items-center justify-between mb-2.5">
           <span class="text-xs font-bold uppercase text-slate-400">Parrilla Táctica de Respuestas</span>
@@ -349,7 +438,7 @@
       </div>
     </section>
 
-    <!-- 4. SECCIÓN: RESULTADOS DEL SIMULACRO -->
+    <!-- 6. SECCIÓN: RESULTADOS DEL SIMULACRO -->
     <section id="tab-simulator-results" class="hidden space-y-6">
       <div class="tactical-card rounded-2xl p-6 text-center border border-amber-500/40">
         <span id="res-badge" class="inline-block px-4 py-1.5 rounded-full text-sm font-black bg-emerald-950 text-emerald-400 border border-emerald-600 uppercase tracking-wider">
@@ -386,7 +475,6 @@
           </div>
         </div>
 
-        <!-- Desglose por Bloques -->
         <div class="mt-6 text-left max-w-2xl mx-auto">
           <h4 class="text-xs font-bold uppercase text-slate-400 mb-2">Rendimiento por Bloques:</h4>
           <div id="res-bloques-breakdown" class="grid grid-cols-1 sm:grid-cols-3 gap-2.5"></div>
@@ -402,7 +490,6 @@
         </div>
       </div>
 
-      <!-- Revisión de Preguntas con Fundamentación Legal -->
       <div class="space-y-4">
         <h3 class="text-sm font-black uppercase tracking-wider text-slate-200">
           📖 Corrección Comentada y Fundamentación Normativa
@@ -411,77 +498,7 @@
       </div>
     </section>
 
-    <!-- 5. SECCIÓN: ESTUDIO POR BLOQUES OFICIALES -->
-    <section id="tab-bloques" class="hidden space-y-6">
-      <div class="tactical-card rounded-2xl p-6">
-        <h2 class="text-xl font-black text-white uppercase mb-1">📚 Sistema de Estudio por Bloques Oficiales</h2>
-        <p class="text-xs text-slate-400 mb-6">Selecciona el bloque del temario oficial de Permanencia que deseas entrenar hoy.</p>
-
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
-          <!-- Bloque 1 -->
-          <div class="tactical-card rounded-2xl p-5 border border-emerald-800/50 flex flex-col justify-between">
-            <div>
-              <span class="px-2.5 py-1 rounded text-xs font-black bg-emerald-950 text-emerald-400 border border-emerald-700">
-                BLOQUE 1
-              </span>
-              <h3 class="text-lg font-black text-white mt-3">Organización</h3>
-              <span class="text-xs font-mono text-amber-400 block mt-0.5" id="b1-question-count">14 preguntas</span>
-              <ul class="mt-4 space-y-1.5 text-xs text-slate-300">
-                <li>• Constitución Española de 1978</li>
-                <li>• Organización Básica de las FAS y MINISDEF</li>
-                <li>• Estructura Orgánica del Ejército de Tierra</li>
-                <li>• Reales Ordenanzas para las FAS (RD 96/2009)</li>
-              </ul>
-            </div>
-            <button onclick="window.appController.startBlockTest('Bloque 1: Organización')" class="mt-6 w-full py-2.5 rounded-xl bg-emerald-700 hover:bg-emerald-600 text-white font-black text-xs uppercase tracking-wider transition">
-              Iniciar Test Bloque 1 ➔
-            </button>
-          </div>
-
-          <!-- Bloque 2 -->
-          <div class="tactical-card rounded-2xl p-5 border border-amber-800/50 flex flex-col justify-between">
-            <div>
-              <span class="px-2.5 py-1 rounded text-xs font-black bg-amber-950 text-amber-400 border border-amber-700">
-                BLOQUE 2
-              </span>
-              <h3 class="text-lg font-black text-white mt-3">Jurídico - Social</h3>
-              <span class="text-xs font-mono text-amber-400 block mt-0.5" id="b2-question-count">14 preguntas</span>
-              <ul class="mt-4 space-y-1.5 text-xs text-slate-300">
-                <li>• Ley 39/2007 de la Carrera Militar</li>
-                <li>• Ley 8/2006 de Tropa y Marinería</li>
-                <li>• Régimen Disciplinario de las FAS (LO 8/2014)</li>
-                <li>• Derechos y Deberes de las FAS (LO 9/2011)</li>
-              </ul>
-            </div>
-            <button onclick="window.appController.startBlockTest('Bloque 2: Jurídico-Social')" class="mt-6 w-full py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs uppercase tracking-wider transition">
-              Iniciar Test Bloque 2 ➔
-            </button>
-          </div>
-
-          <!-- Bloque 3 -->
-          <div class="tactical-card rounded-2xl p-5 border border-sky-800/50 flex flex-col justify-between">
-            <div>
-              <span class="px-2.5 py-1 rounded text-xs font-black bg-sky-950 text-sky-400 border border-sky-700">
-                BLOQUE 3
-              </span>
-              <h3 class="text-lg font-black text-white mt-3">Seguridad Nacional</h3>
-              <span class="text-xs font-mono text-amber-400 block mt-0.5" id="b3-question-count">11 preguntas</span>
-              <ul class="mt-4 space-y-1.5 text-xs text-slate-300">
-                <li>• Ley 36/2015 de Seguridad Nacional</li>
-                <li>• Estrategia de Seguridad Nacional (ESN)</li>
-                <li>• Tratado del Atlántico Norte (OTAN)</li>
-                <li>• Unión Europea (PCSD) y Naciones Unidas</li>
-              </ul>
-            </div>
-            <button onclick="window.appController.startBlockTest('Bloque 3: Seguridad Nacional')" class="mt-6 w-full py-2.5 rounded-xl bg-sky-700 hover:bg-sky-600 text-white font-black text-xs uppercase tracking-wider transition">
-              Iniciar Test Bloque 3 ➔
-            </button>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- 6. SECCIÓN: BOLSA DE PREGUNTAS FALLADAS -->
+    <!-- 7. SECCIÓN: BOLSA DE PREGUNTAS FALLADAS -->
     <section id="tab-failed-bag" class="hidden space-y-6">
       <div class="tactical-card rounded-2xl p-5 sm:p-6 border border-red-500/30">
         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -512,7 +529,7 @@
       <div id="failed-bag-items-list" class="space-y-3"></div>
     </section>
 
-    <!-- 7. SECCIÓN: TARJETAS FLASHCARDS -->
+    <!-- 8. SECCIÓN: TARJETAS FLASHCARDS -->
     <section id="tab-flashcards" class="hidden space-y-6">
       <div class="max-w-xl mx-auto space-y-4">
         <div class="flex items-center justify-between">
@@ -525,10 +542,8 @@
           </span>
         </div>
 
-        <!-- Contenedor 3D Flip -->
         <div class="perspective-1000 cursor-pointer" onclick="window.appController.flipFlashcard()">
           <div id="fc-inner" class="flashcard-inner">
-            <!-- ANVERSO (PREGUNTA) -->
             <div class="flashcard-face tactical-card border-2 border-amber-500/40">
               <div class="flex items-center justify-between">
                 <span id="fc-front-bloque" class="text-xs font-bold text-emerald-400 uppercase">Bloque 1</span>
@@ -544,7 +559,6 @@
               </div>
             </div>
 
-            <!-- REVERSO (RESPUESTA OFICIAL) -->
             <div class="flashcard-face flashcard-back tactical-card border-2 border-emerald-500/50 bg-[#121d12]">
               <div class="flex items-center justify-between border-b border-slate-800 pb-2">
                 <span class="text-xs font-black text-amber-400 uppercase" id="fc-back-clave">Concepto</span>
@@ -560,7 +574,6 @@
           </div>
         </div>
 
-        <!-- Controles de Flashcards -->
         <div class="flex items-center justify-between gap-2 pt-2">
           <button onclick="window.appController.prevFlashcard()" class="px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-bold text-slate-200">
             ⬅ Anterior
@@ -575,22 +588,21 @@
       </div>
     </section>
 
-    <!-- 8. SECCIÓN: IMPORTADOR NOTEBOOKLM & BACKUP LOCAL -->
+    <!-- 9. SECCIÓN: IMPORTADOR NOTEBOOKLM & BACKUP LOCAL -->
     <section id="tab-importer" class="hidden space-y-6">
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <!-- Columna 1: Sincronizador con NotebookLM -->
         <div class="tactical-card rounded-2xl p-6 space-y-4 border border-amber-500/30">
           <div class="flex items-center space-x-2.5">
             <span class="text-2xl">🤖</span>
             <div>
               <h2 class="text-base font-black text-white uppercase">Sincronizador JSON con NotebookLM</h2>
-              <p class="text-xs text-slate-400">Genera preguntas ilimitadas desde tus PDFs del BOE/BOD en NotebookLM.</p>
+              <p class="text-xs text-slate-400">Genera preguntas ilimitadas desde tu cuaderno de NotebookLM.</p>
             </div>
           </div>
 
           <div>
             <div class="flex items-center justify-between mb-1.5">
-              <label class="text-xs font-bold text-amber-400">Paso 1: Copia este Prompt para NotebookLM</label>
+              <label class="text-xs font-bold text-amber-400">Paso 1: Copia este Prompt para tu NotebookLM</label>
               <button onclick="window.appController.copyNotebookLMPrompt()" class="px-2.5 py-1 rounded bg-amber-500 text-slate-950 font-black text-xs hover:bg-amber-400 transition">
                 📋 Copiar Prompt
               </button>
@@ -614,7 +626,6 @@
           </div>
         </div>
 
-        <!-- Columna 2: Sistema de Respaldo / Backup Local -->
         <div class="tactical-card rounded-2xl p-6 space-y-5 flex flex-col justify-between">
           <div class="space-y-4">
             <div class="flex items-center space-x-2.5">
@@ -628,7 +639,7 @@
             <div class="p-4 rounded-xl bg-slate-900/80 border border-slate-800 space-y-3">
               <h3 class="text-xs font-bold text-amber-400 uppercase">📤 Exportar Copia de Seguridad Completa</h3>
               <p class="text-xs text-slate-300">
-                Descarga un archivo <code class="text-amber-300">.json</code> con tu XP, racha, historial de simulacros, bolsa de preguntas falladas y preguntas importadas de NotebookLM.
+                Descarga un archivo <code class="text-amber-300">.json</code> con tu XP, racha, mapa de calor, bolsa de fallos y preguntas importadas.
               </p>
               <button onclick="window.appController.downloadFullBackup()" class="w-full py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs uppercase tracking-wider transition">
                 ⬇️ Descargar Backup (.JSON)
@@ -662,34 +673,39 @@
   <!-- =====================================================
        BARRA DE NAVEGACIÓN INFERIOR (MÓVIL FIRST)
        ===================================================== -->
-  <nav class="md:hidden fixed bottom-0 inset-x-0 z-50 bg-[#0d130b]/95 backdrop-blur-lg border-t border-slate-800 px-2 py-1.5 flex justify-around items-center">
-    <button data-tab="dashboard" class="nav-item flex flex-col items-center py-1 px-2.5 rounded-xl text-amber-400">
-      <span class="text-lg">📊</span>
-      <span class="text-[10px] font-bold mt-0.5">Mando</span>
+  <nav class="md:hidden fixed bottom-0 inset-x-0 z-50 bg-[#0d130b]/95 backdrop-blur-lg border-t border-slate-800 px-1 py-1.5 flex justify-around items-center">
+    <button data-tab="dashboard" class="nav-item flex flex-col items-center py-1 px-2 rounded-xl text-amber-400">
+      <span class="text-base">📊</span>
+      <span class="text-[9px] font-bold mt-0.5">Mando</span>
     </button>
-    <button data-tab="simulator-config" class="nav-item flex flex-col items-center py-1 px-2.5 rounded-xl text-slate-400">
-      <span class="text-lg">🎯</span>
-      <span class="text-[10px] font-bold mt-0.5">Simulacro</span>
+    <button data-tab="temario" class="nav-item flex flex-col items-center py-1 px-2 rounded-xl text-slate-400">
+      <span class="text-base">📖</span>
+      <span class="text-[9px] font-bold mt-0.5">Temario</span>
     </button>
-    <button data-tab="bloques" class="nav-item flex flex-col items-center py-1 px-2.5 rounded-xl text-slate-400">
-      <span class="text-lg">📚</span>
-      <span class="text-[10px] font-bold mt-0.5">Bloques</span>
+    <button data-tab="simulator-config" class="nav-item flex flex-col items-center py-1 px-2 rounded-xl text-slate-400">
+      <span class="text-base">🎯</span>
+      <span class="text-[9px] font-bold mt-0.5">Simulacro</span>
     </button>
-    <button data-tab="failed-bag" class="nav-item flex flex-col items-center py-1 px-2.5 rounded-xl text-slate-400">
-      <span class="text-lg">⚠️</span>
-      <span class="text-[10px] font-bold mt-0.5">Fallos</span>
+    <button data-tab="trampas" class="nav-item flex flex-col items-center py-1 px-2 rounded-xl text-slate-400">
+      <span class="text-base">🪤</span>
+      <span class="text-[9px] font-bold mt-0.5">Trampas</span>
     </button>
-    <button data-tab="flashcards" class="nav-item flex flex-col items-center py-1 px-2.5 rounded-xl text-slate-400">
-      <span class="text-lg">🃏</span>
-      <span class="text-[10px] font-bold mt-0.5">Tarjetas</span>
+    <button data-tab="failed-bag" class="nav-item flex flex-col items-center py-1 px-2 rounded-xl text-slate-400">
+      <span class="text-base">⚠️</span>
+      <span class="text-[9px] font-bold mt-0.5">Fallos</span>
     </button>
-    <button data-tab="importer" class="nav-item flex flex-col items-center py-1 px-2.5 rounded-xl text-slate-400">
-      <span class="text-lg">🔄</span>
-      <span class="text-[10px] font-bold mt-0.5">Sync</span>
+    <button data-tab="flashcards" class="nav-item flex flex-col items-center py-1 px-2 rounded-xl text-slate-400">
+      <span class="text-base">🃏</span>
+      <span class="text-[9px] font-bold mt-0.5">Tarjetas</span>
+    </button>
+    <button data-tab="importer" class="nav-item flex flex-col items-center py-1 px-2 rounded-xl text-slate-400">
+      <span class="text-base">🔄</span>
+      <span class="text-[9px] font-bold mt-0.5">Sync</span>
     </button>
   </nav>
 
   <!-- SCRIPTS DE LA APLICACIÓN -->
+  <script src="./js/syllabus-data.js"></script>
   <script src="./js/questions-data.js"></script>
   <script src="./js/flashcards-data.js"></script>
   <script src="./js/storage.js"></script>
