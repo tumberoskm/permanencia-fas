@@ -89,7 +89,7 @@
           <span>📖</span><span>Temario (21/28)</span>
         </button>
         <button data-tab="simulator-config" class="nav-item px-3.5 py-2.5 text-xs font-bold uppercase tracking-wider border-b-2 border-transparent text-slate-400 hover:text-slate-200 flex items-center space-x-1.5 transition shrink-0">
-          <span>🎯</span><span>Simulacros (18)</span>
+          <span>🎯</span><span>Simulacros (20)</span>
         </button>
         <button data-tab="baremo" class="nav-item px-3.5 py-2.5 text-xs font-bold uppercase tracking-wider border-b-2 border-transparent text-emerald-400 hover:text-emerald-300 flex items-center space-x-1.5 transition shrink-0">
           <span>🎖️</span><span>Baremo & Corte</span>
@@ -134,6 +134,9 @@
           <div class="flex flex-wrap gap-2">
             <button onclick="window.appController.startSimulatorWithParams({ count: 100, bloque: 'ALL', mode: 'ponderado_100', studyMode: false })" class="px-4 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs uppercase tracking-wider shadow-lg shadow-amber-500/10 transition flex items-center space-x-1.5">
               <span>🏆</span><span>Simulacro Oficial 100p</span>
+            </button>
+            <button onclick="window.appController.startAdaptiveIATest(25, true)" class="px-3.5 py-2.5 rounded-xl bg-sky-500 hover:bg-sky-400 text-slate-950 font-black text-xs uppercase tracking-wider transition flex items-center space-x-1.5" title="Test personalizado por el Entrenador Inteligente Adaptativo (40% temas débiles + 30% fallos/trampas + 30% inéditas)">
+              <span>🧠</span><span>Test Adaptativo IA (25p)</span>
             </button>
             <button onclick="window.appController.showTab('baremo')" class="px-3.5 py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-xs uppercase tracking-wider transition flex items-center space-x-1.5">
               <span>🎖️</span><span>Calculadora Baremo</span>
@@ -376,25 +379,25 @@
       </div>
     </section>
 
-    <!-- 4. SECCIÓN: CONFIGURADOR DE SIMULACRO OFICIAL + CUARTEL GENERAL DE 18 SIMULACROS -->
+    <!-- 4. SECCIÓN: CONFIGURADOR DE SIMULACRO OFICIAL + CUARTEL GENERAL DE 20 SIMULACROS -->
     <section id="tab-simulator-config" class="hidden space-y-6">
       <div class="tactical-card rounded-2xl p-6 border border-amber-500/30">
         <div class="flex items-center space-x-3 mb-4">
           <span class="text-3xl">🎯</span>
           <div>
-            <h2 class="text-xl font-black text-white uppercase">Cuartel General de 18 Simulacros Oficiales & Entrenamiento por Niveles</h2>
-            <p class="text-xs text-slate-400">Calificación con penalización reglamentaria: <strong class="text-amber-400">Nota = Aciertos - (Errores / 3)</strong> • Banco Activo: <strong class="text-emerald-400">1.200 Preguntas Etiquetadas</strong></p>
+            <h2 class="text-xl font-black text-white uppercase">Cuartel General de 20 Simulacros Oficiales & Entrenamiento Inteligente</h2>
+            <p class="text-xs text-slate-400">Calificación con penalización reglamentaria: <strong class="text-amber-400">Nota = Aciertos - (Errores / 3)</strong> • Banco Activo: <strong class="text-emerald-400">1.400 Preguntas Etiquetadas</strong></p>
           </div>
         </div>
 
         <div class="p-4 rounded-xl bg-slate-900/80 border border-slate-800 mb-6 text-xs text-slate-300 space-y-1.5">
           <div class="font-bold text-amber-400 uppercase">📌 Normas de la Prueba Oficial y Modos de Entrenamiento:</div>
           <p>• Cada respuesta acertada suma <strong>+1,00 punto</strong>; cada errónea resta <strong>-0,33 puntos (1/3 de acierto)</strong>; en blanco <strong>0 puntos</strong>.</p>
-          <p>• <strong>🏆 18 Simulacros Oficiales + 4 Retos Rápidos + 💀 Supervivencia 3 Vidas:</strong> Guarda tu mejor nota e intentos en cada examen oficial (Convocatorias 2023, 2024, 2025, Previsión 2026, Pizarra de los 28 Vídeos de YouTube, Caza-Plazos LO 8/2014 + LPACAP, Especial 3 Ejércitos + EMAD, y Gran Simulacro Élite 1.200).</p>
+          <p>• <strong>🏆 20 Simulacros Oficiales + 🧠 Entrenador IA Adaptativo + 💀 Supervivencia 3 Vidas:</strong> Guarda tu mejor nota e intentos en cada examen oficial (Convocatorias 2023, 2024, 2025, Previsión 2026, Pizarra de los 28 Vídeos de YouTube, Cruce Maestro de Plazos y Edades, y Gran Simulacro Élite #20 de 1.400 preguntas).</p>
           <p>• <strong>💡 Modo Academia (Corrección Instantánea):</strong> Al marcar una opción ves al instante la explicación jurídica, la ubicación exacta en el temario y el truco de academia.</p>
         </div>
 
-        <!-- 🏆 CUARTEL GENERAL DE LOS 18 SIMULACROS OFICIALES CERRADOS -->
+        <!-- 🏆 CUARTEL GENERAL DE LOS 20 SIMULACROS OFICIALES CERRADOS -->
         <div id="official-packs-container"></div>
 
         <h3 class="text-xs font-bold uppercase tracking-wider text-emerald-400 mb-3">
@@ -456,18 +459,18 @@
           </button>
         </div>
 
-        <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400 mb-3">Otras modalidades rápidas y extremas:</h3>
+        <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400 mb-3">Otras modalidades rápidas, adaptativas y extremas:</h3>
         <div class="grid grid-cols-1 sm:grid-cols-4 gap-4">
+          <button onclick="window.appController.startAdaptiveIATest(25, true)" class="tactical-card tactical-card-hover p-5 rounded-xl text-left border-2 border-sky-500/60 bg-sky-950/20">
+            <span class="text-xs font-mono text-sky-400 font-bold">🧠 ENTRENADOR IA LOCAL</span>
+            <h4 class="text-lg font-black text-white mt-1">Test Adaptativo (25p)</h4>
+            <p class="text-xs text-slate-300 mt-1">40% tus 3 temas más flojos + 30% fallos/trampas + 30% preguntas inéditas.</p>
+          </button>
+
           <button onclick="window.appController.startSurvivalMode()" class="tactical-card tactical-card-hover p-5 rounded-xl text-left border-2 border-red-500/60 bg-red-950/20">
             <span class="text-xs font-mono text-red-400 font-bold">💀 MODO SUPERVIVENCIA</span>
             <h4 class="text-lg font-black text-white mt-1">3 Vidas (❤️❤️❤️)</h4>
             <p class="text-xs text-slate-300 mt-1">¿Cuántas aciertas seguidas antes de cometer 3 fallos?</p>
-          </button>
-
-          <button onclick="window.appController.startSimulatorWithParams({ count: 15, bloque: 'ALL', mode: 'official', studyMode: false })" class="tactical-card tactical-card-hover p-5 rounded-xl text-left border border-slate-800">
-            <span class="text-xs font-mono text-amber-400 font-bold">15 MINUTOS</span>
-            <h4 class="text-lg font-black text-white mt-1">Patrulla Rápida (15 preg.)</h4>
-            <p class="text-xs text-slate-400 mt-1">Ideal para repasar en el móvil en cualquier descanso.</p>
           </button>
 
           <button onclick="window.appController.startSimulatorWithParams({ count: 30, bloque: 'ALL', mode: 'official', studyMode: false })" class="tactical-card tactical-card-hover p-5 rounded-xl text-left border border-amber-500/40">
@@ -476,10 +479,10 @@
             <p class="text-xs text-slate-400 mt-1">Mezcla equilibrada de los 3 Bloques Oficiales.</p>
           </button>
 
-          <button onclick="window.appController.startSimulatorWithParams({ count: 1200, bloque: 'ALL', mode: 'official', studyMode: true })" class="tactical-card tactical-card-hover p-5 rounded-xl text-left border border-slate-800">
-            <span class="text-xs font-mono text-sky-400 font-bold">MARATÓN COMPLETA (1.200 PREG.)</span>
+          <button onclick="window.appController.startSimulatorWithParams({ count: 1400, bloque: 'ALL', mode: 'official', studyMode: true })" class="tactical-card tactical-card-hover p-5 rounded-xl text-left border border-slate-800">
+            <span class="text-xs font-mono text-sky-400 font-bold">MARATÓN COMPLETA (1.400 PREG.)</span>
             <h4 class="text-lg font-black text-white mt-1">Banco Completo en Modo Estudio</h4>
-            <p class="text-xs text-slate-400 mt-1">Las 1.200 preguntas de los 21 temas con corrección instantánea.</p>
+            <p class="text-xs text-slate-400 mt-1">Las 1.400 preguntas de los 21 temas con corrección instantánea.</p>
           </button>
         </div>
       </div>
@@ -754,9 +757,12 @@
           </div>
         </div>
 
-        <div class="flex items-center justify-between gap-2 pt-2">
+        <div class="flex flex-wrap items-center justify-between gap-2 pt-2">
           <button onclick="window.appController.prevFlashcard()" class="px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-bold text-slate-200">
             ⬅ Anterior
+          </button>
+          <button onclick="window.appController.speakCurrentFlashcard()" class="px-3.5 py-2.5 rounded-xl bg-sky-950 hover:bg-sky-900 border border-sky-500/60 text-sky-300 text-xs font-black transition" title="Escuchar pregunta y respuesta oficial en voz alta (100% Offline)">
+            🔊 Escuchar Tarjeta
           </button>
           <button id="fc-btn-learned" onclick="window.appController.toggleCurrentFlashcardLearned()" class="px-4 py-2.5 rounded-xl border border-amber-500/50 text-amber-300 text-xs font-bold transition">
             Marcar como dominada (+15 XP)
@@ -862,7 +868,7 @@
                 <span class="px-2 py-0.5 rounded bg-amber-500 text-slate-950 font-black text-[10px] shrink-0 mt-0.5">PASO 3</span>
                 <div>
                   <strong class="text-white">Vete de Maniobras sin miedo a perder nada:</strong><br/>
-                  El Service Worker (<code class="text-emerald-300">v12</code>) guarda los <strong>21 temas (+28 vídeos en Pizarra del Profesor), 1.200 preguntas oficiales y de vídeo, 120 flashcards y 18 simulacros</strong> dentro del teléfono. Todo lo que subrayes, anotes en Post-its o respondas sin cobertura se guarda en la <strong>Cola de Maniobras</strong> y sube solo a la nube en cuanto el móvil pille 1 raya de 4G/5G.
+                  El Service Worker (<code class="text-emerald-300">v13</code>) guarda los <strong>21 temas (+28 vídeos en Pizarra del Profesor + Modo Audio Podcast Offline), 1.400 preguntas oficiales y de vídeo, 120 flashcards y 20 simulacros</strong> dentro del teléfono. Todo lo que subrayes, anotes en Post-its o respondas sin cobertura se guarda en la <strong>Cola de Maniobras</strong> y sube solo a la nube en cuanto el móvil pille 1 raya de 4G/5G.
                 </div>
               </div>
             </div>
@@ -959,26 +965,27 @@
     </button>
   </nav>
 
-  <!-- SCRIPTS DE LA APLICACIÓN (v12 Cápsulas 28 Vídeos + Oleada 6: 1.200 Preguntas + 18 Simulacros) -->
-  <script src="./js/syllabus-data.js?v=12"></script>
-  <script src="./js/study-guides-data.js?v=12"></script>
-  <script src="./js/schemas-data.js?v=12"></script>
-  <script src="./js/questions-data.js?v=12"></script>
-  <script src="./js/questions-extra-data.js?v=12"></script>
-  <script src="./js/questions-wave2-data.js?v=12"></script>
-  <script src="./js/questions-wave3-data.js?v=12"></script>
-  <script src="./js/questions-wave4-data.js?v=12"></script>
-  <script src="./js/questions-wave5-data.js?v=12"></script>
-  <script src="./js/questions-wave6-data.js?v=12"></script>
-  <script src="./js/flashcards-data.js?v=12"></script>
-  <script src="./js/storage.js?v=12"></script>
-  <script src="./js/cloud-sync.js?v=12"></script>
-  <script src="./js/simulator.js?v=12"></script>
-  <script src="./js/app.js?v=12"></script>
+  <!-- SCRIPTS DE LA APLICACIÓN (v13 Entrenador IA + Audio Podcast Offline + Oleada 7: 1.400 Preguntas + 20 Simulacros) -->
+  <script src="./js/syllabus-data.js?v=13"></script>
+  <script src="./js/study-guides-data.js?v=13"></script>
+  <script src="./js/schemas-data.js?v=13"></script>
+  <script src="./js/questions-data.js?v=13"></script>
+  <script src="./js/questions-extra-data.js?v=13"></script>
+  <script src="./js/questions-wave2-data.js?v=13"></script>
+  <script src="./js/questions-wave3-data.js?v=13"></script>
+  <script src="./js/questions-wave4-data.js?v=13"></script>
+  <script src="./js/questions-wave5-data.js?v=13"></script>
+  <script src="./js/questions-wave6-data.js?v=13"></script>
+  <script src="./js/questions-wave7-data.js?v=13"></script>
+  <script src="./js/flashcards-data.js?v=13"></script>
+  <script src="./js/storage.js?v=13"></script>
+  <script src="./js/cloud-sync.js?v=13"></script>
+  <script src="./js/simulator.js?v=13"></script>
+  <script src="./js/app.js?v=13"></script>
   <script>
     if ("serviceWorker" in navigator) {
       window.addEventListener("load", () => {
-        navigator.serviceWorker.register("./sw.js?v=12").catch(() => {});
+        navigator.serviceWorker.register("./sw.js?v=13").catch(() => {});
       });
     }
   </script>

@@ -1278,10 +1278,19 @@ class AppController {
             </button>
 
             <button
-              onclick="window.appController.speakMasterSummary('${tema.codigo}')"
-              class="px-3 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-amber-300 border border-slate-700 font-bold text-xs"
+              onclick="window.appController.speakMasterSummary('${tema.codigo}', 'video_only')"
+              class="px-3 py-2 rounded-xl bg-sky-950 hover:bg-sky-900 text-sky-300 border border-sky-600/60 font-black text-xs transition flex items-center space-x-1"
+              title="Escuchar solo la Pizarra del Vídeo de YouTube y los Post-its del Profesor (100% Offline)"
             >
-              🔊 Escuchar
+              <span>🎬🎧</span><span>Audio Vídeo</span>
+            </button>
+
+            <button
+              onclick="window.appController.speakMasterSummary('${tema.codigo}', 'full')"
+              class="px-3 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-amber-300 border border-slate-700 font-bold text-xs transition flex items-center space-x-1"
+              title="Escuchar el Resumen Magistral completo paso a paso (Modo Podcast Offline)"
+            >
+              <span>🔊</span><span>Audio Completo</span>
             </button>
 
             <button
@@ -1439,42 +1448,288 @@ class AppController {
     if (modal) modal.classList.add("hidden");
   }
 
-  speakMasterSummary(temaCodigo) {
+  // ==========================================
+  // 🎧 REPRODUCTOR AUDIO TÁCTICO MANOS LIBRES (100% OFFLINE — COCHE / DEPORTE / MANIOBRAS)
+  // ==========================================
+  speakMasterSummary(temaCodigo, audioMode = "full") {
     if (!("speechSynthesis" in window)) {
-      alert("Tu navegador no soporta síntesis de voz.");
+      alert("Tu navegador no soporta síntesis de voz nativa.");
       return;
     }
-    if (this.isSpeaking) {
+
+    // Si ya está sonando el mismo tema y mismo modo, detener
+    if (this.isSpeaking && this.audioTemaCodigo === temaCodigo && this.audioMode === audioMode) {
       this.stopAudio();
       return;
     }
+
     const tema = OFFICIAL_SYLLABUS.find(t => t.codigo === temaCodigo);
     const guide = (typeof MASTER_STUDY_GUIDES !== "undefined") ? MASTER_STUDY_GUIDES[temaCodigo] : null;
+    const cap = (typeof VIDEO_CLASS_CAPSULES !== "undefined") ? VIDEO_CLASS_CAPSULES[temaCodigo] : null;
     if (!tema) return;
 
-    const stripHtml = (str) => (str || "").replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim();
-    let text = `Resumen Magistral desde cero del ${tema.codigo}: ${tema.titulo}. `;
-    if (guide) {
-      text += `Consejo del Jefe de Estudios: ${stripHtml(guide.consejoJefeEstudios)}. Actualizaciones clave: ${stripHtml(guide.actualizaciones)}. `;
-      (guide.epigrafes || []).forEach(ep => {
-        text += `${stripHtml(ep.titulo)}: ${stripHtml(ep.contenido || ep.explicacion || "")}. ${Array.isArray(ep.puntos) ? ep.puntos.map(stripHtml).join(". ") : ""}. `;
+    const stripHtml = (str) => String(str || "")
+      .replace(/<br\s*\/?>/gi, ". ")
+      .replace(/<\/li>/gi, ". ")
+      .replace(/<[^>]*>/g, " ")
+      .replace(/[🎬📌🖍️⚠️⏱️🧠❓🏛️⚖️🌍🟢🟡🔴🟣⭐🔥🪤•▸]/g, " ")
+      .replace(/\s+/g, " ")
+      .trim();
+
+    const tracks = [];
+    const notes = window.storageManager.getTopicNotes(temaCodigo);
+
+    if (audioMode === "video_only") {
+      tracks.push({
+        label: `🎬 Introducción Vídeo (${tema.codigo})`,
+        text: `Modo Audio Manos Libres: Pizarra del Profesor y Apuntes de Vídeo del tema ${tema.codigo}, ${tema.titulo}. ${cap ? stripHtml(cap.videosCubiertos) : ""}`
       });
+      if (cap && Array.isArray(cap.puntos)) {
+        cap.puntos.forEach((pt, idx) => {
+          tracks.push({
+            label: `🎬 Pizarra Vídeo (${idx + 1}/${cap.puntos.length})`,
+            text: stripHtml(pt)
+          });
+        });
+      }
+      if (cap && Array.isArray(cap.postItsProfesor) && cap.postItsProfesor.length > 0) {
+        cap.postItsProfesor.forEach((p, idx) => {
+          tracks.push({
+            label: `📌 Post-it del Profesor (${idx + 1}/${cap.postItsProfesor.length})`,
+            text: `${stripHtml(p.titulo)}. ${stripHtml(p.texto)}`
+          });
+        });
+      }
+      if (notes.length > 0) {
+        tracks.push({
+          label: `📌 Tus Post-its en ${tema.codigo} (${notes.length})`,
+          text: `Tus notas Post-it personales en este tema: ` + notes.map(n => `${stripHtml(n.titulo)}. ${stripHtml(n.texto)}`).join(". ")
+        });
+      }
     } else {
-      text += stripHtml(tema.resumen);
+      tracks.push({
+        label: `📖 Presentación ${tema.codigo}`,
+        text: `Resumen Magistral desde cero del tema ${tema.codigo}: ${tema.titulo}. Normativa oficial: ${stripHtml(tema.normativa)}.`
+      });
+      if (guide) {
+        if (guide.consejoJefeEstudios) {
+          tracks.push({
+            label: `👨‍🏫 Directriz del Jefe de Estudios`,
+            text: `Directriz del Jefe de Estudios: ${stripHtml(guide.consejoJefeEstudios)}`
+          });
+        }
+        if (guide.actualizaciones) {
+          tracks.push({
+            label: `🆕 Actualizaciones 2024–2026`,
+            text: `Actualizaciones normativas y novedades de examen: ${stripHtml(guide.actualizaciones)}`
+          });
+        }
+        (guide.epigrafes || []).forEach((ep, idx) => {
+          const body = `${stripHtml(ep.contenido || ep.explicacion || "")}. ${Array.isArray(ep.puntos) ? ep.puntos.map(stripHtml).join(". ") : ""}`;
+          tracks.push({
+            label: `${ep.esCapsulaVideo ? "🎬 Pizarra del Vídeo" : `📚 Epígrafe ${idx + 1}`}: ${stripHtml(ep.titulo).slice(0, 42)}`,
+            text: `${stripHtml(ep.titulo)}. ${body}`
+          });
+        });
+      } else {
+        tracks.push({
+          label: `📌 Resumen Ejecutivo`,
+          text: stripHtml(tema.resumen)
+        });
+      }
+      if (Array.isArray(tema.puntosCalientes) && tema.puntosCalientes.length > 0) {
+        tracks.push({
+          label: `🔥 Puntos Calientes de Examen`,
+          text: `Puntos calientes indispensables de examen: ` + tema.puntosCalientes.map(stripHtml).join(". ")
+        });
+      }
+      if (Array.isArray(tema.trampas) && tema.trampas.length > 0) {
+        tracks.push({
+          label: `🪤 Trampas Frecuentes del Tribunal`,
+          text: `Atención a las trampas frecuentes del tribunal en este tema: ` + tema.trampas.map(stripHtml).join(". ")
+        });
+      }
+    }
+
+    this.audioTemaCodigo = temaCodigo;
+    this.audioMode = audioMode;
+    this.audioTracks = tracks;
+    this.audioTrackIndex = 0;
+    this.audioRate = this.audioRate || 1.05;
+    this.isAudioPaused = false;
+    this.playAudioTrack(0);
+  }
+
+  playAudioTrack(index) {
+    if (!("speechSynthesis" in window) || !Array.isArray(this.audioTracks) || this.audioTracks.length === 0) return;
+    if (index < 0 || index >= this.audioTracks.length) {
+      this.stopAudio();
+      return;
     }
 
     window.speechSynthesis.cancel();
-    const utterance = new SpeechSynthesisUtterance(text);
-    utterance.lang = "es-ES";
-    utterance.rate = 1.02;
-    utterance.onend = () => { this.isSpeaking = false; };
+    this.audioTrackIndex = index;
     this.isSpeaking = true;
+    this.isAudioPaused = false;
+
+    const currentTrack = this.audioTracks[index];
+    const utterance = new SpeechSynthesisUtterance(currentTrack.text);
+    utterance.lang = "es-ES";
+    utterance.rate = this.audioRate || 1.05;
+
+    const voices = window.speechSynthesis.getVoices ? window.speechSynthesis.getVoices() : [];
+    const esVoice = voices.find(v => v.lang && v.lang.toLowerCase().startsWith("es"));
+    if (esVoice) utterance.voice = esVoice;
+
+    utterance.onend = () => {
+      if (!this.isSpeaking || this.isAudioPaused) return;
+      if (this.audioTrackIndex + 1 < this.audioTracks.length) {
+        this.playAudioTrack(this.audioTrackIndex + 1);
+      } else {
+        this.stopAudio();
+      }
+    };
+
+    utterance.onerror = () => {
+      this.isSpeaking = false;
+      this.renderTacticalAudioBar();
+    };
+
     window.speechSynthesis.speak(utterance);
+    this.renderTacticalAudioBar();
+  }
+
+  togglePauseAudio() {
+    if (!("speechSynthesis" in window) || !this.isSpeaking) return;
+    if (window.speechSynthesis.paused || this.isAudioPaused) {
+      window.speechSynthesis.resume();
+      this.isAudioPaused = false;
+    } else {
+      window.speechSynthesis.pause();
+      this.isAudioPaused = true;
+    }
+    this.renderTacticalAudioBar();
+  }
+
+  prevAudioTrack() {
+    if (!Array.isArray(this.audioTracks)) return;
+    const prev = Math.max(0, (this.audioTrackIndex || 0) - 1);
+    this.playAudioTrack(prev);
+  }
+
+  nextAudioTrack() {
+    if (!Array.isArray(this.audioTracks)) return;
+    if ((this.audioTrackIndex || 0) + 1 < this.audioTracks.length) {
+      this.playAudioTrack(this.audioTrackIndex + 1);
+    } else {
+      this.stopAudio();
+    }
+  }
+
+  cycleAudioSpeed() {
+    const speeds = [1.0, 1.25, 1.5];
+    const current = this.audioRate || 1.0;
+    const nextIdx = (speeds.findIndex(s => Math.abs(s - current) < 0.08) + 1) % speeds.length;
+    this.audioRate = speeds[nextIdx];
+    if (this.isSpeaking && Array.isArray(this.audioTracks)) {
+      this.playAudioTrack(this.audioTrackIndex || 0);
+    } else {
+      this.renderTacticalAudioBar();
+    }
+  }
+
+  speakCurrentFlashcard() {
+    if (!("speechSynthesis" in window)) return;
+    const card = this.fcList && this.fcList[this.fcIndex];
+    if (!card) return;
+    this.audioTemaCodigo = card.bloque || "Flashcard";
+    this.audioMode = "flashcard";
+    this.audioTracks = [
+      {
+        label: `🃏 Tarjeta Anki ${this.fcIndex + 1}/${this.fcList.length} (${card.clave})`,
+        text: `Tarjeta de memoria: ${card.clave}. Pregunta: ${card.frente}. Respuesta oficial: ${card.dorso}`
+      }
+    ];
+    this.audioRate = this.audioRate || 1.05;
+    this.playAudioTrack(0);
+  }
+
+  renderTacticalAudioBar() {
+    let bar = document.getElementById("tactical-audio-bar");
+    if (!this.isSpeaking || !Array.isArray(this.audioTracks) || this.audioTracks.length === 0) {
+      if (bar) bar.classList.add("hidden");
+      return;
+    }
+    if (!bar) {
+      bar = document.createElement("div");
+      bar.id = "tactical-audio-bar";
+      bar.className = "fixed bottom-16 md:bottom-4 inset-x-3 max-w-3xl mx-auto z-50 rounded-2xl bg-slate-950/95 border-2 border-amber-500 shadow-2xl p-3 backdrop-blur-md";
+      document.body.appendChild(bar);
+    }
+    bar.classList.remove("hidden");
+    const track = this.audioTracks[this.audioTrackIndex] || { label: "Reproduciendo..." };
+    const total = this.audioTracks.length;
+    const idx = (this.audioTrackIndex || 0) + 1;
+    const speedLabel = `${(this.audioRate || 1.0).toFixed(2).replace(/\.00$/, ".0").replace(/0$/, "")}x`;
+
+    bar.innerHTML = `
+      <div class="flex flex-wrap items-center justify-between gap-2 text-xs">
+        <div class="flex items-center space-x-2.5 min-w-0 flex-1">
+          <span class="w-8 h-8 rounded-xl bg-amber-500 text-slate-950 font-black flex items-center justify-center shrink-0 animate-pulse">
+            🎧
+          </span>
+          <div class="min-w-0">
+            <div class="flex items-center space-x-2">
+              <span class="font-mono font-black text-amber-400 uppercase text-[10px]">
+                MODO MANOS LIBRES OFFLINE • PISTA ${idx}/${total}
+              </span>
+              ${this.audioTemaCodigo && this.audioMode !== "flashcard" ? `
+                <button
+                  onclick="window.appController.speakMasterSummary('${this.audioTemaCodigo}', '${this.audioMode === "video_only" ? "full" : "video_only"}')"
+                  class="px-1.5 py-0.5 rounded bg-sky-950 text-sky-300 border border-sky-600 text-[10px] font-bold"
+                >
+                  ${this.audioMode === "video_only" ? "📖 Cambiar a Tema Completo" : "🎬 Cambiar a Solo Vídeo"}
+                </button>
+              ` : ""}
+            </div>
+            <div class="font-bold text-white truncate">${track.label}</div>
+          </div>
+        </div>
+
+        <div class="flex items-center space-x-1.5 shrink-0">
+          <button onclick="window.appController.prevAudioTrack()" class="px-2.5 py-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 border border-slate-700 text-slate-200 font-bold" title="Pista Anterior">
+            ⏮️
+          </button>
+          <button onclick="window.appController.togglePauseAudio()" class="px-3 py-1.5 rounded-lg bg-amber-500 hover:bg-amber-400 text-slate-950 font-black">
+            ${this.isAudioPaused ? "▶️ Seguir" : "⏸️ Pausa"}
+          </button>
+          <button onclick="window.appController.nextAudioTrack()" class="px-2.5 py-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 border border-slate-700 text-slate-200 font-bold" title="Siguiente Pista">
+            ⏭️
+          </button>
+          <button onclick="window.appController.cycleAudioSpeed()" class="px-2.5 py-1.5 rounded-lg bg-emerald-950 hover:bg-emerald-900 text-emerald-300 border border-emerald-600 font-mono font-black" title="Cambiar velocidad de voz">
+            ⚡ ${speedLabel}
+          </button>
+          <button onclick="window.appController.stopAudio()" class="px-2.5 py-1.5 rounded-lg bg-red-950 hover:bg-red-900 text-red-300 border border-red-600 font-black" title="Detener Audio">
+            ⏹️
+          </button>
+        </div>
+      </div>
+    `;
   }
 
   // ==========================================
-  // 📈 PLANIFICADOR DIARIO DE MISIÓN ("PLAN DE CHOQUE INTELIGENTE" + RUTA EN 4 PASOS)
+  // 📈 PLANIFICADOR DIARIO DE MISIÓN ("PLAN DE CHOQUE INTELIGENTE" + ENTRENADOR ADAPTATIVO IA)
   // ==========================================
+  startAdaptiveIATest(count = 25, studyMode = true) {
+    this.startSimulatorWithParams({
+      count,
+      bloque: "ALL",
+      mode: "adaptive_ia",
+      packRule: "adaptive_ia",
+      studyMode
+    });
+  }
+
   getPriorityTopicsForToday() {
     if (typeof OFFICIAL_SYLLABUS === "undefined") return [];
     const topicStats = window.storageManager.getTopicStats();
@@ -1537,6 +1792,16 @@ class AppController {
     const readTopics = window.storageManager.getReadTopics();
     const allQuestions = window.storageManager.getQuestions();
     const survivalRec = window.storageManager.getSurvivalRecord();
+    const diag = window.storageManager.getTopicDiagnosticReport();
+    const seenIds = window.storageManager.getAnsweredQuestionIdsSet();
+    const failedCount = window.storageManager.getFailedQuestions().length;
+
+    const countDominados = diag.filter(d => d.status === "DOMINADO").length;
+    const countProgreso = diag.filter(d => d.status === "PROGRESO").length;
+    const countCriticos = diag.filter(d => d.status === "CRITICO").length;
+    const countSinExplorar = diag.filter(d => d.status === "SIN_EXPLORAR").length;
+    const unseenCount = Math.max(0, allQuestions.length - seenIds.size);
+
     const [t1, t2] = pair;
     const pal1 = (typeof TOPIC_COLOR_PALETTE !== "undefined" && TOPIC_COLOR_PALETTE[t1.tema.codigo]) || { accent: "#10b981", titleColor: "#34d399" };
     const pal2 = (typeof TOPIC_COLOR_PALETTE !== "undefined" && TOPIC_COLOR_PALETTE[t2.tema.codigo]) || { accent: "#f59e0b", titleColor: "#fbbf24" };
@@ -1556,9 +1821,9 @@ class AppController {
             </div>
             <p class="text-xs text-slate-200 leading-relaxed">
               <strong>¿No sabes por dónde empezar? Sigue siempre estos 4 pasos en orden:</strong>
-              <span class="text-amber-300 font-bold">1️⃣ Lee el Resumen desde Cero</span> ➔
+              <span class="text-amber-300 font-bold">1️⃣ Lee/Escucha el Resumen + Pizarra Vídeo</span> ➔
               <span class="text-sky-300 font-bold">2️⃣ Mira el Esquema Visual</span> ➔
-              <span class="text-emerald-300 font-bold">3️⃣ Haz el Test Gradual (Fácil/Importante)</span> ➔
+              <span class="text-emerald-300 font-bold">3️⃣ Haz el Test Gradual / Adaptativo IA</span> ➔
               <span class="text-purple-300 font-bold">4️⃣ Simulacro y Chuleta PDF</span>.
             </p>
           </div>
@@ -1585,16 +1850,69 @@ class AppController {
           </div>
         </div>
 
+        <!-- 🧠 ENTRENADOR INTELIGENTE ADAPTATIVO (IA TÁCTICA LOCAL) + SEMÁFORO GLOBAL DE 21 TEMAS -->
+        <div class="p-4 rounded-2xl bg-gradient-to-r from-sky-950/60 via-slate-950 to-purple-950/50 border-2 border-sky-500/50 space-y-3">
+          <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-3">
+            <div class="space-y-1">
+              <div class="flex flex-wrap items-center gap-2">
+                <span class="px-2.5 py-0.5 rounded bg-sky-400 text-slate-950 font-black text-[11px] uppercase">
+                  🧠 Entrenador Inteligente Adaptativo (IA Táctica Local)
+                </span>
+                <span class="text-xs font-mono text-sky-300">
+                  40% Temas Débiles • 30% Bolsa de Fallos (${failedCount}) • 30% Preguntas Inéditas (${unseenCount} por descubrir)
+                </span>
+              </div>
+              <p class="text-xs text-slate-200 leading-relaxed">
+                Nuestro motor analiza tu historial real en los <strong>21 temas</strong> y te construye al instante un entrenamiento a medida con tus puntos débiles, tus errores pendientes y preguntas del banco que aún no has visto.
+              </p>
+            </div>
+            <div class="flex flex-wrap gap-2 shrink-0">
+              <button
+                onclick="window.appController.startAdaptiveIATest(25, true)"
+                class="px-4 py-2.5 rounded-xl bg-sky-500 hover:bg-sky-400 text-slate-950 font-black text-xs uppercase tracking-wider shadow-lg transition flex items-center space-x-1.5"
+              >
+                <span>🧠</span><span>Test Adaptativo IA (25p Estudio)</span>
+              </button>
+              <button
+                onclick="window.appController.startAdaptiveIATest(50, false)"
+                class="px-3.5 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-black text-xs uppercase tracking-wider shadow-lg transition flex items-center space-x-1.5"
+              >
+                <span>🏆</span><span>Simulacro IA (50p Examen)</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Semáforo Táctico Resumen de los 21 Temas -->
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-2 border-t border-slate-800/80 text-xs">
+            <div class="p-2.5 rounded-xl bg-emerald-950/40 border border-emerald-600/40 flex items-center justify-between">
+              <span class="font-bold text-emerald-300">🟢 Temas Dominados (≥75%)</span>
+              <span class="font-mono font-black text-base text-emerald-400">${countDominados}/21</span>
+            </div>
+            <div class="p-2.5 rounded-xl bg-amber-950/40 border border-amber-600/40 flex items-center justify-between">
+              <span class="font-bold text-amber-300">🟡 En Progreso (50–74%)</span>
+              <span class="font-mono font-black text-base text-amber-400">${countProgreso}/21</span>
+            </div>
+            <div class="p-2.5 rounded-xl bg-red-950/40 border border-red-600/40 flex items-center justify-between">
+              <span class="font-bold text-red-300">🔴 Críticos (&lt;50%)</span>
+              <span class="font-mono font-black text-base text-red-400">${countCriticos}/21</span>
+            </div>
+            <div class="p-2.5 rounded-xl bg-slate-900/90 border border-slate-700 flex items-center justify-between">
+              <span class="font-bold text-slate-300">⚪ Sin Test Aún</span>
+              <span class="font-mono font-black text-base text-slate-200">${countSinExplorar}/21</span>
+            </div>
+          </div>
+        </div>
+
         <div class="flex flex-wrap items-center justify-between gap-2">
           <div>
             <div class="flex items-center space-x-2">
               <span class="px-2.5 py-0.5 rounded bg-amber-500 text-slate-950 font-black text-[11px] uppercase">
-                📈 Plan de Choque Diario Inteligente
+                📈 Orden de Operaciones del Día
               </span>
-              <span class="text-xs font-mono text-emerald-400">Seleccionado según tus Temas Pendientes de Leer y Mapa de Calor</span>
+              <span class="text-xs font-mono text-emerald-400">2 Temas Prioritarios seleccionados según tu Semáforo Táctico</span>
             </div>
             <h3 class="text-base sm:text-lg font-black text-white mt-1">
-              🎯 Tu Orden de Operaciones para Hoy (2 Temas Prioritarios paso a paso)
+              🎯 Tus 2 Objetivos Prioritarios para Hoy (Lectura, Audio Manos Libres y Test)
             </h3>
           </div>
           <button
@@ -1608,7 +1926,7 @@ class AppController {
         <div class="grid grid-cols-1 md:grid-cols-2 gap-3.5">
           ${[ { item: t1, pal: pal1, label: "OBJETIVO 1 DEL DÍA" }, { item: t2, pal: pal2, label: "OBJETIVO 2 DEL DÍA" } ].map(({ item, pal, label }) => {
             const qCount = allQuestions.filter(q => q.temaCodigo === item.tema.codigo).length;
-            const statusText = item.netPct === -1 ? "Sin test aún" : `${item.netPct}% dominio neto`;
+            const statusText = item.netPct === -1 ? "⚪ Sin test aún" : item.netPct >= 75 ? `🟢 ${item.netPct}% dominio` : item.netPct >= 50 ? `🟡 ${item.netPct}% progreso` : `🔴 ${item.netPct}% reforzar`;
             const readBadge = item.isRead
               ? `<span class="px-2 py-0.5 rounded bg-emerald-950 text-emerald-300 border border-emerald-600">✅ Resumen Leído</span>`
               : `<span class="px-2 py-0.5 rounded bg-amber-950 text-amber-300 border border-amber-600">📖 Paso 1 Pendiente</span>`;
@@ -1627,9 +1945,12 @@ class AppController {
                 </div>
                 <div class="flex flex-wrap gap-1.5 pt-2 border-t border-slate-800/80">
                   <button onclick="window.appController.openStudyGuideModal('${item.tema.codigo}')" class="px-2.5 py-1.5 rounded-lg bg-amber-500 hover:bg-amber-400 text-slate-950 text-[11px] font-black transition">
-                    📖 1. Leer Resumen
+                    📖 1. Resumen
                   </button>
-                  <button onclick="window.appController.openSchemaModal('${item.tema.codigo}')" class="px-2.5 py-1.5 rounded-lg bg-sky-950 hover:bg-sky-900 text-sky-300 border border-sky-700 text-[11px] font-bold transition">
+                  <button onclick="window.appController.speakMasterSummary('${item.tema.codigo}', 'video_only')" class="px-2.5 py-1.5 rounded-lg bg-sky-950 hover:bg-sky-900 text-sky-300 border border-sky-600 text-[11px] font-black transition" title="Escuchar Pizarra del Vídeo de YouTube en modo Manos Libres Offline">
+                    🎬🎧 Audio Vídeo
+                  </button>
+                  <button onclick="window.appController.openSchemaModal('${item.tema.codigo}')" class="px-2.5 py-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 text-sky-300 border border-slate-700 text-[11px] font-bold transition">
                     📊 2. Esquema
                   </button>
                   <button onclick="window.appController.startTopicStudy('${item.tema.codigo}')" class="px-2.5 py-1.5 rounded-lg bg-emerald-700 hover:bg-emerald-600 text-white text-[11px] font-black transition">
@@ -1655,7 +1976,7 @@ class AppController {
             onclick="window.appController.openPlazosFlashcards()"
             class="py-3 px-4 rounded-xl bg-emerald-950 hover:bg-emerald-900 text-emerald-300 border border-emerald-600 font-black text-xs uppercase tracking-wider transition"
           >
-            ⏱️ Repaso 2 Min: Tarjetas de Plazos y Sanciones (42)
+            ⏱️ Repaso 2 Min: Tarjetas de Plazos y Sanciones
           </button>
         </div>
 
@@ -1717,7 +2038,7 @@ class AppController {
   }
 
   // ==========================================
-  // RADAR Y LISTADO DE LOS 21 TEMAS SEPARADOS POR COLORES Y BLOQUES
+  // 🚦 SEMÁFORO TÁCTICO Y LISTADO DE LOS 21 TEMAS SEPARADOS POR COLORES Y BLOQUES
   // ==========================================
   renderHeatmap() {
     const container = document.getElementById("dash-heatmap-grid");
@@ -1761,13 +2082,14 @@ class AppController {
               const total = st.correct + st.wrong;
               const qCount = allQuestions.filter(q => q.temaCodigo === tema.codigo).length;
               const isRead = readSet.has(tema.codigo);
-              let pctBadge = `<span class="text-[10px] font-mono text-slate-400">${qCount}p</span>`;
+              let pctBadge = `<span class="px-1.5 py-0.5 rounded bg-slate-900 text-[10px] font-mono text-slate-400 border border-slate-800" title="Sin preguntas respondidas aún (${qCount} disponibles)">⚪ ${qCount}p</span>`;
 
               if (total > 0) {
                 const net = Math.max(0, st.correct - st.wrong / 3);
                 const pct = Math.round((net / total) * 100);
-                const cls = pct >= 70 ? "text-emerald-400" : pct >= 50 ? "text-amber-400" : "text-red-400";
-                pctBadge = `<span class="text-[11px] font-mono font-black ${cls}">${pct}%</span>`;
+                const semIcon = pct >= 75 ? "🟢" : pct >= 50 ? "🟡" : "🔴";
+                const cls = pct >= 75 ? "text-emerald-300 bg-emerald-950/80 border-emerald-600/50" : pct >= 50 ? "text-amber-300 bg-amber-950/80 border-amber-600/50" : "text-red-300 bg-red-950/80 border-red-600/50";
+                pctBadge = `<span class="px-1.5 py-0.5 rounded text-[10px] font-mono font-black border ${cls}" title="${st.correct} aciertos / ${st.wrong} fallos">${semIcon} ${pct}%</span>`;
               }
 
               const shortTitle = tema.titulo.replace(/^Tema\s+\d+\.\s*/i, "");
@@ -1797,6 +2119,11 @@ class AppController {
                       class="p-1.5 rounded-lg bg-amber-950/80 hover:bg-amber-900 border border-amber-600/60 text-xs"
                       title="Paso 1: Leer Resumen Magistral desde Cero y Descargar PDF"
                     >📖</button>
+                    <button
+                      onclick="window.appController.speakMasterSummary('${tema.codigo}', 'video_only')"
+                      class="p-1.5 rounded-lg bg-sky-950 hover:bg-sky-900 border border-sky-600/60 text-xs"
+                      title="Escuchar Pizarra del Vídeo de YouTube en Audio Manos Libres (Offline)"
+                    >🎧</button>
                     <button
                       onclick="window.appController.openSchemaModal('${tema.codigo}')"
                       class="p-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 border border-slate-700 text-xs"
@@ -2228,9 +2555,17 @@ class AppController {
                       </button>
 
                       <button
-                        onclick="window.appController.speakMasterSummary('${tema.codigo}')"
+                        onclick="window.appController.speakMasterSummary('${tema.codigo}', 'video_only')"
+                        class="px-2.5 py-1.5 rounded-xl bg-sky-950 hover:bg-sky-900 border border-sky-600/60 text-xs font-black text-sky-300 transition flex items-center space-x-1"
+                        title="Escuchar Pizarra del Vídeo de YouTube + Post-its del Profesor en audio (Offline)"
+                      >
+                        <span>🎬🎧</span><span class="hidden sm:inline">Vídeo</span>
+                      </button>
+
+                      <button
+                        onclick="window.appController.speakMasterSummary('${tema.codigo}', 'full')"
                         class="px-2.5 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-700 text-xs font-bold text-amber-400 transition"
-                        title="Escuchar Resumen Magistral en audio"
+                        title="Escuchar Resumen Magistral completo en audio"
                       >
                         🔊
                       </button>
@@ -2420,7 +2755,7 @@ class AppController {
   // MODO AUDIO TÁCTICO (MANOS LIBRES)
   // ==========================================
   speakTopic(temaCodigo) {
-    this.speakMasterSummary(temaCodigo);
+    this.speakMasterSummary(temaCodigo, "full");
   }
 
   stopAudio() {
@@ -2428,6 +2763,8 @@ class AppController {
       window.speechSynthesis.cancel();
     }
     this.isSpeaking = false;
+    this.isAudioPaused = false;
+    this.renderTacticalAudioBar();
   }
 
   // ==========================================

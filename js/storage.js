@@ -4,7 +4,7 @@
  */
 
 const STORAGE_KEYS = {
-  QUESTIONS: "permanencia_questions_v10",
+  QUESTIONS: "permanencia_questions_v11",
   FAILED_QUESTIONS: "permanencia_failed_v1",
   STATS: "permanencia_stats_v1",
   TOPIC_STATS: "permanencia_topic_stats_v1",
@@ -67,6 +67,7 @@ class StorageManager {
     try {
       const storedRaw =
         localStorage.getItem(STORAGE_KEYS.QUESTIONS) ||
+        localStorage.getItem("permanencia_questions_v10") ||
         localStorage.getItem("permanencia_questions_v9") ||
         localStorage.getItem("permanencia_questions_v8") ||
         localStorage.getItem("permanencia_questions_v7") ||
@@ -122,7 +123,7 @@ class StorageManager {
     return addedCount;
   }
 
-  // ESTADÍSTICAS POR TEMA (MAPA DE CALOR Y DEBILIDADES)
+  // ESTADÍSTICAS POR TEMA (MAPA DE CALOR, SEMÁFORO DE 21 TEMAS Y ENTRENADOR IA)
   getTopicStats() {
     try {
       const data = localStorage.getItem(STORAGE_KEYS.TOPIC_STATS);
@@ -137,15 +138,98 @@ class StorageManager {
     const key = question.temaCodigo || question.bloque;
     const topicStats = this.getTopicStats();
     if (!topicStats[key]) {
-      topicStats[key] = { correct: 0, wrong: 0 };
+      topicStats[key] = { correct: 0, wrong: 0, seenIds: [], lastPracticed: null };
     }
     if (isCorrect) {
       topicStats[key].correct++;
     } else {
       topicStats[key].wrong++;
     }
+    if (!Array.isArray(topicStats[key].seenIds)) {
+      topicStats[key].seenIds = [];
+    }
+    if (question.id && !topicStats[key].seenIds.includes(question.id)) {
+      topicStats[key].seenIds.push(question.id);
+    }
+    topicStats[key].lastPracticed = new Date().toISOString();
     localStorage.setItem(STORAGE_KEYS.TOPIC_STATS, JSON.stringify(topicStats));
     this._notifyCloudSync("topic_stats");
+  }
+
+  getAnsweredQuestionIdsSet() {
+    const set = new Set();
+    const topicStats = this.getTopicStats();
+    Object.values(topicStats).forEach(st => {
+      if (st && Array.isArray(st.seenIds)) {
+        st.seenIds.forEach(id => set.add(id));
+      }
+    });
+    const failed = this.getFailedQuestions();
+    failed.forEach(f => {
+      if (f && f.id) set.add(f.id);
+    });
+    return set;
+  }
+
+  getTopicDiagnosticReport() {
+    if (typeof OFFICIAL_SYLLABUS === "undefined") return [];
+    const topicStats = this.getTopicStats();
+    const readSet = new Set(this.getReadTopics());
+    const allQuestions = this.getQuestions();
+    const failedIds = new Set(this.getFailedQuestions().map(f => f.id));
+
+    return OFFICIAL_SYLLABUS.map(t => {
+      const st = topicStats[t.codigo] || { correct: 0, wrong: 0, seenIds: [], lastPracticed: null };
+      const totalAns = (st.correct || 0) + (st.wrong || 0);
+      const netScore = Math.max(0, (st.correct || 0) - ((st.wrong || 0) / 3));
+      const netPct = totalAns > 0 ? Math.round((netScore / totalAns) * 100) : -1;
+      const topicBank = allQuestions.filter(q => q.temaCodigo === t.codigo);
+      const bankCount = topicBank.length;
+      const seenCount = Array.isArray(st.seenIds) && st.seenIds.length > 0
+        ? st.seenIds.length
+        : Math.min(bankCount, totalAns);
+      const failedInTopic = topicBank.filter(q => failedIds.has(q.id)).length;
+      const isRead = readSet.has(t.codigo);
+
+      let status = "SIN_EXPLORAR"; // ⚪
+      let statusLabel = "⚪ Sin Test";
+      let statusColor = "slate";
+      if (totalAns > 0) {
+        if (netPct >= 75) {
+          status = "DOMINADO";
+          statusLabel = "🟢 Dominado";
+          statusColor = "emerald";
+        } else if (netPct >= 50) {
+          status = "PROGRESO";
+          statusLabel = "🟡 En Progreso";
+          statusColor = "amber";
+        } else {
+          status = "CRITICO";
+          statusLabel = "🔴 Crítico (<50%)";
+          statusColor = "red";
+        }
+      }
+
+      return {
+        tema: t,
+        codigo: t.codigo,
+        titulo: t.titulo,
+        bloque: t.bloque,
+        equivalencia28: t.equivalencia28 || "",
+        isRead,
+        correct: st.correct || 0,
+        wrong: st.wrong || 0,
+        totalAnswered: totalAns,
+        seenCount,
+        bankCount,
+        failedInTopic,
+        netPct,
+        status,
+        statusLabel,
+        statusColor,
+        lastPracticed: st.lastPracticed || null
+      };
+    });
   }
 
   // BOLSA DE PREGUNTAS FALLADAS

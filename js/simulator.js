@@ -56,6 +56,87 @@ class SimulatorEngine {
     return selected.slice(0, targetCount);
   }
 
+  /**
+   * 🧠 ENTRENADOR INTELIGENTE ADAPTATIVO (IA TÁCTICA LOCAL)
+   * Selecciona un mix personalizado:
+   * - 40% de los 3 Temas más débiles o pendientes de dominar
+   * - 30% de la Bolsa de Fallos (o Trampas Oficiales si la bolsa tiene pocas)
+   * - 30% de preguntas inéditas (aún no respondidas) de los 3 bloques
+   */
+  buildAdaptiveIASession(allQuestions, targetCount = 25) {
+    const diag = window.storageManager.getTopicDiagnosticReport();
+    const seenIds = window.storageManager.getAnsweredQuestionIdsSet();
+    const failedItems = window.storageManager.getFailedQuestions();
+    const failedIds = new Set(failedItems.map(f => f.id));
+    const starOrder = ["B2-T04", "B1-T04", "B1-T06", "B2-T01", "B2-T08", "B1-T01", "B2-T03", "B3-T01", "B3-T07"];
+
+    const prioritizedTopics = [...diag].sort((a, b) => {
+      const score = (item) => {
+        if (item.status === "CRITICO") return 300 + (100 - Math.max(0, item.netPct));
+        if (item.status === "SIN_EXPLORAR") return 200 + (starOrder.includes(item.codigo) ? 40 : 0) + (item.isRead ? 20 : 0);
+        if (item.status === "PROGRESO") return 100 + (100 - item.netPct);
+        return Math.max(0, 100 - item.netPct);
+      };
+      return score(b) - score(a);
+    });
+
+    const weakCodes = prioritizedTopics.slice(0, 3).map(t => t.codigo);
+    const weakSet = new Set(weakCodes);
+
+    const quotaWeak = Math.round(targetCount * 0.40);
+    const quotaFailed = Math.round(targetCount * 0.30);
+    const quotaUnseen = Math.max(0, targetCount - quotaWeak - quotaFailed);
+
+    const selected = [];
+    const usedIds = new Set();
+
+    const addFromPool = (pool, limit) => {
+      for (const q of pool) {
+        if (selected.length >= targetCount || limit <= 0) break;
+        if (!usedIds.has(q.id)) {
+          selected.push(q);
+          usedIds.add(q.id);
+          limit--;
+        }
+      }
+    };
+
+    // 1. 40% de los 3 Temas Prioritarios / Críticos (priorizando preguntas no vistas o falladas)
+    const weakPool = this.shuffleArray(allQuestions.filter(q => weakSet.has(q.temaCodigo)))
+      .sort((a, b) => {
+        const aScore = (failedIds.has(a.id) ? 2 : 0) + (!seenIds.has(a.id) ? 1 : 0);
+        const bScore = (failedIds.has(b.id) ? 2 : 0) + (!seenIds.has(b.id) ? 1 : 0);
+        return bScore - aScore;
+      });
+    addFromPool(weakPool, quotaWeak);
+
+    // 2. 30% de Bolsa de Fallos + Trampas de Examen
+    const failedPool = this.shuffleArray(allQuestions.filter(q => failedIds.has(q.id)));
+    addFromPool(failedPool, quotaFailed);
+    if (selected.length < quotaWeak + quotaFailed) {
+      const trapPool = this.shuffleArray(allQuestions.filter(q => q.dificultad === "trampa" || (Array.isArray(q.etiquetas) && q.etiquetas.includes("Trampa"))));
+      addFromPool(trapPool, (quotaWeak + quotaFailed) - selected.length);
+    }
+
+    // 3. 30% de Preguntas Inéditas (no vistas aún) ponderadas
+    const unseenPool = this.shuffleArray(allQuestions.filter(q => !seenIds.has(q.id) && !usedIds.has(q.id)));
+    addFromPool(unseenPool, quotaUnseen);
+
+    // Fallback si aún faltan preguntas
+    if (selected.length < targetCount) {
+      const restPool = this.shuffleArray(allQuestions.filter(q => !usedIds.has(q.id)));
+      addFromPool(restPool, targetCount - selected.length);
+    }
+
+    this.adaptiveMeta = {
+      weakCodes,
+      failedIncluded: selected.filter(q => failedIds.has(q.id)).length,
+      unseenIncluded: selected.filter(q => !seenIds.has(q.id)).length
+    };
+
+    return this.shuffleArray(selected);
+  }
+
   startSession({
     count = 20,
     bloque = "ALL",
@@ -79,7 +160,8 @@ class SimulatorEngine {
     this.filterTema = temaCodigo;
     this.tagFilter = tagFilter || "ALL";
     this.packId = packId || null;
-    this.packTitle = packTitle || (this.survivalMode ? "💀 Modo Supervivencia (3 Vidas ❤️❤️❤️)" : null);
+    this.adaptiveMeta = null;
+    this.packTitle = packTitle || (this.survivalMode ? "💀 Modo Supervivencia (3 Vidas ❤️❤️❤️)" : (mode === "adaptive_ia" ? `🧠 Entrenador Inteligente IA (${count}p)` : null));
     this.currentIndex = 0;
     this.answers = {};
     this.revealed = new Set();
@@ -90,7 +172,12 @@ class SimulatorEngine {
     const allQuestions = window.storageManager.getQuestions();
     let selectedQuestions = [];
 
-    if (packRule) {
+    if (mode === "adaptive_ia" || packRule === "adaptive_ia") {
+      selectedQuestions = this.buildAdaptiveIASession(allQuestions, count || 25);
+      if (this.adaptiveMeta && this.adaptiveMeta.weakCodes) {
+        this.packTitle = `🧠 IA Adaptativa (${this.adaptiveMeta.weakCodes.join(" + ")} + Fallos + Inéditas)`;
+      }
+    } else if (packRule) {
       let rulePool = [...allQuestions];
       if (packRule === "ponderado_100") {
         selectedQuestions = this.buildWeighted100(allQuestions, allQuestions, count || 100);
