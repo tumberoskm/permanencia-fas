@@ -7,9 +7,12 @@ class AppController {
   constructor() {
     this.currentTab = "dashboard";
     this.fcIndex = 0;
+    this.fcFilter = "ALL";
     this.fcList = [];
     this.selectedSyllabusFilter = "ALL";
     this.temarioSearchQuery = "";
+    this.expandedTopics = new Set(["B1-T01", "B1-T04", "B2-T04"]);
+    this.dailyPairOffset = 0;
     this.isSpeaking = false;
     this.init();
   }
@@ -121,7 +124,7 @@ class AppController {
   }
 
   // ==========================================
-  // DASHBOARD + MAPA DE CALOR DE DEBILIDADES
+  // DASHBOARD + PLANIFICADOR DIARIO + RADAR POR COLORES
   // ==========================================
   renderDashboard() {
     const stats = window.storageManager.getStats();
@@ -170,6 +173,7 @@ class AppController {
       }
     }
 
+    this.renderDailyPlanner();
     this.renderHeatmap();
 
     const historyContainer = document.getElementById("dash-history-list");
@@ -178,7 +182,7 @@ class AppController {
         historyContainer.innerHTML = `
           <div class="text-center py-6 text-slate-400">
             <span class="text-3xl block mb-2">🎯</span>
-            Aún no has completado ningún simulacro. Pulsa en <strong>Test Rápido</strong> o explora el <strong>Temario Oficial</strong>.
+            Aún no has completado ningún simulacro. Pulsa en <strong>Lanzar Misión del Día</strong> o en <strong>Simulacro Oficial 100p</strong>.
           </div>
         `;
       } else {
@@ -217,49 +221,237 @@ class AppController {
     }
   }
 
+  // ==========================================
+  // 📈 PLANIFICADOR DIARIO DE MISIÓN ("PLAN DE CHOQUE INTELIGENTE")
+  // ==========================================
+  getPriorityTopicsForToday() {
+    if (typeof OFFICIAL_SYLLABUS === "undefined") return [];
+    const topicStats = window.storageManager.getTopicStats();
+    const starOrder = ["B2-T04", "B1-T04", "B1-T06", "B2-T01", "B2-T08", "B1-T01", "B2-T03", "B3-T01", "B3-T04", "B3-T07"];
+
+    const scored = OFFICIAL_SYLLABUS.map(t => {
+      const st = topicStats[t.codigo] || { correct: 0, wrong: 0 };
+      const total = st.correct + st.wrong;
+      const netPct = total > 0 ? Math.round((Math.max(0, st.correct - st.wrong / 3) / total) * 100) : -1;
+      const starBonus = starOrder.includes(t.codigo) ? 20 : 0;
+      // Prioridad más alta cuanto menor sea el porcentaje neto o si aún no se ha practicado
+      const priorityScore = (netPct === -1 ? 85 : (100 - netPct)) + starBonus;
+      return { tema: t, netPct, total, priorityScore };
+    }).sort((a, b) => b.priorityScore - a.priorityScore);
+
+    const len = scored.length;
+    const idx1 = (this.dailyPairOffset * 2) % len;
+    const idx2 = (this.dailyPairOffset * 2 + 1) % len;
+    return [scored[idx1], scored[idx2]];
+  }
+
+  rotateDailyMissionPair() {
+    this.dailyPairOffset = (this.dailyPairOffset + 1) % 11;
+    this.renderDailyPlanner();
+  }
+
+  startDailyMissionTest(code1, code2) {
+    const allQ = window.storageManager.getQuestions();
+    const failedIds = new Set(window.storageManager.getFailedQuestions().map(f => f.id));
+
+    const pool = allQ.filter(q => q.temaCodigo === code1 || q.temaCodigo === code2 || failedIds.has(q.id));
+    if (pool.length === 0) {
+      this.startSimulatorWithParams({ count: 20, bloque: "ALL", mode: "official", studyMode: true });
+      return;
+    }
+
+    // Iniciamos en Modo Estudio con las preguntas de los 2 temas del día
+    this.startSimulatorWithParams({ count: 20, bloque: "ALL", mode: "tema", temaCodigo: code1, studyMode: true });
+    // Mezclamos preguntas de ambos temas y fallos para un entrenamiento integral
+    const shuffled = [...pool].sort(() => Math.random() - 0.5).slice(0, 20);
+    window.simulatorEngine.questions = shuffled;
+    window.simulatorEngine.answers = new Array(shuffled.length).fill(null);
+    this.renderSimulatorQuestion();
+    this.renderSimulatorGrid();
+  }
+
+  openPlazosFlashcards() {
+    this.fcFilter = "PLAZOS";
+    this.fcIndex = 0;
+    this.showTab("flashcards");
+  }
+
+  renderDailyPlanner() {
+    const container = document.getElementById("daily-planner-container");
+    if (!container || typeof OFFICIAL_SYLLABUS === "undefined") return;
+
+    const pair = this.getPriorityTopicsForToday();
+    if (pair.length < 2) return;
+
+    const [t1, t2] = pair;
+    const pal1 = (typeof TOPIC_COLOR_PALETTE !== "undefined" && TOPIC_COLOR_PALETTE[t1.tema.codigo]) || { accent: "#10b981", titleColor: "#34d399" };
+    const pal2 = (typeof TOPIC_COLOR_PALETTE !== "undefined" && TOPIC_COLOR_PALETTE[t2.tema.codigo]) || { accent: "#f59e0b", titleColor: "#fbbf24" };
+
+    container.innerHTML = `
+      <div class="tactical-card rounded-2xl p-5 border-2 border-amber-500/40 bg-gradient-to-br from-slate-950/95 to-emerald-950/20 space-y-4">
+        <div class="flex flex-wrap items-center justify-between gap-2">
+          <div>
+            <div class="flex items-center space-x-2">
+              <span class="px-2.5 py-0.5 rounded bg-amber-500 text-slate-950 font-black text-[11px] uppercase">
+                📈 Plan de Choque Diario Inteligente
+              </span>
+              <span class="text-xs font-mono text-emerald-400">Seleccionado según tu Mapa de Calor y Peso BOD</span>
+            </div>
+            <h3 class="text-base sm:text-lg font-black text-white mt-1">
+              🎯 Tu Orden de Operaciones para Hoy (2 Temas Prioritarios + Test + Plazos)
+            </h3>
+          </div>
+          <button
+            onclick="window.appController.rotateDailyMissionPair()"
+            class="px-3 py-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 border border-slate-700 text-xs font-bold text-amber-300 transition"
+          >
+            🔄 Siguiente Par de Temas
+          </button>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-3.5">
+          ${[ { item: t1, pal: pal1, label: "OBJETIVO 1 DEL DÍA" }, { item: t2, pal: pal2, label: "OBJETIVO 2 DEL DÍA" } ].map(({ item, pal, label }) => {
+            const statusText = item.netPct === -1 ? "Pendiente de estrenar" : `${item.netPct}% dominio neto`;
+            return `
+              <div class="p-4 rounded-xl bg-slate-950/90 border border-slate-800 flex flex-col justify-between space-y-3" style="border-left: 5px solid ${pal.accent};">
+                <div>
+                  <div class="flex items-center justify-between text-[11px] font-mono mb-1">
+                    <span class="font-black text-amber-400">${label} • ${item.tema.codigo}</span>
+                    <span class="px-2 py-0.5 rounded bg-slate-900 text-slate-300 border border-slate-700">${statusText}</span>
+                  </div>
+                  <h4 class="text-sm font-black leading-snug" style="color:${pal.titleColor};">${item.tema.titulo}</h4>
+                  <p class="text-[11px] text-slate-400 mt-1">📊 Peso en examen: <strong class="text-slate-200">${item.tema.frecuenciaExamen || "Alto"}</strong></p>
+                </div>
+                <div class="flex flex-wrap gap-1.5 pt-2 border-t border-slate-800/80">
+                  <button onclick="window.appController.openSchemaModal('${item.tema.codigo}')" class="px-2.5 py-1.5 rounded-lg bg-sky-950 hover:bg-sky-900 text-sky-300 border border-sky-700 text-[11px] font-bold transition">
+                    📊 Esquema Visual
+                  </button>
+                  <button onclick="window.pdfGenerator.downloadTopicCheatSheetPDF('${item.tema.codigo}')" class="px-2.5 py-1.5 rounded-lg bg-amber-950/80 hover:bg-amber-900 text-amber-300 border border-amber-700 text-[11px] font-bold transition">
+                    📄 Chuleta PDF
+                  </button>
+                  <button onclick="window.appController.startTopicStudy('${item.tema.codigo}')" class="px-2.5 py-1.5 rounded-lg bg-emerald-700 hover:bg-emerald-600 text-white text-[11px] font-black transition ml-auto">
+                    💡 Estudiar Tema ➔
+                  </button>
+                </div>
+              </div>
+            `;
+          }).join("")}
+        </div>
+
+        <div class="pt-2 flex flex-wrap items-center justify-between gap-2.5 border-t border-slate-800/80">
+          <button
+            onclick="window.appController.startDailyMissionTest('${t1.tema.codigo}', '${t2.tema.codigo}')"
+            class="flex-1 py-3 px-4 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs uppercase tracking-wider transition text-center shadow-lg shadow-amber-500/10"
+          >
+            🚀 Lanzar Test de Misión Diaria (20 preg. de ${t1.tema.codigo} + ${t2.tema.codigo} + Fallos)
+          </button>
+          <button
+            onclick="window.appController.openPlazosFlashcards()"
+            class="py-3 px-4 rounded-xl bg-emerald-950 hover:bg-emerald-900 text-emerald-300 border border-emerald-600 font-black text-xs uppercase tracking-wider transition"
+          >
+            ⏱️ Repaso 2 Min: Tarjetas de Plazos y Sanciones (42)
+          </button>
+        </div>
+      </div>
+    `;
+  }
+
+  // ==========================================
+  // RADAR Y LISTADO DE LOS 21 TEMAS SEPARADOS POR COLORES Y BLOQUES
+  // ==========================================
   renderHeatmap() {
     const container = document.getElementById("dash-heatmap-grid");
     if (!container || typeof OFFICIAL_SYLLABUS === "undefined") return;
 
     const topicStats = window.storageManager.getTopicStats();
-
-    container.innerHTML = OFFICIAL_SYLLABUS.map(tema => {
-      const st = topicStats[tema.codigo] || { correct: 0, wrong: 0 };
-      const total = st.correct + st.wrong;
-      let pctText = "Sin datos";
-      let colorClass = "border-slate-800 bg-slate-900/50 text-slate-400";
-
-      if (total > 0) {
-        const net = Math.max(0, st.correct - st.wrong / 3);
-        const pct = Math.round((net / total) * 100);
-        pctText = `${pct}% neto`;
-        if (pct >= 70) {
-          colorClass = "border-emerald-700/60 bg-emerald-950/30 text-emerald-300";
-        } else if (pct >= 50) {
-          colorClass = "border-amber-600/60 bg-amber-950/30 text-amber-300";
-        } else {
-          colorClass = "border-red-600/60 bg-red-950/30 text-red-300";
-        }
+    const bloquesConfig = [
+      {
+        key: "Bloque 1: Organización",
+        titulo: "🏛️ BLOQUE 1: ORGANIZACIÓN (6 Temas • ~34% Examen)",
+        headerBg: "bg-emerald-950/80 border-emerald-600/50 text-emerald-300"
+      },
+      {
+        key: "Bloque 2: Jurídico-Social",
+        titulo: "⚖️ BLOQUE 2: JURÍDICO-SOCIAL (8 Temas • ~40% Examen)",
+        headerBg: "bg-amber-950/80 border-amber-600/50 text-amber-300"
+      },
+      {
+        key: "Bloque 3: Seguridad Nacional",
+        titulo: "🌍 BLOQUE 3: SEGURIDAD NACIONAL (7 Temas • ~26% Examen)",
+        headerBg: "bg-sky-950/80 border-sky-600/50 text-sky-300"
       }
+    ];
+
+    container.className = "grid grid-cols-1 lg:grid-cols-3 gap-4";
+    container.innerHTML = bloquesConfig.map(bl => {
+      const temasBloque = OFFICIAL_SYLLABUS.filter(t => t.bloque === bl.key);
 
       return `
-        <div 
-          onclick="window.appController.openTopicDetail('${tema.codigo}')"
-          class="p-2.5 rounded-xl border ${colorClass} cursor-pointer hover:border-amber-400 transition flex flex-col justify-between"
-          title="Haz clic para abrir el tema o hacer test"
-        >
-          <div class="flex items-center justify-between text-[10px] font-mono font-bold">
-            <span>${tema.codigo}</span>
-            <span>${pctText}</span>
+        <div class="rounded-2xl border border-slate-800 bg-slate-950/60 overflow-hidden flex flex-col">
+          <div class="px-4 py-2.5 border-b font-black text-xs uppercase tracking-wider ${bl.headerBg}">
+            ${bl.titulo}
           </div>
-          <div class="text-xs font-bold text-white truncate mt-1">${tema.titulo}</div>
+          <div class="divide-y divide-slate-800/70">
+            ${temasBloque.map(tema => {
+              const pal = (typeof TOPIC_COLOR_PALETTE !== "undefined" && TOPIC_COLOR_PALETTE[tema.codigo]) || { accent: "#10b981", bg: "rgba(16,185,129,0.08)", titleColor: "#34d399" };
+              const st = topicStats[tema.codigo] || { correct: 0, wrong: 0 };
+              const total = st.correct + st.wrong;
+              let pctBadge = `<span class="text-[10px] font-mono text-slate-400">Sin test</span>`;
+
+              if (total > 0) {
+                const net = Math.max(0, st.correct - st.wrong / 3);
+                const pct = Math.round((net / total) * 100);
+                const cls = pct >= 70 ? "text-emerald-400" : pct >= 50 ? "text-amber-400" : "text-red-400";
+                pctBadge = `<span class="text-[11px] font-mono font-black ${cls}">${pct}%</span>`;
+              }
+
+              const shortTitle = tema.titulo.replace(/^Tema\s+\d+\.\s*/i, "");
+
+              return `
+                <div
+                  class="p-3 hover:bg-slate-900/90 transition flex items-center justify-between gap-2"
+                  style="border-left: 5px solid ${pal.accent}; background: ${pal.bg};"
+                >
+                  <div class="min-w-0 flex-1 cursor-pointer" onclick="window.appController.openTopicDetail('${tema.codigo}')">
+                    <div class="flex items-center space-x-2">
+                      <span class="px-1.5 py-0.5 rounded text-[10px] font-mono font-black bg-slate-950 text-white border" style="border-color:${pal.accent};">
+                        ${tema.codigo}
+                      </span>
+                      ${pctBadge}
+                    </div>
+                    <div class="text-xs font-extrabold leading-snug mt-1" style="color:${pal.titleColor};">
+                      ${shortTitle}
+                    </div>
+                  </div>
+
+                  <div class="flex items-center space-x-1 shrink-0">
+                    <button
+                      onclick="window.appController.openSchemaModal('${tema.codigo}')"
+                      class="p-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 border border-slate-700 text-xs"
+                      title="Ver Esquema Visual de Colores y Descargar PDF"
+                    >📊</button>
+                    <button
+                      onclick="window.pdfGenerator.downloadTopicCheatSheetPDF('${tema.codigo}')"
+                      class="p-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 border border-slate-700 text-xs"
+                      title="Descargar Chuleta Táctica en PDF"
+                    >📄</button>
+                    <button
+                      onclick="window.appController.startTopicStudy('${tema.codigo}')"
+                      class="px-2 py-1 rounded-lg bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-[10px] uppercase"
+                      title="Iniciar Test en Modo Estudio"
+                    >Test</button>
+                  </div>
+                </div>
+              `;
+            }).join("")}
+          </div>
         </div>
       `;
     }).join("");
   }
 
   // ==========================================
-  // VISOR DE TEMARIO TÁCTICO (21 TEMAS / 3 BLOQUES + BUSCADOR DE PLAZOS Y ARTÍCULOS)
+  // VISOR DE TEMARIO TÁCTICO POR FILAS DE COLORES + ESQUEMAS Y CHULETAS PDF
   // ==========================================
   filterTemario(bloque) {
     this.selectedSyllabusFilter = bloque;
@@ -278,12 +470,105 @@ class AppController {
     this.renderTemario();
   }
 
+  toggleTopicRow(temaCodigo) {
+    if (this.expandedTopics.has(temaCodigo)) {
+      this.expandedTopics.delete(temaCodigo);
+    } else {
+      this.expandedTopics.add(temaCodigo);
+    }
+    this.renderTemario();
+  }
+
+  toggleExpandAllTopics() {
+    if (typeof OFFICIAL_SYLLABUS === "undefined") return;
+    if (this.expandedTopics.size >= OFFICIAL_SYLLABUS.length) {
+      this.expandedTopics.clear();
+    } else {
+      OFFICIAL_SYLLABUS.forEach(t => this.expandedTopics.add(t.codigo));
+    }
+    this.renderTemario();
+  }
+
+  openSchemaModal(temaCodigo) {
+    if (typeof OFFICIAL_SYLLABUS === "undefined" || typeof VISUAL_SCHEMAS === "undefined") return;
+    const tema = OFFICIAL_SYLLABUS.find(t => t.codigo === temaCodigo);
+    const schema = VISUAL_SCHEMAS[temaCodigo];
+    if (!tema || !schema) return;
+
+    const modal = document.getElementById("schema-modal");
+    const content = document.getElementById("schema-modal-body");
+    if (!modal || !content) return;
+
+    const pal = (typeof TOPIC_COLOR_PALETTE !== "undefined" && TOPIC_COLOR_PALETTE[tema.codigo]) || { accent: "#f59e0b", titleColor: "#fbbf24" };
+
+    content.innerHTML = `
+      <div class="space-y-4">
+        <div class="flex flex-wrap items-center justify-between gap-3 border-b border-slate-800 pb-3">
+          <div>
+            <div class="flex items-center space-x-2">
+              <span class="px-2.5 py-0.5 rounded font-mono font-black text-xs bg-amber-500 text-slate-950">${tema.codigo}</span>
+              <span class="text-xs font-bold text-slate-400 uppercase">${tema.bloque}</span>
+              <span class="text-xs font-mono text-emerald-400">${tema.frecuenciaExamen || ""}</span>
+            </div>
+            <h3 class="text-lg sm:text-xl font-black mt-1" style="color:${pal.titleColor};">${tema.titulo}</h3>
+            <p class="text-xs font-mono text-slate-400">📜 ${tema.normativa}</p>
+          </div>
+
+          <div class="flex flex-wrap items-center gap-2">
+            <button
+              onclick="window.pdfGenerator.downloadVisualSchemaPDF('${tema.codigo}')"
+              class="px-3.5 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs uppercase tracking-wider transition flex items-center space-x-1.5 shadow-lg"
+            >
+              <span>🖨️</span><span>Descargar Esquema en PDF (A Todo Color)</span>
+            </button>
+            <button
+              onclick="window.pdfGenerator.downloadTopicCheatSheetPDF('${tema.codigo}')"
+              class="px-3.5 py-2 rounded-xl bg-emerald-700 hover:bg-emerald-600 text-white font-black text-xs uppercase tracking-wider transition flex items-center space-x-1.5"
+            >
+              <span>📄</span><span>Chuleta + Preguntas PDF</span>
+            </button>
+            <button
+              onclick="window.appController.closeSchemaModal()"
+              class="px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold text-xs"
+            >
+              Cerrar ✕
+            </button>
+          </div>
+        </div>
+
+        <!-- Leyenda de Colores y Nivel Administrativo -->
+        <div class="flex flex-wrap items-center gap-3 p-3 rounded-xl bg-slate-950/90 border border-slate-800 text-xs">
+          <span class="font-black text-amber-400 uppercase">🎨 Leyenda del Esquema:</span>
+          ${(schema.leyenda || []).map(l => `
+            <span class="flex items-center space-x-1.5 text-slate-200 font-semibold">
+              <span class="w-3 h-3 rounded inline-block" style="background:${l.color};"></span>
+              <span>${l.texto}</span>
+            </span>
+          `).join("")}
+        </div>
+
+        <!-- Diagrama / Organigrama / Infografía -->
+        <div class="p-3 sm:p-4 rounded-2xl bg-slate-950/95 border border-slate-800">
+          ${schema.htmlDiagrama}
+        </div>
+      </div>
+    `;
+
+    modal.classList.remove("hidden");
+  }
+
+  closeSchemaModal() {
+    const modal = document.getElementById("schema-modal");
+    if (modal) modal.classList.add("hidden");
+  }
+
   renderTemario() {
     const container = document.getElementById("temario-topics-container");
     const searchResultsContainer = document.getElementById("temario-search-questions-container");
     if (!container || typeof OFFICIAL_SYLLABUS === "undefined") return;
 
     const allQuestions = window.storageManager.getQuestions();
+    const topicStats = window.storageManager.getTopicStats();
     const rawQuery = (this.temarioSearchQuery || "").toLowerCase();
 
     let filtered = this.selectedSyllabusFilter === "ALL"
@@ -304,7 +589,6 @@ class AppController {
         return haystack.includes(rawQuery);
       });
 
-      // Buscar también preguntas del banco que coincidan con el término buscado
       const matchingQuestions = allQuestions.filter(q => {
         const qHaystack = [
           q.temaCodigo,
@@ -373,79 +657,183 @@ class AppController {
       return;
     }
 
-    container.innerHTML = filtered.map(tema => {
-      const qCount = allQuestions.filter(q => q.temaCodigo === tema.codigo).length;
-      const badgeColor = tema.bloque.includes("Bloque 1")
-        ? "bg-emerald-950 text-emerald-400 border-emerald-700"
-        : tema.bloque.includes("Bloque 2")
-          ? "bg-amber-950 text-amber-400 border-amber-700"
-          : "bg-sky-950 text-sky-400 border-sky-700";
+    // Agrupamos el listado por Bloques con cabeceras de color diferenciadas
+    const bloquesOrder = [
+      {
+        key: "Bloque 1: Organización",
+        banner: "🏛️ BLOQUE 1: ORGANIZACIÓN (6 Temas Oficiales • ~34% de las preguntas del examen)",
+        bannerStyle: "background: linear-gradient(90deg, rgba(6,95,70,0.9), rgba(15,23,42,0.9)); border-color: #10b981; color: #6ee7b7;"
+      },
+      {
+        key: "Bloque 2: Jurídico-Social",
+        banner: "⚖️ BLOQUE 2: JURÍDICO-SOCIAL (8 Temas Oficiales • ~40% de las preguntas del examen)",
+        bannerStyle: "background: linear-gradient(90deg, rgba(146,64,14,0.9), rgba(15,23,42,0.9)); border-color: #f59e0b; color: #fde68a;"
+      },
+      {
+        key: "Bloque 3: Seguridad Nacional",
+        banner: "🌍 BLOQUE 3: SEGURIDAD NACIONAL Y OO.II. (7 Temas Oficiales • ~26% de las preguntas del examen)",
+        bannerStyle: "background: linear-gradient(90deg, rgba(7,89,133,0.9), rgba(15,23,42,0.9)); border-color: #38bdf8; color: #bae6fd;"
+      }
+    ];
 
-      const freqBadge = tema.frecuenciaExamen
-        ? `<span class="px-2.5 py-0.5 rounded text-[11px] font-bold bg-red-950/70 text-amber-300 border border-amber-600/40">📊 Peso Examen: ${tema.frecuenciaExamen}</span>`
-        : "";
+    container.innerHTML = `
+      <div class="flex items-center justify-between px-1 mb-2">
+        <span class="text-xs text-slate-400">
+          🎨 <strong>Listado Táctico por Filas de Colores:</strong> Pulsa sobre cualquier fila para desplegar u ocultar su Esquema Visual, Resumen y Trampas.
+        </span>
+        <button
+          onclick="window.appController.toggleExpandAllTopics()"
+          class="px-3 py-1 rounded-lg bg-slate-900 hover:bg-slate-800 border border-slate-700 text-xs font-bold text-amber-400 transition"
+        >
+          📂 Expandir / Contraer Todos
+        </button>
+      </div>
+    ` + bloquesOrder.map(bl => {
+      const temasGrupo = filtered.filter(t => t.bloque === bl.key);
+      if (temasGrupo.length === 0) return "";
 
       return `
-        <div id="topic-card-${tema.codigo}" class="tactical-card rounded-2xl p-5 border border-slate-800 space-y-4">
-          <div class="flex flex-wrap items-center justify-between gap-2">
-            <div class="flex flex-wrap items-center gap-2">
-              <span class="px-2.5 py-0.5 rounded text-xs font-mono font-black border ${badgeColor}">
-                ${tema.codigo}
-              </span>
-              <span class="text-xs font-bold text-slate-400">${tema.bloque}</span>
-              ${freqBadge}
-            </div>
-
-            <div class="flex flex-wrap items-center gap-2">
-              <button 
-                onclick="window.appController.speakTopic('${tema.codigo}')"
-                class="px-3 py-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 border border-slate-700 text-xs font-bold text-amber-400 flex items-center space-x-1 transition"
-                title="Escuchar resumen y puntos calientes en voz alta"
-              >
-                <span>🔊</span><span>Audio</span>
-              </button>
-              <button 
-                onclick="window.appController.startTopicStudy('${tema.codigo}')"
-                class="px-3 py-1.5 rounded-lg bg-emerald-700 hover:bg-emerald-600 text-white text-xs font-black uppercase tracking-wider transition"
-                title="Corrige cada pregunta al instante mostrándote la ley y el truco de academia"
-              >
-                💡 Modo Estudio (${qCount})
-              </button>
-              <button 
-                onclick="window.appController.startTopicTest('${tema.codigo}')"
-                class="px-3 py-1.5 rounded-lg bg-amber-500 hover:bg-amber-400 text-slate-950 text-xs font-black uppercase tracking-wider transition"
-                title="Modo examen con corrección final"
-              >
-                🎯 Test Examen (${qCount})
-              </button>
-            </div>
+        <div class="space-y-2.5 mb-6">
+          <div class="p-3.5 rounded-xl border-l-4 font-black text-xs sm:text-sm uppercase tracking-wider shadow" style="${bl.bannerStyle}">
+            ${bl.banner}
           </div>
 
-          <div>
-            <h3 class="text-lg font-black text-white">${tema.titulo}</h3>
-            <p class="text-xs font-mono text-emerald-400 mt-0.5">📜 ${tema.normativa}</p>
-          </div>
+          <div class="space-y-2.5">
+            ${temasGrupo.map(tema => {
+              const qCount = allQuestions.filter(q => q.temaCodigo === tema.codigo).length;
+              const pal = (typeof TOPIC_COLOR_PALETTE !== "undefined" && TOPIC_COLOR_PALETTE[tema.codigo]) || {
+                accent: "#10b981",
+                bg: "rgba(16,185,129,0.1)",
+                border: "rgba(16,185,129,0.45)",
+                titleColor: "#34d399"
+              };
+              const isExpanded = rawQuery ? true : this.expandedTopics.has(tema.codigo);
+              const schema = (typeof VISUAL_SCHEMAS !== "undefined") ? VISUAL_SCHEMAS[tema.codigo] : null;
 
-          <!-- Resumen Ejecutivo -->
-          <div class="p-3.5 rounded-xl bg-slate-950/70 border border-slate-800/80 text-xs sm:text-sm text-slate-200 leading-relaxed">
-            <strong class="text-amber-400 uppercase text-xs block mb-1">📌 Resumen Ejecutivo:</strong>
-            ${tema.resumen}
-          </div>
+              const st = topicStats[tema.codigo] || { correct: 0, wrong: 0 };
+              const totalAns = st.correct + st.wrong;
+              const masteryPct = totalAns > 0 ? `${Math.round((Math.max(0, st.correct - st.wrong / 3) / totalAns) * 100)}% dominio` : "Sin test";
 
-          <!-- Puntos Calientes de Examen -->
-          <div class="p-3.5 rounded-xl bg-emerald-950/20 border border-emerald-900/50 space-y-1.5">
-            <strong class="text-emerald-400 uppercase text-xs block">🔥 Puntos Calientes de Examen (Lo más preguntado en el BOD):</strong>
-            <ul class="space-y-1 text-xs text-slate-200">
-              ${tema.puntosCalientes.map(p => `<li class="leading-relaxed">• ${p}</li>`).join("")}
-            </ul>
-          </div>
+              return `
+                <div
+                  id="topic-card-${tema.codigo}"
+                  class="rounded-2xl transition overflow-hidden"
+                  style="background: ${pal.bg}; border: 1.5px solid ${pal.border}; border-left: 7px solid ${pal.accent};"
+                >
+                  <!-- FILA PRINCIPAL DEL TEMA CON TÍTULO DE COLOR Y BOTONES DIRECTOS -->
+                  <div class="p-3.5 sm:p-4 flex flex-col lg:flex-row lg:items-center justify-between gap-3">
+                    <div
+                      class="flex-1 cursor-pointer select-none"
+                      onclick="window.appController.toggleTopicRow('${tema.codigo}')"
+                    >
+                      <div class="flex flex-wrap items-center gap-2 mb-1">
+                        <span class="px-2.5 py-0.5 rounded text-xs font-mono font-black bg-slate-950 text-white border" style="border-color:${pal.accent};">
+                          ${tema.codigo}
+                        </span>
+                        <span class="px-2 py-0.5 rounded text-[11px] font-bold bg-slate-950/90 text-amber-300 border border-amber-500/30">
+                          📊 ${tema.frecuenciaExamen || "Alta frecuencia"}
+                        </span>
+                        <span class="px-2 py-0.5 rounded text-[11px] font-mono bg-slate-950/80 text-slate-300 border border-slate-800">
+                          🎯 ${masteryPct}
+                        </span>
+                        <span class="text-xs font-bold text-slate-400 ml-auto lg:ml-2">
+                          ${isExpanded ? "🔼 Ocultar ficha" : "🔽 Desplegar ficha y esquema"}
+                        </span>
+                      </div>
 
-          <!-- Trampas Frecuentes del Tribunal -->
-          <div class="p-3.5 rounded-xl bg-red-950/25 border border-red-900/50 space-y-1.5">
-            <strong class="text-red-400 uppercase text-xs block">🪤 Trampas Frecuentes del Tribunal (¡No caigas aquí!):</strong>
-            <ul class="space-y-1 text-xs text-red-200">
-              ${tema.trampas.map(t => `<li class="leading-relaxed">${t}</li>`).join("")}
-            </ul>
+                      <h3 class="text-base sm:text-lg font-black leading-snug" style="color: ${pal.titleColor};">
+                        ${tema.titulo}
+                      </h3>
+                      <p class="text-xs font-mono text-slate-300 mt-0.5">📜 ${tema.normativa}</p>
+                    </div>
+
+                    <!-- Botonera Táctica de la Fila -->
+                    <div class="flex flex-wrap items-center gap-1.5 shrink-0">
+                      <button
+                        onclick="window.appController.openSchemaModal('${tema.codigo}')"
+                        class="px-3 py-1.5 rounded-xl bg-sky-950 hover:bg-sky-900 text-sky-200 border border-sky-500/60 text-xs font-black transition flex items-center space-x-1"
+                        title="Abrir Esquema Visual con colores, subrayados y flechas + Descargar en PDF"
+                      >
+                        <span>📊</span><span>Esquema PDF</span>
+                      </button>
+
+                      <button
+                        onclick="window.pdfGenerator.downloadTopicCheatSheetPDF('${tema.codigo}')"
+                        class="px-3 py-1.5 rounded-xl bg-amber-950/90 hover:bg-amber-900 text-amber-200 border border-amber-500/60 text-xs font-black transition flex items-center space-x-1"
+                        title="Descargar Chuleta Táctica en PDF (Resumen + Trampas + Preguntas del Tema)"
+                      >
+                        <span>📄</span><span>Chuleta PDF</span>
+                      </button>
+
+                      <button
+                        onclick="window.appController.speakTopic('${tema.codigo}')"
+                        class="px-2.5 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-700 text-xs font-bold text-amber-400 transition"
+                        title="Escuchar tema en audio"
+                      >
+                        🔊 Audio
+                      </button>
+
+                      <button
+                        onclick="window.appController.startTopicStudy('${tema.codigo}')"
+                        class="px-3 py-1.5 rounded-xl bg-emerald-700 hover:bg-emerald-600 text-white text-xs font-black uppercase transition"
+                        title="Entrenar con corrección instantánea"
+                      >
+                        💡 Estudio (${qCount})
+                      </button>
+
+                      <button
+                        onclick="window.appController.startTopicTest('${tema.codigo}')"
+                        class="px-3 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 text-xs font-black uppercase transition"
+                        title="Hacer test oficial del tema"
+                      >
+                        🎯 Test (${qCount})
+                      </button>
+                    </div>
+                  </div>
+
+                  <!-- PANEL DESPLEGABLE DEL TEMA (ESQUEMA VISUAL + RESUMEN + PUNTOS CALIENTES + TRAMPAS) -->
+                  <div class="${isExpanded ? "block" : "hidden"} p-4 pt-2 border-t border-slate-800/80 bg-slate-950/80 space-y-4">
+                    ${schema ? `
+                      <div class="p-3.5 rounded-xl bg-slate-950 border border-slate-800 space-y-2">
+                        <div class="flex flex-wrap items-center justify-between gap-2">
+                          <span class="text-xs font-black uppercase text-amber-400">
+                            📊 ${schema.subtituloPoster}
+                          </span>
+                          <button
+                            onclick="window.pdfGenerator.downloadVisualSchemaPDF('${tema.codigo}')"
+                            class="px-2.5 py-1 rounded-lg bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-[11px] uppercase"
+                          >
+                            🖨️ Guardar este Esquema en PDF (A4 Color)
+                          </button>
+                        </div>
+                        ${schema.htmlDiagrama}
+                      </div>
+                    ` : ""}
+
+                    <div class="p-3.5 rounded-xl bg-slate-900/90 border border-slate-800 text-xs sm:text-sm text-slate-200 leading-relaxed">
+                      <strong class="text-amber-400 uppercase text-xs block mb-1">📌 Resumen Ejecutivo:</strong>
+                      ${tema.resumen}
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                      <div class="p-3.5 rounded-xl bg-emerald-950/25 border border-emerald-800/60 space-y-1.5">
+                        <strong class="text-emerald-400 uppercase text-xs block">🔥 Puntos Calientes de Examen (BOD):</strong>
+                        <ul class="space-y-1 text-xs text-slate-200">
+                          ${tema.puntosCalientes.map(p => `<li class="leading-relaxed">• ${p}</li>`).join("")}
+                        </ul>
+                      </div>
+
+                      <div class="p-3.5 rounded-xl bg-red-950/25 border border-red-800/60 space-y-1.5">
+                        <strong class="text-red-400 uppercase text-xs block">🪤 Trampas Frecuentes del Tribunal:</strong>
+                        <ul class="space-y-1 text-xs text-red-200">
+                          ${tema.trampas.map(t => `<li class="leading-relaxed">${t}</li>`).join("")}
+                        </ul>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              `;
+            }).join("")}
           </div>
         </div>
       `;
@@ -455,6 +843,7 @@ class AppController {
   openTopicDetail(temaCodigo) {
     this.selectedSyllabusFilter = "ALL";
     this.temarioSearchQuery = "";
+    this.expandedTopics.add(temaCodigo);
     const input = document.getElementById("temario-search-input");
     if (input) input.value = "";
     this.showTab("temario");
@@ -1122,10 +1511,45 @@ class AppController {
   }
 
   // ==========================================
-  // TARJETAS FLASHCARDS
+  // SUPER-MAZO DE TARJETAS FLASHCARDS (ANKI MILITAR — 86 TARJETAS)
   // ==========================================
+  filterFlashcards(filterType) {
+    this.fcFilter = filterType;
+    this.fcIndex = 0;
+    this.renderFlashcards();
+  }
+
   renderFlashcards() {
-    this.fcList = DEFAULT_FLASHCARDS;
+    const learnedList = window.storageManager.getLearnedFlashcards();
+    let list = [...DEFAULT_FLASHCARDS];
+
+    if (this.fcFilter === "PLAZOS") {
+      list = list.filter(c => c.esPlazo === true);
+    } else if (this.fcFilter === "PENDIENTES") {
+      list = list.filter(c => !learnedList.includes(c.id));
+      if (list.length === 0) list = [...DEFAULT_FLASHCARDS];
+    } else if (this.fcFilter !== "ALL") {
+      list = list.filter(c => c.bloque === this.fcFilter);
+    }
+
+    this.fcList = list;
+    if (this.fcIndex >= this.fcList.length) {
+      this.fcIndex = 0;
+    }
+
+    const filterLabelEl = document.getElementById("fc-active-filter-label");
+    if (filterLabelEl) {
+      const names = {
+        "ALL": `Todas las Tarjetas (${DEFAULT_FLASHCARDS.length})`,
+        "PLAZOS": `⏱️ Solo Plazos, Sanciones y Mayorías (${list.length})`,
+        "Bloque 1: Organización": `🏛️ Bloque 1: Organización (${list.length})`,
+        "Bloque 2: Jurídico-Social": `⚖️ Bloque 2: Jurídico-Social (${list.length})`,
+        "Bloque 3: Seguridad Nacional": `🌍 Bloque 3: Seguridad Nacional (${list.length})`,
+        "PENDIENTES": `🔄 Pendientes de Dominar (${list.length})`
+      };
+      filterLabelEl.textContent = names[this.fcFilter] || "Mazo Activo";
+    }
+
     this.showCurrentFlashcard();
   }
 
@@ -1149,7 +1573,9 @@ class AppController {
     const backTextEl = document.getElementById("fc-back-text");
     const learnedBtn = document.getElementById("fc-btn-learned");
 
-    if (bloqueEl) bloqueEl.textContent = card.bloque;
+    if (bloqueEl) {
+      bloqueEl.textContent = `${card.temaCodigo || ""} • ${card.bloque}${card.esPlazo ? " • ⏱️ PLAZO/SANCIÓN" : ""}`;
+    }
     if (claveEl) claveEl.textContent = card.clave || "Concepto Clave";
     if (textEl) textEl.textContent = card.frente;
 

@@ -1,9 +1,10 @@
-const CACHE_NAME = "permanencia-fas-v2";
+const CACHE_NAME = "permanencia-fas-v4";
 const ASSETS = [
   "./",
   "./index.html",
   "./css/tactical.css",
   "./js/syllabus-data.js",
+  "./js/schemas-data.js",
   "./js/questions-data.js",
   "./js/flashcards-data.js",
   "./js/storage.js",
@@ -34,10 +35,17 @@ self.addEventListener("activate", (event) => {
   self.clients.claim();
 });
 
+// Estrategia Network-First con respaldo Offline para tener siempre la última versión
 self.addEventListener("fetch", (event) => {
   event.respondWith(
-    caches.match(event.request).then((cachedResponse) => {
-      return cachedResponse || fetch(event.request);
-    })
+    fetch(event.request)
+      .then((networkResponse) => {
+        if (event.request.method === "GET" && networkResponse && networkResponse.status === 200) {
+          const clone = networkResponse.clone();
+          caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone));
+        }
+        return networkResponse;
+      })
+      .catch(() => caches.match(event.request))
   );
 });

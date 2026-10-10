@@ -1,5 +1,5 @@
 /* =====================================================
-   ESTILOS TÁCTICOS MILITARES - PERMANENCIA FAS (ET)
+   ESTILOS TÁCTICOS MILITARES - PERMANENCIA FAS (ET) v4.0
    ===================================================== */
 
 :root {
@@ -83,7 +83,7 @@ body {
 .flashcard-inner {
   position: relative;
   width: 100%;
-  min-height: 290px;
+  min-height: 310px;
   transition: transform 0.55s cubic-bezier(0.4, 0.2, 0.2, 1);
   transform-style: preserve-3d;
 }
@@ -113,6 +113,160 @@ body {
   color: #eab308;
   background: rgba(234, 179, 8, 0.12);
   border-color: rgba(234, 179, 8, 0.35);
+}
+
+/* =====================================================
+   ESQUEMAS VISUALES, ORGANIGRAMAS Y SUBRAYADOS EN APP
+   ===================================================== */
+.schema-tree-box {
+  margin-bottom: 12px;
+}
+
+.schema-root-node {
+  color: #ffffff;
+  padding: 12px 16px;
+  border-radius: 12px;
+  border: 2px solid #f59e0b;
+  text-align: center;
+  font-size: 13px;
+  line-height: 1.45;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35);
+}
+
+.schema-arrow-down {
+  text-align: center;
+  font-weight: 900;
+  color: #fbbf24;
+  font-size: 12px;
+  margin: 8px 0;
+  letter-spacing: 0.4px;
+  overflow-x: auto;
+}
+
+.schema-poster-title {
+  background: linear-gradient(90deg, #0f172a 0%, #1e293b 100%);
+  color: #fbbf24;
+  font-weight: 900;
+  font-size: 12.5px;
+  padding: 8px 14px;
+  border-radius: 8px;
+  border-left: 4px solid #f59e0b;
+  text-transform: uppercase;
+  margin: 14px 0 10px 0;
+  letter-spacing: 0.5px;
+}
+
+.schema-grid-2 {
+  display: grid;
+  grid-template-columns: repeat(1, 1fr);
+  gap: 12px;
+}
+.schema-grid-3 {
+  display: grid;
+  grid-template-columns: repeat(1, 1fr);
+  gap: 12px;
+}
+.schema-grid-4 {
+  display: grid;
+  grid-template-columns: repeat(1, 1fr);
+  gap: 10px;
+}
+
+@media (min-width: 768px) {
+  .schema-grid-2 { grid-template-columns: repeat(2, 1fr); }
+  .schema-grid-3 { grid-template-columns: repeat(3, 1fr); }
+  .schema-grid-4 { grid-template-columns: repeat(2, 1fr); }
+}
+@media (min-width: 1024px) {
+  .schema-grid-4 { grid-template-columns: repeat(4, 1fr); }
+}
+
+.schema-branch-card, .schema-poster-col {
+  background: rgba(15, 23, 42, 0.88);
+  color: #e2e8f0;
+  border: 1.5px solid rgba(148, 163, 184, 0.3);
+  border-radius: 12px;
+  padding: 12px;
+}
+
+.schema-branch-header, .schema-poster-badge {
+  color: #ffffff;
+  font-weight: 900;
+  font-size: 12px;
+  padding: 7px 10px;
+  border-radius: 8px;
+  text-align: center;
+  text-transform: uppercase;
+  margin-bottom: 10px;
+  letter-spacing: 0.3px;
+}
+
+.schema-big-calendar {
+  background: rgba(245, 158, 11, 0.16);
+  color: #fcd34d;
+  border: 2px solid #f59e0b;
+  border-radius: 10px;
+  padding: 8px;
+  text-align: center;
+  font-weight: 900;
+  font-size: 15px;
+  margin-bottom: 10px;
+  font-family: 'JetBrains Mono', monospace;
+}
+
+.schema-list {
+  margin: 0;
+  padding-left: 16px;
+  font-size: 12.5px;
+  line-height: 1.55;
+  color: #f1f5f9;
+}
+
+.schema-list li {
+  margin-bottom: 5px;
+}
+
+.schema-step {
+  font-size: 12.5px;
+  line-height: 1.5;
+  margin-bottom: 7px;
+  padding-bottom: 6px;
+  border-bottom: 1px dashed rgba(148, 163, 184, 0.25);
+  color: #f1f5f9;
+}
+
+/* Subrayados fluorescentes dentro de la app */
+.hl-yellow {
+  background: rgba(250, 204, 21, 0.22);
+  color: #fef08a;
+  padding: 1px 5px;
+  border-radius: 4px;
+  font-weight: 800;
+  border-bottom: 2px solid #eab308;
+}
+.hl-green {
+  background: rgba(16, 185, 129, 0.24);
+  color: #a7f3d0;
+  padding: 1px 5px;
+  border-radius: 4px;
+  font-weight: 800;
+  border-bottom: 2px solid #10b981;
+}
+.hl-pink {
+  background: rgba(244, 63, 94, 0.25);
+  color: #fecdd3;
+  padding: 1px 5px;
+  border-radius: 4px;
+  font-weight: 800;
+  border-bottom: 2px solid #f43f5e;
+}
+.hl-cyan {
+  background: rgba(14, 165, 233, 0.24);
+  color: #bae6fd;
+  padding: 1px 5px;
+  border-radius: 4px;
+  font-weight: 800;
+  border-bottom: 2px solid #38bdf8;
 }
 
 /* Scrollbar personalizada */

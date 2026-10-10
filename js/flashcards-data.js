@@ -1,199 +1,965 @@
 /**
- * BANCO DE TARJETAS FLASHCARDS TÁCTICAS v3.0 (24 TARJETAS DE ALTO IMPACTO)
- * OPOSICIÓN PERMANENCIA FAS — EJÉRCITO DE TIERRA (ACTUALIZADO 2025/2026)
+ * SUPER-MAZO DE FLASHCARDS TÁCTICAS DE REPETICIÓN ESPACIADA (ANKI MILITAR v4.0 — 86 TARJETAS)
+ * OPOSICIÓN PERMANENCIA FAS — EJÉRCITO DE TIERRA (ORDEN DEF/1341/2017 + ACTUALIZACIÓN 2024/2025/2026)
+ * Incluye filtro especial "esPlazo: true" para repasar en 2 minutos todos los plazos, arrestos, edades y mayorías.
  */
 
 const DEFAULT_FLASHCARDS = [
+  // =========================================================================
+  // BLOQUE 1: ORGANIZACIÓN (TEMAS B1-T01 A B1-T06) — 28 TARJETAS
+  // =========================================================================
   {
     id: "FC-001",
+    temaCodigo: "B1-T01",
     bloque: "Bloque 1: Organización",
+    categoria: "Leyes y Competencias",
+    esPlazo: false,
     concepto: "Art. 8.1 Constitución Española — Misión de las FAS",
     frente: "¿Cuáles son los 3 pilares de la misión de las Fuerzas Armadas según el Art. 8.1 de la CE y en qué Título se ubica?",
-    reverso: "📍 Ubicación: TÍTULO PRELIMINAR (Art. 8.1 CE).\n1. Garantizar la soberanía e independencia de España.\n2. Defender su integridad territorial.\n3. Defender el ordenamiento constitucional.",
+    reverso: "📍 Ubicación: TÍTULO PRELIMINAR (Art. 8.1 CE).\n1. Garantizar la soberanía e independencia de España.\n2. Defender su integridad territorial.\n3. Defender el ordenamiento constitucional.\n⚠️ Los 4 valores superiores (Art. 1.1) son: Libertad, Justicia, Igualdad y Pluralismo político.",
     clave: "CE Art. 8.1 (Título Preliminar)"
   },
   {
     id: "FC-002",
+    temaCodigo: "B1-T01",
     bloque: "Bloque 1: Organización",
-    concepto: "Escalones orgánicos del Ejército de Tierra (Instrucción 14/2021)",
-    frente: "¿En qué 3 grandes escalones se articula la organización básica del Ejército de Tierra?",
-    reverso: "1. El Cuartel General (CGET - Madrid).\n2. La Fuerza (FUTER, CGTAD y MCANA).\n3. El Apoyo a la Fuerza (MAPER, MALE, MADOC e IGE).",
-    clave: "Instrucción 14/2021 ET"
+    categoria: "Plazos y Sanciones",
+    esPlazo: true,
+    concepto: "⏱️ Estados de Alarma, Excepción y Sitio (Art. 116 CE)",
+    frente: "¿Quién declara los estados de Alarma, Excepción y Sitio y cuáles son sus PLAZOS máximos?",
+    reverso: "🚨 ALARMA: Declara el Gobierno por Decreto por máx. 15 DÍAS (da cuenta al Congreso; prórroga requiere autorización del Congreso).\n⚠️ EXCEPCIÓN: Declara el Gobierno por Decreto PREVIA autorización del Congreso por máx. 30 DÍAS (+ 30 días prorrogables).\n🪖 SITIO: Declara el CONGRESO por MAYORÍA ABSOLUTA (176 diputados) a propuesta exclusiva del Gobierno (plazo fijado por el Congreso).",
+    clave: "CE Art. 116 (Plazos Críticos)"
   },
   {
     id: "FC-003",
+    temaCodigo: "B1-T01",
     bloque: "Bloque 1: Organización",
-    concepto: "Sedes de Mandos del Ejército de Tierra",
-    frente: "¿Dónde radican las sedes de: CGET, FUTER, CGTAD, MADOC, IGE y MCANA?",
-    reverso: "• CGET, MAPER y MALE: Madrid\n• FUTER (Fuerza Terrestre): Sevilla\n• CGTAD (HQ NRDC-ESP): Valencia (Bétera)\n• MADOC (Adiestramiento y Doctrina): Granada\n• IGE (Inspección General): Barcelona\n• MCANA (Mando de Canarias): Santa Cruz de Tenerife",
-    clave: "Sedes Oficiales ET"
+    categoria: "Leyes y Competencias",
+    esPlazo: false,
+    concepto: "⚠️ Trampa Refrendo de los Actos del Rey (Arts. 64 y 65.2 CE)",
+    frente: "¿Quién refrenda los actos del Rey según el Art. 64 CE y cuál es el único acto que el Rey realiza libremente sin refrendo?",
+    reverso: "• Regla general (Art. 64.1): Presidente del Gobierno y, en su caso, los Ministros competentes.\n• Excepción parlamentaria: El PRESIDENTE DEL CONGRESO refrenda la propuesta y nombramiento del Presidente del Gobierno y la disolución del Art. 99.\n• Sin refrendo (Art. 65.2): Nombramiento y relevo de los miembros civiles y militares de su Casa (y distribución de su presupuesto).",
+    clave: "CE Arts. 64 y 65.2"
   },
   {
     id: "FC-004",
+    temaCodigo: "B1-T01",
     bloque: "Bloque 1: Organización",
-    concepto: "⚠️ TRAMPA 2025: Unidades dependientes de FUTER vs MCANA",
-    frente: "¿De qué Mando dependen las Comandancias Generales de Ceuta, Melilla y Baleares en la Instrucción 14/2021?",
-    reverso: "🔥 ¡OJO TRAMPA DE EXAMEN!\n• Las COMGE de Ceuta, Melilla y Baleares + la BRI XVI (Canarias) dependen del MANDO DE CANARIAS (MCANA).\n• La FUTER (Sevilla) encuadra: División 'San Marcial' (Burgos), División 'Castillejos' (Huesca) y Mando de Apoyo a la Maniobra (MAM - A Coruña).",
-    clave: "Instrucción 14/2021 (MCANA vs FUTER)"
+    categoria: "Plazos y Sanciones",
+    esPlazo: true,
+    concepto: "⏱️ Mandatos de Órganos Constitucionales (TC, Defensor del Pueblo, CGPJ)",
+    frente: "¿Cuántos miembros tienen y cuánto dura el mandato del Tribunal Constitucional, del Defensor del Pueblo y de las Cámaras?",
+    reverso: "• Tribunal Constitucional (Art. 159 CE): 12 miembros nombrados por el Rey. Mandato de 9 AÑOS (renovados por tercios cada 3 años).\n• Defensor del Pueblo (Art. 54 CE): Mandato de 5 AÑOS.\n• Congreso y Senado (Arts. 68-69 CE): Mandato de 4 AÑOS.\n• CGPJ (Art. 122 CE): 20 vocales + Presidente por 5 AÑOS.",
+    clave: "CE Arts. 54, 68, 122 y 159"
   },
   {
     id: "FC-005",
+    temaCodigo: "B1-T01",
     bloque: "Bloque 1: Organización",
-    concepto: "🔥 NOVEDAD 2024/2025: Estructura del MINISDEF (RD 205/2024)",
-    frente: "¿Qué nueva Dirección General creó el RD 205/2024 dentro de la SEDEF junto a la DGAM, y qué órganos dependen de la SUBDEF?",
-    reverso: "• En la SEDEF se creó la DIGEID (Dirección General de Estrategia e Innovación de la Industria de Defensa), junto a DGAM, DIGENECO, DIGENIN y CESTIC.\n• De la SUBDEF dependen: SEGENTE, DIGENPER, DIGEREM, DIGESAN, Asesoría Jurídica General e Intervención General.",
-    clave: "RD 205/2024 y RD 268/2025"
+    categoria: "Leyes y Competencias",
+    esPlazo: false,
+    concepto: "Tutela vs Regencia del Rey menor (Arts. 59 y 60 CE)",
+    frente: "¿Se pueden acumular los cargos de Regente y Tutor del Rey menor de edad?",
+    reverso: "🔥 ¡OJO TRAMPA!\nNO se pueden acumular en la misma persona, EXCEPTO en el PADRE, la MADRE o los ASCENDIENTES DIRECTOS del Rey (Art. 60.2 CE).",
+    clave: "CE Art. 60.2"
   },
   {
     id: "FC-006",
+    temaCodigo: "B1-T02",
     bloque: "Bloque 1: Organización",
-    concepto: "Estados de Excepcionalidad (Art. 116 CE)",
-    frente: "¿Quién declara los estados de Alarma, Excepción y Sitio y por cuánto tiempo?",
-    reverso: "• ALARMA: El Gobierno por Decreto (máx. 15 días, dando cuenta al Congreso; prórroga con autorización del Congreso).\n• EXCEPCIÓN: El Gobierno por Decreto, PREVIA autorización del Congreso (máx. 30 días prorrogables otros 30).\n• SITIO: Mayoría absoluta del Congreso a propuesta exclusiva del Gobierno.",
-    clave: "CE Art. 116"
+    categoria: "Plazos y Sanciones",
+    esPlazo: true,
+    concepto: "⏱️ Plazos Electorales y Períodos de Sesiones de las Cortes (Arts. 68 y 73 CE)",
+    frente: "¿En qué plazo se celebran las elecciones tras expirar el mandato, cuándo se convoca al Congreso electo y cuáles son los 2 períodos de sesiones?",
+    reverso: "• Elecciones (Art. 68.6): Entre los 30 y 60 DÍAS desde la terminación del mandato.\n• Convocatoria del Congreso electo: Dentro de los 25 DÍAS siguientes a las elecciones.\n• Sesiones ordinarias (Art. 73.1): 1º de septiembre a diciembre | 2º de febrero a junio.",
+    clave: "CE Arts. 68.6 y 73.1"
   },
   {
     id: "FC-007",
+    temaCodigo: "B1-T02",
     bloque: "Bloque 1: Organización",
-    concepto: "Defensor del Pueblo y Tribunal Constitucional (CE)",
-    frente: "¿Cuántos miembros forman el Tribunal Constitucional, cuánto dura su mandato y cuánto dura el del Defensor del Pueblo?",
-    reverso: "• Tribunal Constitucional (Art. 159 CE): 12 miembros nombrados por el Rey (4 Congreso por 3/5, 4 Senado por 3/5, 2 Gobierno, 2 CGPJ). Mandato de 9 AÑOS (renovados por tercios cada 3 años).\n• Defensor del Pueblo (Art. 54 CE): Alto comisionado de las Cortes Generales para defender todo el Título I. Mandato de 5 AÑOS.",
-    clave: "CE Arts. 54 y 159"
+    categoria: "Plazos y Sanciones",
+    esPlazo: true,
+    concepto: "⏱️ Plazo del Senado para vetar o enmendar leyes (Art. 90.2 CE)",
+    frente: "¿De qué plazo dispone el Senado para oponer su veto o introducir enmiendas a un proyecto de ley ordinaria u orgánica?",
+    reverso: "• Plazo ordinario: 2 MESES a partir del día de la recepción del texto.\n• En proyectos declarados URGENTES por el Gobierno o por el Congreso: el plazo se reduce a 20 DÍAS NATURALES.\n• El veto del Senado requiere MAYORÍA ABSOLUTA.",
+    clave: "CE Art. 90.2"
   },
   {
     id: "FC-008",
+    temaCodigo: "B1-T02",
     bloque: "Bloque 1: Organización",
-    concepto: "Ley 40/2015 LRJSP — Delegación de Competencias vs Avocación",
-    frente: "¿Se publica en el BOE la delegación de competencias y la delegación de firma? ¿Cabe recurso contra la avocación?",
-    reverso: "• Delegación de competencias (Art. 9): SÍ se publica obligatoriamente en el BOE.\n• Delegación de firma (Art. 12): NO requiere publicación en el BOE.\n• Avocación (Art. 10.2): Contra el acuerdo de avocación NO CABE RECURSO.",
-    clave: "Ley 40/2015 Arts. 9, 10 y 12"
+    categoria: "Leyes y Competencias",
+    esPlazo: false,
+    concepto: "LO 5/2005 Defensa Nacional — Presidente vs Ministro vs Congreso",
+    frente: "Según la LO 5/2005, ¿quién ordena las misiones de las FAS, quién las autoriza en el exterior y quién dirige el desarrollo y ejecución de la política de defensa?",
+    reverso: "• PRESIDENTE DEL GOBIERNO (Art. 6): Dirige la política de defensa y ORDENA las misiones de las FAS.\n• CONGRESO DE LOS DIPUTADOS (Art. 17): AUTORIZA con carácter previo las operaciones en el exterior.\n• MINISTRO DE DEFENSA (Art. 7): Asiste al Presidente y dirige el desarrollo y ejecución de la política militar.",
+    clave: "LO 5/2005 Arts. 6, 7 y 17"
   },
   {
     id: "FC-009",
+    temaCodigo: "B1-T02",
     bloque: "Bloque 1: Organización",
-    concepto: "Organización Básica de las FAS y EMAD (RD 521/2020 y Orden DEF/710/2020)",
-    frente: "¿Cuáles son los órganos básicos del Estado Mayor de la Defensa (EMAD) bajo el mando del JEMAD?",
-    reverso: "1. Cuartel General del EMAD (con el EMACON al mando del JEMACON).\n2. Mando de Operaciones (MOPS - Retamares, al mando del CMOPS).\n3. Centro de Inteligencia de las FAS (CIFAS - JECIFAS).\n4. Mando Conjunto del Ciberespacio (MCCE - JEMCCE).\n5. CESEDEN.",
-    clave: "RD 521/2020 / Orden DEF/710/2020"
+    categoria: "Leyes y Competencias",
+    esPlazo: false,
+    concepto: "Doble Estructura de las FAS (Art. 11 LO 5/2005)",
+    frente: "¿Cuál es la diferencia entre la Estructura Orgánica y la Estructura Operativa de las FAS?",
+    reverso: "1. ESTRUCTURA ORGÁNICA: Compuesta por ET, Armada y EA. Su misión es la PREPARACIÓN DE LA FUERZA (generación de capacidades), bajo mando de JEME, AJEMA y JEMA.\n2. ESTRUCTURA OPERATIVA: Su misión es el EMPLEO DE LA FUERZA en las misiones asignadas, bajo mando del JEMAD (a través del MOPS).",
+    clave: "LO 5/2005 Art. 11"
   },
   {
     id: "FC-010",
-    bloque: "Bloque 2: Jurídico-Social",
-    concepto: "Ley 8/2006 Tropa y Marinería — Compromisos y RED",
-    frente: "¿Cuáles son los requisitos y límites de Compromiso Inicial, CLD, Permanencia y RED?",
-    reverso: "1. Compromiso Inicial: renovable hasta 6 años.\n2. Compromiso de Larga Duración (CLD): >5 años de servicio (3 en inicial), hasta los 45 años de edad.\n3. Permanencia (Militar de Carrera): tener suscrito el CLD + mín. 14 años de servicio (según convocatoria) + oposición.\n4. Reservista Especial Disponibilidad (RED): cumplir 45 años + mín. 18 años de servicio (hasta los 65 años).",
-    clave: "Ley 8/2006"
+    temaCodigo: "B1-T03",
+    bloque: "Bloque 1: Organización",
+    categoria: "Organigramas y Sedes",
+    esPlazo: false,
+    concepto: "Órganos Superiores vs Directivos en un Ministerio (Art. 55 Ley 40/2015)",
+    frente: "¿Cuáles son los Órganos Superiores y los Órganos Directivos de la Administración General del Estado según el Art. 55 de la Ley 40/2015?",
+    reverso: "🏛️ ÓRGANOS SUPERIORES:\n1. Los Ministros.\n2. Los Secretarios de Estado.\n\n⚙️ ÓRGANOS DIRECTIVOS:\n1. Subsecretarios y Secretarios Generales (rango de Subsecretario).\n2. Secretarios Generales Técnicos y Directores Generales (rango de Director General).\n3. Subdirectores Generales.\n⚠️ Territorial: Delegados del Gobierno en CC.AA. (rango Subsecretario) y Subdelegados en provincias (nivel Subdirector General).",
+    clave: "Ley 40/2015 Art. 55"
   },
   {
     id: "FC-011",
-    bloque: "Bloque 2: Jurídico-Social",
-    concepto: "Ley 39/2007 Carrera Militar — Situaciones Administrativas (Art. 107)",
-    frente: "¿Cuáles son las 6 situaciones administrativas de los militares profesionales?",
-    reverso: "1. Servicio activo.\n2. Servicios especiales.\n3. Excedencia.\n4. Suspensión de funciones.\n5. Suspensión de empleo.\n6. Reserva.",
-    clave: "Ley 39/2007 Art. 107"
+    temaCodigo: "B1-T03",
+    bloque: "Bloque 1: Organización",
+    categoria: "Leyes y Competencias",
+    esPlazo: false,
+    concepto: "Ley 40/2015 LRJSP — Delegación de Competencias, Avocación y Firma",
+    frente: "¿Se publica en el BOE la delegación de competencias y la delegación de firma? ¿Cabe recurso contra la avocación?",
+    reverso: "• Delegación de competencias (Art. 9): SÍ se publica obligatoriamente en el BOE. Las resoluciones se consideran dictadas por el órgano delegante.\n• Delegación de firma (Art. 12): NO requiere publicación en el BOE.\n• Avocación (Art. 10.2): Contra el acuerdo de avocación NO CABE RECURSO (aunque puede impugnarse en el recurso contra la resolución final).",
+    clave: "Ley 40/2015 Arts. 9, 10 y 12"
   },
   {
     id: "FC-012",
-    bloque: "Bloque 2: Jurídico-Social",
-    concepto: "Sanciones por Faltas Leves, Graves y Muy Graves (LO 8/2014)",
-    frente: "¿Cuáles son todas las sanciones previstas en el Art. 11 de la LO 8/2014 para cada tipo de falta?",
-    reverso: "• LEVES: Reprensión | Privación salida (1-8 días) | Económica (1-8 días) | Arresto (1-14 días).\n• GRAVES: Económica (8-15 días) | Arresto (15-30 días) | Pérdida de destino | Baja en centro docente.\n• MUY GRAVES: Arresto (31-60 días) | Suspensión de empleo (1 mes a 1 año) | Separación del servicio | Resolución de compromiso.",
-    clave: "LO 8/2014 Art. 11"
+    temaCodigo: "B1-T03",
+    bloque: "Bloque 1: Organización",
+    categoria: "Leyes y Competencias",
+    esPlazo: false,
+    concepto: "Creación de órganos ministeriales (Art. 59 Ley 40/2015)",
+    frente: "¿Mediante qué norma se crean las Subsecretarías, Direcciones Generales, Subdirecciones Generales y los órganos inferiores?",
+    reverso: "• Subsecretarías, Secretarías Generales, SGT, Direcciones Generales y Subdirecciones Generales: por REAL DECRETO del Consejo de Ministros (a iniciativa del Ministro interesado y a propuesta del Ministro de Función Pública).\n• Órganos de nivel INFERIOR a Subdirección General: por ORDEN MINISTERIAL.\n• Unidades que no tengan consideración de órganos: a través de las RPT (Relaciones de Puestos de Trabajo).",
+    clave: "Ley 40/2015 Art. 59"
   },
   {
     id: "FC-013",
-    bloque: "Bloque 2: Jurídico-Social",
-    concepto: "⚠️ SÚPER TRAMPA: Prescripción de FALTAS vs SANCIONES (LO 8/2014)",
-    frente: "¿En qué plazos prescriben las FALTAS (Art. 24) frente a las SANCIONES (Art. 25) en la LO 8/2014?",
-    reverso: "📌 PRESCRIPCIÓN DE FALTAS (Art. 24):\n• Leves: 2 MESES | Graves: 1 año | Muy graves: 2 años.\n\n📌 PRESCRIPCIÓN DE SANCIONES (Art. 25):\n• Leves: 3 MESES | Graves: 1 año | Muy graves: 2 años.",
-    clave: "LO 8/2014 Arts. 24-25"
+    temaCodigo: "B1-T04",
+    bloque: "Bloque 1: Organización",
+    categoria: "Organigramas y Sedes",
+    esPlazo: false,
+    concepto: "🔥 NOVEDAD 2024/2025: Estructura de la SEDEF (RD 205/2024)",
+    frente: "¿Qué 5 órganos directivos dependen de la Secretaría de Estado de Defensa (SEDEF) tras el RD 205/2024?",
+    reverso: "1. DGAM (Dirección General de Armamento y Material).\n2. DIGEID (Dirección General de Estrategia e Innovación de la Industria de Defensa) — 🔥 ¡NUEVA en RD 205/2024!\n3. DIGENECO (Dirección General de Asuntos Económicos).\n4. DIGENIN (Dirección General de Infraestructura).\n5. CESTIC (Centro de Sistemas y Tecnologías de la Información y las Comunicaciones - rango Dirección General).\n📌 Adscrito a SEDEF: el INTA.",
+    clave: "RD 205/2024 Art. 4 (SEDEF)"
   },
   {
     id: "FC-014",
-    bloque: "Bloque 2: Jurídico-Social",
-    concepto: "Competencia sancionadora y Cancelación de Notas (LO 8/2014)",
-    frente: "¿Puede un Jefe de Compañía imponer arresto? ¿A qué plazos se cancelan las notas desfavorables (Art. 65)?",
-    reverso: "• Jefe de Compañía (Art. 32.5): NO impone arresto. Su tope es Reprensión, Privación de salida hasta 5 días y Económica hasta 5 días.\n• Cancelación de notas (Art. 65): Falta Leve = 1 año | Falta Grave = 2 años | Falta Muy Grave = 4 años.",
-    clave: "LO 8/2014 Arts. 32.5 y 65"
+    temaCodigo: "B1-T04",
+    bloque: "Bloque 1: Organización",
+    categoria: "Organigramas y Sedes",
+    esPlazo: false,
+    concepto: "Estructura de la Subsecretaría de Defensa — SUBDEF (RD 205/2024)",
+    frente: "¿Qué órganos directivos y organismos autónomos dependen de la Subsecretaría de Defensa (SUBDEF)?",
+    reverso: "📋 Órganos Directivos de la SUBDEF:\n1. Secretaría General Técnica (SEGENTE).\n2. Dirección General de Personal (DIGENPER).\n3. Dirección General de Reclutamiento y Enseñanza Militar (DIGEREM).\n4. Asesoría Jurídica General de la Defensa.\n5. Intervención General de la Defensa (IGD).\n6. Inspección General de Sanidad de la Defensa (IGESAN).\n📌 Organismos Autónomos adscritos: ISFAS e INVIED.",
+    clave: "RD 205/2024 Art. 9 (SUBDEF)"
   },
   {
     id: "FC-015",
-    bloque: "Bloque 2: Jurídico-Social",
-    concepto: "⚠️ TRAMPA: Los Dos Observatorios y porcentajes COPERFAS (LO 9/2011)",
-    frente: "Diferencia entre el Observatorio de la Vida Militar y el Observatorio Militar para la Igualdad, y porcentajes del COPERFAS:",
-    reverso: "1. Observatorio de la VIDA MILITAR (LO 9/2011): adscrito a las CORTES GENERALES (9 miembros: 5 Congreso + 4 Senado, por 5 años).\n2. Observatorio Militar para la IGUALDAD: adscrito a la SUBDEF (mín. 2 reuniones/año).\n3. Porcentajes COPERFAS (Art. 48): 1% general FAS | 3% Oficiales | 3% Suboficiales | 1,5% Tropa y Marinería.",
-    clave: "LO 9/2011 Arts. 48 y 54"
+    temaCodigo: "B1-T04",
+    bloque: "Bloque 1: Organización",
+    categoria: "Organigramas y Sedes",
+    esPlazo: false,
+    concepto: "Secretaría General de Política de Defensa — SEGENPOL (RD 205/2024)",
+    frente: "¿Qué rango tiene la SEGENPOL y qué órganos dependen de ella?",
+    reverso: "• Rango: SUBSECRETARIO (como toda Secretaría General en la Ley 40/2015).\n• Dependen de la SEGENPOL:\n1. Dirección General de Política de Defensa (DIGENPOL).\n2. División de Coordinación y Estudios de Seguridad y Defensa (DICOES).\n3. Las Agregadurías de Defensa en misiones diplomáticas y Consejerías de Defensa ante OO.II.",
+    clave: "RD 205/2024 Art. 16 (SEGENPOL)"
   },
   {
     id: "FC-016",
-    bloque: "Bloque 2: Jurídico-Social",
-    concepto: "Iniciativas y Quejas (RD 176/2014) y Protocolo Acoso (UPA)",
-    frente: "¿Quién recepciona las iniciativas/quejas en la unidad, qué pasa si no contestan en 1 mes, y cómo se denuncia ante la UPA?",
-    reverso: "• Iniciativas y Quejas (RD 176/2014): se designa un Oficial, Suboficial o CABO MAYOR. Si en 1 MES el jefe de unidad no contesta la queja, el militar puede acudir directamente al MAPER.\n• Protocolo Acoso (UPA): se puede acudir directamente a la UPA SIN seguir el conducto reglamentario.",
-    clave: "RD 176/2014 / Protocolo UPA"
+    temaCodigo: "B1-T04",
+    bloque: "Bloque 1: Organización",
+    categoria: "Organigramas y Sedes",
+    esPlazo: false,
+    concepto: "Dependencia directa de la Persona Titular del MINISDEF (RD 205/2024)",
+    frente: "¿Qué unidades y órganos dependen directamente del Ministro/a de Defensa?",
+    reverso: "• CNI (Centro Nacional de Inteligencia).\n• Dirección de Comunicación Institucional de la Defensa (DIRCOMDEF - rango Subdirección General).\n• Gabinete y Gabinete Técnico.\n• Consejos Superiores del ET, Armada y EA.\n• Juntas Superiores de los Cuerpos Comunes.\n• UME, Mando de Vigilancia y Seguridad Marítima y Mando de Defensa y Operaciones Aéreas (organizaciones operativas permanentes).",
+    clave: "RD 205/2024 Arts. 1 y 2"
   },
   {
     id: "FC-017",
-    bloque: "Bloque 2: Jurídico-Social",
-    concepto: "Recursos Administrativos y Nulidad (Ley 39/2015 LPACAP)",
-    frente: "Plazos de Alzada vs Reposición y diferencia entre incompetencia territorial/material vs jerárquica:",
-    reverso: "• Alzada vs Reposición: Ambos se interponen en 1 MES (acto expreso). Plazo para RESOLVER: Alzada = 3 MESES | Reposición = 1 MES.\n• Incompetencia manifiesta por MATERIA o TERRITORIO = Nulidad de pleno derecho (Art. 47). Incompetencia JERÁRQUICA = Anulabilidad convalidable (Arts. 48 y 52).",
-    clave: "Ley 39/2015 Arts. 47, 121-124"
+    temaCodigo: "B1-T05",
+    bloque: "Bloque 1: Organización",
+    categoria: "Organigramas y Sedes",
+    esPlazo: false,
+    concepto: "Organización Básica del EMAD (RD 521/2020 y Orden DEF/710/2020)",
+    frente: "¿Cuáles son los órganos principales del Estado Mayor de la Defensa (EMAD) bajo el mando del JEMAD?",
+    reverso: "1. Cuartel General del EMAD (incluye el EMACON al mando del JEMACON, Jefatura de Recursos Humanos, etc.).\n2. Mando de Operaciones (MOPS, en Retamares, al mando del CMOPS).\n3. Centro de Inteligencia de las FAS (CIFAS).\n4. Mando Conjunto del Ciberespacio (MCCE).\n5. Centro Superior de Estudios de la Defensa Nacional (CESEDEN).\n6. Representaciones Militares ante OTAN y UE.",
+    clave: "RD 521/2020 / Orden DEF/710/2020"
   },
   {
     id: "FC-018",
-    bloque: "Bloque 3: Seguridad Nacional",
-    concepto: "Ley 36/2015 de Seguridad Nacional y ESN 2021 (RD 1150/2021)",
-    frente: "¿Quién declara la Situación de Interés para la Seguridad Nacional, cuáles son sus 3 componentes y cada cuánto se revisa la ESN?",
-    reverso: "• La declara el Presidente del Gobierno por Real Decreto (Art. 24).\n• Los 3 componentes fundamentales (Art. 9): Defensa Nacional, Seguridad Pública y Acción Exterior.\n• El Consejo de Seguridad Nacional se reúne mín. cada 2 meses (bimestral).\n• La Estrategia (ESN 2021) se revisa cada 5 AÑOS.",
-    clave: "Ley 36/2015 y RD 1150/2021"
+    temaCodigo: "B1-T05",
+    bloque: "Bloque 1: Organización",
+    categoria: "Organigramas y Sedes",
+    esPlazo: false,
+    concepto: "⚠️ Trampa: ¿De quién depende el MCOE (Operaciones Especiales)?",
+    frente: "¿El Mando Conjunto de Operaciones Especiales (MCOE) es un órgano al mismo nivel que el MOPS, o de quién depende?",
+    reverso: "🔥 ¡TRAMPA CLÁSICA!\nEl MCOE NO está al mismo nivel que el MOPS o el MCCE. El MCOE está encuadrado DENTRO del Mando de Operaciones (MOPS), bajo la dependencia directa del CMOPS.",
+    clave: "Orden DEF/710/2020 (MOPS)"
   },
   {
     id: "FC-019",
-    bloque: "Bloque 3: Seguridad Nacional",
-    concepto: "Doctrina de Acción Conjunta (PDC-01)",
-    frente: "¿Qué diferencia hay entre Operación Conjunta y Combinada, cuáles son los 5 dominios y qué es el Mando Tipo Misión?",
-    reverso: "• CONJUNTA: fuerzas de dos o más Ejércitos nacionales (ET, Armada, EA).\n• COMBINADA: fuerzas de dos o más países aliados.\n• 5 Dominios: Terrestre, Marítimo, Aéreo, Espacial y Ciberespacial.\n• Mando Tipo Misión: dirección centralizada (propósito del comandante) con ejecución descentralizada.",
-    clave: "Doctrina PDC-01"
+    temaCodigo: "B1-T05",
+    bloque: "Bloque 1: Organización",
+    categoria: "Leyes y Competencias",
+    esPlazo: false,
+    concepto: "CESEDEN vs Academia Central de la Defensa (ACD)",
+    frente: "¿De quién depende orgánicamente el CESEDEN y de quién depende funcionalmente en estudios de posgrado?",
+    reverso: "• El CESEDEN pertenece orgánicamente al EMAD (bajo el JEMAD).\n• Sin embargo, mantiene dependencia funcional de la SEGENPOL (cultura de defensa) y de la DIGEREM (en lo relativo a enseñanza de altos estudios de la defensa).\n• La Academia Central de la Defensa (ACD) depende de la DIGEREM (SUBDEF).",
+    clave: "RD 521/2020 y RD 205/2024"
   },
   {
     id: "FC-020",
-    bloque: "Bloque 3: Seguridad Nacional",
-    concepto: "Organización de las Naciones Unidas (ONU)",
-    frente: "¿Cuándo ingresó España en la ONU, cómo se compone el Consejo de Seguridad y qué regulan los Capítulos VI y VII?",
-    reverso: "• Ingreso de España: 14 de diciembre de 1955.\n• Consejo de Seguridad: 15 miembros (5 permanentes con veto: EE.UU., Rusia, China, Francia y Reino Unido + 10 elegidos por 2 años).\n• Capítulo VI: Arreglo pacífico de controversias.\n• Capítulo VII: Acción coercitiva y uso de la fuerza ante amenazas a la paz.",
-    clave: "Carta ONU (1945)"
+    temaCodigo: "B1-T06",
+    bloque: "Bloque 1: Organización",
+    categoria: "Organigramas y Sedes",
+    esPlazo: false,
+    concepto: "Escalones orgánicos del Ejército de Tierra (Instrucción 14/2021)",
+    frente: "¿En qué 3 grandes escalones se articula el Ejército de Tierra y qué mandos componen cada uno?",
+    reverso: "1. CUARTEL GENERAL (CGET - Madrid): EMA, Gabinete JEME, IHCM, Asesoría Jurídica.\n2. LA FUERZA: Cuartel General Terrestre de Alta Disponibilidad (CGTAD - Bétera), Fuerza Terrestre (FUTER - Sevilla) y Mando de Canarias (MCANA - Tenerife).\n3. APOYO A LA FUERZA: MAPER (Madrid), MALE (Madrid), MADOC (Granada) e IGE (Barcelona).",
+    clave: "Instrucción 14/2021 ET"
   },
   {
     id: "FC-021",
-    bloque: "Bloque 3: Seguridad Nacional",
-    concepto: "OTAN — Miembros 2024/2025, Mandos y Sedes en España",
-    frente: "¿Cuántos miembros tiene la OTAN, cuáles son sus 2 Mandos Estratégicos y qué sedes OTAN hay en España?",
-    reverso: "• 32 Estados miembros (Finlandia 31 en 2023, Suecia 32 en 2024). España ingresó el 30 de mayo de 1982.\n• Mandos Estratégicos: ACO (Operaciones, en SHAPE - Mons, Bélgica) y ACT (Transformación, en Norfolk, EE.UU.).\n• En España: CAOC Torrejón (Estructura de Mandos) y HQ NRDC-ESP en Bétera, Valencia (Estructura de Fuerzas).",
-    clave: "OTAN (32 Aliados)"
+    temaCodigo: "B1-T06",
+    bloque: "Bloque 1: Organización",
+    categoria: "Organigramas y Sedes",
+    esPlazo: false,
+    concepto: "⚠️ SÚPER TRAMPA: Unidades de FUTER vs MCANA (Instrucción 14/2021)",
+    frente: "¿De qué Mando dependen las Comandancias Generales de Ceuta, Melilla y Baleares, y qué encuadra la FUTER?",
+    reverso: "🔥 ¡PREGUNTA ESTRELLA DE EXAMEN!\n• Del MANDO DE CANARIAS (MCANA - Tenerife) dependen: la Brigada 'Canarias' XVI y las 3 Comandancias Generales: COMGECEU (Ceuta), COMGEMEL (Melilla) y COMGEBAL (Baleares).\n• De la FUERZA TERRESTRE (FUTER - Sevilla) dependen: División 'San Marcial' (Burgos), División 'Castillejos' (Huesca) y Mando de Apoyo a la Maniobra (MAM - A Coruña).",
+    clave: "Instrucción 14/2021 (MCANA vs FUTER)"
   },
   {
     id: "FC-022",
-    bloque: "Bloque 3: Seguridad Nacional",
-    concepto: "OSCE — Origen, Miembros, Dimensiones y Sede",
-    frente: "¿Dónde nació la OSCE, cuántos Estados participantes tiene, cómo decide y dónde está su Secretariado?",
-    reverso: "• Origen: Acta Final de Helsinki (1975, como CSCE); pasa a llamarse OSCE en la Cumbre de Budapest (1994).\n• 57 Estados participantes (Norteamérica, Europa y Asia Central) que deciden por CONSENSO.\n• 3 Dimensiones ('Cestas'): Político-Militar, Económica-Medioambiental y Humana.\n• Sede: VIENA (Austria). España la presidió en 2007.",
-    clave: "OSCE (Tema 5 Bloque 3)"
+    temaCodigo: "B1-T06",
+    bloque: "Bloque 1: Organización",
+    categoria: "Organigramas y Sedes",
+    esPlazo: false,
+    concepto: "División 'San Marcial' vs División 'Castillejos' (FUTER)",
+    frente: "¿Dónde tienen su sede y qué unidades encuadran la División 'San Marcial' y la División 'Castillejos'?",
+    reverso: "🦁 DIVISIÓN 'SAN MARCIAL' (Sede: Burgos — Tropas de respuesta específica):\n• BRI 'Almogávares' VI de Paracaidistas (BRIPAC).\n• Mando de Operaciones Especiales (MOE - Alicante).\n• Mando de Tropas de Montaña (MTM - Pamplona).\n• Fuerzas Aeromóviles del ET (FAMET - Colmenar Viejo).\n\n⚔️ DIVISIÓN 'CASTILLEJOS' (Sede: Huesca — Brigadas polivalentes):\n• Brigadas 'Aragón' I, 'Rey Alfonso XIII' II de La Legión, 'Galicia' VII (BRILAT), 'Guzmán el Bueno' X, 'Extremadura' XI y 'Guadarrama' XII.",
+    clave: "Instrucción 14/2021 ET"
   },
   {
     id: "FC-023",
-    bloque: "Bloque 3: Seguridad Nacional",
-    concepto: "Unión Europea — Cláusulas de Defensa (Art. 42.7 TUE vs Art. 222 TFUE)",
-    frente: "Diferencia entre el Art. 42.7 del TUE y el Art. 222 del TFUE, y qué agencia de defensa UE está en España:",
-    reverso: "• Art. 42.7 TUE (Cláusula de Asistencia Mutua): ante AGRESIÓN ARMADA contra el territorio de un Estado miembro.\n• Art. 222 TFUE (Cláusula de Solidaridad): ante ATAQUE TERRORISTA o catástrofe natural o de origen humano.\n• En Torrejón de Ardoz (Madrid) está la sede del Centro de Satélites de la UE (SATCEN).",
-    clave: "UE Art. 42.7 TUE / Art. 222 TFUE"
+    temaCodigo: "B1-T06",
+    bloque: "Bloque 1: Organización",
+    categoria: "Organigramas y Sedes",
+    esPlazo: false,
+    concepto: "Mando de Apoyo a la Maniobra (MAM — A Coruña)",
+    frente: "¿Dónde tiene su Cuartel General el Mando de Apoyo a la Maniobra (MAM) de la FUTER y qué unidades agrupa?",
+    reverso: "• Sede: A CORUÑA.\n• Agrupa los mandos y regimientos especializados de apoyo al combate:\n- Mando de Artillería de Campaña (MACA) y Mando de Artillería Antiaérea (MAAA).\n- Mando de Ingenieros (MING) y Mando de Transmisiones (MATRANS).\n- Brigada Logística (BRILOG) y Brigada de Sanidad (BRISAN).\n- Regimiento de Inteligencia nº 1, RNBQ nº 1 y Regimiento de Guerra Electrónica nº 31.",
+    clave: "Instrucción 14/2021 (MAM)"
   },
   {
     id: "FC-024",
+    temaCodigo: "B1-T06",
+    bloque: "Bloque 1: Organización",
+    categoria: "Organigramas y Sedes",
+    esPlazo: false,
+    concepto: "Apoyo a la Fuerza del ET: MAPER, MALE, MADOC e IGE",
+    frente: "¿Qué Direcciones integran el MAPER, el MALE, el MADOC y la IGE en el Ejército de Tierra?",
+    reverso: "• MAPER (Madrid): Dirección de Personal (DIPER), Dirección de Asistencia al Personal (DIAPER) y Dirección de Sanidad (DISAN).\n• MALE (Madrid): Dirección de Adquisiciones (DIAD) y Dirección de Integración de Funciones Logísticas (DINFULOG).\n• MADOC (Granada): Dirección de Investigación, Doctrina, Orgánica y Materiales (DIDOM) y Dirección de Enseñanza, Instrucción, Adiestramiento y Evaluación (DIENADE).\n• IGE (Barcelona): Dirección de Acuartelamiento (DIACU) y Dirección de Infraestructura (DINFA).",
+    clave: "Instrucción 14/2021 (Apoyo a la Fuerza)"
+  },
+  {
+    id: "FC-025",
+    temaCodigo: "B1-T06",
+    bloque: "Bloque 1: Organización",
+    categoria: "Organigramas y Sedes",
+    esPlazo: false,
+    concepto: "Organización de la Armada (Instrucción 15/2021)",
+    frente: "¿Quién manda La Flota en la Armada, dónde está su Cuartel General y cuáles son los órganos del Apoyo a la Fuerza?",
+    reverso: "• LA FLOTA (La Fuerza de la Armada): Mando del Almirante de la Flota (ALFLOT), con CG en la Base Naval de ROTA (Cádiz). Integra: Fuerza de Acción Naval (ALNAV), Fuerza de Acción Marítima (ALMART - Cartagena), Fuerza de Infantería de Marina (COMGEIM - San Fernando) y Flotilla de Aeronaves (FLOAN).\n• APOYO A LA FUERZA: Jefatura de Personal (JEPER), Jefatura de Apoyo Logístico (JAL) y Dirección de Asuntos Económicos (DAE).",
+    clave: "Instrucción 15/2021 (Armada)"
+  },
+  {
+    id: "FC-026",
+    temaCodigo: "B1-T06",
+    bloque: "Bloque 1: Organización",
+    categoria: "Organigramas y Sedes",
+    esPlazo: false,
+    concepto: "🔥 NOVEDAD 2025: Organización del Ejército del Aire y del Espacio (Instrucción 6/2025)",
+    frente: "¿Qué Mandos integran La Fuerza y el Apoyo a la Fuerza en el Ejército del Aire y del Espacio (Instrucción 6/2025)?",
+    reverso: "✈️ LA FUERZA:\n1. Mando Aéreo de Combate (MACOM - Torrejón).\n2. Mando Aéreo General (MAGEN - Madrid).\n3. Mando Aéreo de Canarias (MACAN - Las Palmas).\n4. Mando del Espacio (MESPA - Torrejón).\n\n🛠️ APOYO A LA FUERZA:\n1. Mando de Personal (MAPER).\n2. Mando de Apoyo Logístico (MALOG).\n3. Dirección de Asuntos Económicos (DAE).",
+    clave: "Instrucción 6/2025 (EA)"
+  },
+  {
+    id: "FC-027",
+    temaCodigo: "B1-T01",
+    bloque: "Bloque 1: Organización",
+    categoria: "Plazos y Sanciones",
+    esPlazo: true,
+    concepto: "⏱️ Reforma Constitucional Ordinaria vs Agravada (Arts. 167 y 168 CE)",
+    frente: "¿Qué mayorías exigen el Art. 167 (ordinaria) y el Art. 168 (agravada) de la Constitución, y qué plazo hay para pedir referéndum en el Art. 167?",
+    reverso: "• Art. 167 (Ordinaria): Mayoría de 3/5 de cada Cámara. Si no hay acuerdo, Comisión paritaria; o mayoría absoluta del Senado + 2/3 del Congreso. Referéndum facultativo si lo solicita 1/10 parte de Diputados o Senadores dentro de los 15 DÍAS siguientes.\n• Art. 168 (Agravada: revisión total, Título Preliminar, Cap. 2º Secc. 1ª Tít. I, o Tít. II La Corona): 2/3 de cada Cámara + disolución inmediata de Cortes + 2/3 de las nuevas Cámaras + Referéndum OBLIGATORIO.",
+    clave: "CE Arts. 167 y 168"
+  },
+  {
+    id: "FC-028",
+    temaCodigo: "B1-T02",
+    bloque: "Bloque 1: Organización",
+    categoria: "Plazos y Sanciones",
+    esPlazo: true,
+    concepto: "⏱️ Convalidación de Decretos-Leyes (Art. 86 CE) y Moción de Censura (Art. 113 CE)",
+    frente: "¿En qué plazo debe convalidarse un Decreto-Ley y qué requisitos/plazos tiene la Moción de Censura?",
+    reverso: "• Decreto-Ley (Art. 86 CE): El Congreso debe pronunciarse sobre su convalidación o derogación en el plazo de los 30 DÍAS siguientes a su promulgación.\n• Moción de Censura (Art. 113 CE): Propuesta al menos por la DÉCIMA PARTE (1/10 = 35 diputados) con candidato alternativo. No puede votarse hasta que transcurran 5 DÍAS desde su presentación (en los 2 primeros días caben mociones alternativas). Requiere MAYORÍA ABSOLUTA.",
+    clave: "CE Arts. 86 y 113"
+  },
+
+  // =========================================================================
+  // BLOQUE 2: JURÍDICO-SOCIAL (TEMAS B2-T01 A B2-T08) — 36 TARJETAS
+  // =========================================================================
+  {
+    id: "FC-029",
+    temaCodigo: "B2-T01",
+    bloque: "Bloque 2: Jurídico-Social",
+    categoria: "Plazos y Sanciones",
+    esPlazo: true,
+    concepto: "⏱️ Ley 8/2006 Tropa y Marinería — Compromisos, Permanencia y RED",
+    frente: "¿Cuáles son los años y edades clave del Compromiso Inicial, CLD, Permanencia y Reservista de Especial Disponibilidad (RED)?",
+    reverso: "1. Compromiso Inicial: 2 o 3 años, renovable hasta un máximo de 6 AÑOS.\n2. Compromiso de Larga Duración (CLD): >5 AÑOS de servicios (al menos 3 en el inicial), hasta los 45 AÑOS de edad.\n3. Permanencia (Militar de Carrera): Tener suscrito el CLD + titulación Técnico/equivalente + años de servicio fijados en convocatoria (8 a 14 años) + superar oposición.\n4. RED (Reservista Especial Disponibilidad): Al cumplir 45 AÑOS con al menos 18 AÑOS de servicio, hasta cumplir los 65 AÑOS.",
+    clave: "Ley 8/2006 Arts. 6-17"
+  },
+  {
+    id: "FC-030",
+    temaCodigo: "B2-T01",
+    bloque: "Bloque 2: Jurídico-Social",
+    categoria: "Plazos y Sanciones",
+    esPlazo: true,
+    concepto: "⏱️ Reserva de plazas para Tropa y Marinería (Ley 8/2006 Arts. 15, 20 y 21)",
+    frente: "¿Qué porcentajes mínimos de plazas se reservan para Tropa y Marinería en promoción a Suboficiales, Guardia Civil y Policía Nacional?",
+    reverso: "• Acceso a Escala de Suboficiales (Art. 15): al menos el 80% de las plazas.\n• Acceso a Guardia Civil (Art. 20.4): mínimo el 40% de las plazas (con >5 años de servicio).\n• Acceso a Policía Nacional Escala Básica (Art. 20.5): hasta un 20% de las plazas (>5 años de servicio).\n• Personal laboral del MINISDEF (Art. 21): al menos el 50% de las plazas (>5 años).",
+    clave: "Ley 8/2006 Arts. 15, 20 y 21"
+  },
+  {
+    id: "FC-031",
+    temaCodigo: "B2-T01",
+    bloque: "Bloque 2: Jurídico-Social",
+    categoria: "Leyes y Competencias",
+    esPlazo: false,
+    concepto: "Ley 39/2007 Carrera Militar — las 6 Situaciones Administrativas (Art. 107)",
+    frente: "¿Cuáles son las 6 situaciones administrativas de los militares profesionales según el Art. 107 de la Ley 39/2007?",
+    reverso: "1. Servicio activo.\n2. Servicios especiales.\n3. Excedencia (voluntaria por interés particular, agrupación familiar, cuidado de familiares, violencia de género/terrorismo, etc.).\n4. Suspensión de funciones.\n5. Suspensión de empleo.\n6. Reserva.",
+    clave: "Ley 39/2007 Art. 107"
+  },
+  {
+    id: "FC-032",
+    temaCodigo: "B2-T01",
+    bloque: "Bloque 2: Jurídico-Social",
+    categoria: "Plazos y Sanciones",
+    esPlazo: true,
+    concepto: "⚠️ SÚPER TRAMPA: Suspensión de Empleo y Servicio Activo (Arts. 108 y 112 Ley 39/2007)",
+    frente: "Si a un militar le imponen una sanción disciplinaria de 'Suspensión de empleo' por 4 meses, ¿pasa a la situación administrativa de Suspensión de Empleo?",
+    reverso: "🔥 ¡TRAMPA MORTAL DE EXAMEN!\n• Para pasar a la situación administrativa de Suspensión de Empleo por sanción disciplinaria (Art. 112), la sanción debe ser SUPERIOR A 6 MESES.\n• Si la suspensión de empleo es de 6 MESES O MENOS, el militar PERMANECE EN SERVICIO ACTIVO (aunque con las limitaciones propias de la sanción).",
+    clave: "Ley 39/2007 Arts. 108 y 112"
+  },
+  {
+    id: "FC-033",
+    temaCodigo: "B2-T01",
+    bloque: "Bloque 2: Jurídico-Social",
+    categoria: "Plazos y Sanciones",
+    esPlazo: true,
+    concepto: "⏱️ Suspensión de Funciones (Art. 111 Ley 39/2007)",
+    frente: "¿Cuál es la duración máxima de la situación de Suspensión de Funciones acordada preventivamente en un procedimiento disciplinario?",
+    reverso: "• Cuando se acuerda por la tramitación de un expediente disciplinario por falta muy grave, NO podrá exceder de 6 MESES (el período máximo del expediente).\n• Si es por procesamiento o inculpación en procedimiento penal, puede prolongarse durante todo el procesamiento.\n• Lleva aparejada el cese en el destino si supera los 6 meses.",
+    clave: "Ley 39/2007 Art. 111"
+  },
+  {
+    id: "FC-034",
+    temaCodigo: "B2-T01",
+    bloque: "Bloque 2: Jurídico-Social",
+    categoria: "Leyes y Competencias",
+    esPlazo: false,
+    concepto: "Sistemas de Ascenso en la Carrera Militar (Art. 88 Ley 39/2007)",
+    frente: "¿Cuáles son los 4 sistemas de ascenso en las Fuerzas Armadas y a qué empleos de Tropa se aplica cada uno?",
+    reverso: "📋 Los 4 sistemas de ascenso (Art. 88 Ley 39/2007):\n1. Elección (a Cabo Mayor, Teniente General, General, etc.).\n2. Clasificación (a Subteniente, Brigada, Coronel, etc.).\n3. Concurso o Concurso-Oposición (a Cabo y a Cabo Primero).\n4. Antigüedad (a Capitán y a Sargento Primero).",
+    clave: "Ley 39/2007 Arts. 88-89"
+  },
+  {
+    id: "FC-035",
+    temaCodigo: "B2-T01",
+    bloque: "Bloque 2: Jurídico-Social",
+    categoria: "Leyes y Competencias",
+    esPlazo: false,
+    concepto: "Tipos de Destinos (Art. 100 Ley 39/2007)",
+    frente: "¿Cuáles son las 3 formas de provisión de destinos en las Fuerzas Armadas según el Art. 100 de la Ley 39/2007?",
+    reverso: "1. Libre designación.\n2. Concurso de méritos.\n3. Provisión por antigüedad.\n⚠️ Recuerda: Los destinos pueden cubrirse de forma voluntaria o con carácter forzoso en ausencia de peticionarios.",
+    clave: "Ley 39/2007 Art. 100"
+  },
+  {
+    id: "FC-036",
+    temaCodigo: "B2-T02",
+    bloque: "Bloque 2: Jurídico-Social",
+    categoria: "Leyes y Competencias",
+    esPlazo: false,
+    concepto: "Reales Ordenanzas para las FAS (RD 96/2009) — Estructura y Ámbito",
+    frente: "¿Cuántos artículos y Títulos tienen las Reales Ordenanzas para las FAS (RD 96/2009) y cuándo se aplican a la Guardia Civil?",
+    reverso: "• Estructura: 129 artículos distribuidos en un Título Preliminar y 5 Títulos (más 1 Disposición Adicional sobre los miembros del Cuerpo Jurídico, Intervención, etc.).\n• Aplicación a la Guardia Civil (Art. 2.2): Son de aplicación a los miembros de la Guardia Civil cuando cumplan misiones de carácter militar o se integren en unidades militares.",
+    clave: "RD 96/2009 Arts. 1 y 2"
+  },
+  {
+    id: "FC-037",
+    temaCodigo: "B2-T02",
+    bloque: "Bloque 2: Jurídico-Social",
+    categoria: "Leyes y Competencias",
+    esPlazo: false,
+    concepto: "Obediencia Debida y Órdenes Delictivas (Art. 48 RROO)",
+    frente: "Según el Art. 48 de las Reales Ordenanzas, ¿qué debe hacer el militar si una orden entraña la ejecución de actos constitutivos de delito?",
+    reverso: "🔥 \"En ningún caso estará obligado a obedecerlas\". En particular, cuando la orden entrañe actos constitutivos de delito, en especial contra la Constitución y contra las personas y bienes protegidos en caso de conflicto armado. Todo militar tendrá la responsabilidad de sus actos en ese supuesto.",
+    clave: "RD 96/2009 Art. 48"
+  },
+  {
+    id: "FC-038",
+    temaCodigo: "B2-T02",
+    bloque: "Bloque 2: Jurídico-Social",
+    categoria: "Leyes y Competencias",
+    esPlazo: false,
+    concepto: "Definición de Orden y Acción del Mando (RROO RD 96/2009)",
+    frente: "¿Cómo definen las Reales Ordenanzas el estilo de mando y la disciplina?",
+    reverso: "• Disciplina (Art. 8): Factor de cohesión que obliga a mandar con responsabilidad y a obedecer lo mandado.\n• Acción de mando (Art. 54): El militar que ejerza mando se hará querer y respetar por sus subordinados; no les disimulará jamás las faltas de subordinación y les infundirá amor al servicio y exactitud en el desempeño de sus obligaciones.",
+    clave: "RD 96/2009 Arts. 8 y 54"
+  },
+  {
+    id: "FC-039",
+    temaCodigo: "B2-T03",
+    bloque: "Bloque 2: Jurídico-Social",
+    categoria: "Leyes y Competencias",
+    esPlazo: false,
+    concepto: "Derechos prohibidos vs permitidos en la LO 9/2011 (Derechos y Deberes)",
+    frente: "¿Qué derechos políticos y sindicales están prohibidos a los militares y cuáles sí pueden ejercer con límites?",
+    reverso: "🚫 PROHIBIDOS:\n• Afiliación a partidos políticos o sindicatos.\n• Derecho de huelga o acciones sustitutivas/concertadas para alterar el normal funcionamiento de las FAS.\n• Petición colectiva (solo individual).\n• Manifestaciones de carácter político o sindical, o asistiendo de uniforme.\n\n✅ PERMITIDO:\n• Asociaciones Profesionales inscritas en el RAPFAS (sin derecho a negociación colectiva ni huelga).",
+    clave: "LO 9/2011 Arts. 7, 13, 14 y 33"
+  },
+  {
+    id: "FC-040",
+    temaCodigo: "B2-T03",
+    bloque: "Bloque 2: Jurídico-Social",
+    categoria: "Plazos y Sanciones",
+    esPlazo: true,
+    concepto: "⏱️ Porcentajes del COPERFAS y Observatorio de la Vida Militar (LO 9/2011)",
+    frente: "¿Qué porcentajes de afiliación exige el Art. 48 de la LO 9/2011 para entrar en el COPERFAS y cómo se compone el Observatorio de la Vida Militar?",
+    reverso: "📊 PORCENTAJES COPERFAS (Art. 48.2 LO 9/2011):\n• 1% del total de efectivos de las FAS, O BIEN:\n• 3% de Oficiales | 3% de Suboficiales | 1,5% de Tropa y Marinería.\n\n🏛️ OBSERVATORIO DE LA VIDA MILITAR (Art. 54):\n• Órgano colegiado adscrito a las CORTES GENERALES.\n• 9 miembros elegidos por 5 AÑOS: 5 por el Congreso y 4 por el Senado.",
+    clave: "LO 9/2011 Arts. 48 y 54"
+  },
+  {
+    id: "FC-041",
+    temaCodigo: "B2-T04",
+    bloque: "Bloque 2: Jurídico-Social",
+    categoria: "Plazos y Sanciones",
+    esPlazo: true,
+    concepto: "⏱️ Catálogo Completo de Sanciones Disciplinarias (Art. 11 LO 8/2014)",
+    frente: "¿Cuáles son exactamente todas las sanciones por faltas Leves, Graves y Muy Graves y sus días mínimos/máximos?",
+    reverso: "🟢 FALTAS LEVES:\n• Reprensión | Privación de salida (1 a 8 DÍAS) | Sanción económica (1 a 7 DÍAS) | Arresto (1 a 14 DÍAS).\n\n🟡 FALTAS GRAVES:\n• Sanción económica (8 a 15 DÍAS) | Arresto (15 a 30 DÍAS) | Pérdida de destino | Baja en Centro Docente Militar.\n\n🔴 FALTAS MUY GRAVES:\n• Arresto (31 a 60 DÍAS) | Suspensión de empleo (1 MES a 1 AÑO) | Separación del servicio | Resolución de compromiso.",
+    clave: "LO 8/2014 Art. 11 (¡Súper Preguntado!)"
+  },
+  {
+    id: "FC-042",
+    temaCodigo: "B2-T04",
+    bloque: "Bloque 2: Jurídico-Social",
+    categoria: "Plazos y Sanciones",
+    esPlazo: true,
+    concepto: "⏱️ ⚠️ SÚPER TRAMPA: Prescripción de FALTAS vs SANCIONES (Arts. 24-25 LO 8/2014)",
+    frente: "¿En qué plazo prescriben las FALTAS disciplinarias y en qué plazo prescriben las SANCIONES ya impuestas?",
+    reverso: "📌 PRESCRIPCIÓN DE LAS FALTAS (Art. 24 — desde que se cometieron):\n• Leves: 2 MESES.\n• Graves: 1 AÑO.\n• Muy Graves: 2 AÑOS.\n\n📌 PRESCRIPCIÓN DE LAS SANCIONES (Art. 25 — desde firmeza):\n• Por falta Leve: 3 MESES (¡ojo, no 2!).\n• Por falta Grave: 1 AÑO.\n• Por falta Muy Grave: 2 AÑOS.",
+    clave: "LO 8/2014 Arts. 24 y 25"
+  },
+  {
+    id: "FC-043",
+    temaCodigo: "B2-T04",
+    bloque: "Bloque 2: Jurídico-Social",
+    categoria: "Plazos y Sanciones",
+    esPlazo: true,
+    concepto: "⏱️ Potestad Sancionadora de Mandos (Art. 32 LO 8/2014)",
+    frente: "¿Qué sanciones pueden imponer un Jefe de Pelotón/Sección, un Jefe de Compañía, un Jefe de Batallón y un Jefe de Regimiento?",
+    reverso: "1. Jefe de Pelotón / Sección (Art. 32.6): SOLO REPRENSIÓN.\n2. Jefe de Compañía o similar (Art. 32.5): Reprensión, Privación de salida hasta 5 DÍAS y Económica hasta 5 DÍAS (🚫 ¡NO PUEDE IMPONER ARRESTO!).\n3. Jefe de Batallón o similar (Art. 32.4): Reprensión, Privación de salida hasta 8 DÍAS, Económica hasta 7 DÍAS y ARRESTO HASTA 7 DÍAS.\n4. Jefe de Regimiento (Art. 32.3): Todas las sanciones por FALTA LEVE al completo (incluyendo arresto hasta 14 DÍAS).",
+    clave: "LO 8/2014 Art. 32"
+  },
+  {
+    id: "FC-044",
+    temaCodigo: "B2-T04",
+    bloque: "Bloque 2: Jurídico-Social",
+    categoria: "Lazos y Competencias",
+    esPlazo: false,
+    concepto: "Competencia para Faltas Muy Graves (Arts. 29 y 30 LO 8/2014)",
+    frente: "¿Qué autoridades tienen competencia para imponer sanciones por Faltas Muy Graves?",
+    reverso: "• MINISTRO DE DEFENSA (Art. 29): Imponer la SEPARACIÓN DEL SERVICIO (y cualquier otra sanción disciplinaria).\n• SUBSECRETARIO DE DEFENSA (Art. 30): Imponer la RESOLUCIÓN DE COMPROMISO.\n• JEMAD, JEME, AJEMA, JEMA y Subsecretario: Pueden imponer Arresto de 31 a 60 días y Suspensión de Empleo de 1 mes a 1 año.",
+    clave: "LO 8/2014 Arts. 29-31"
+  },
+  {
+    id: "FC-045",
+    temaCodigo: "B2-T04",
+    bloque: "Bloque 2: Jurídico-Social",
+    categoria: "Plazos y Sanciones",
+    esPlazo: true,
+    concepto: "⏱️ Plazos de Tramitación de Expedientes y Cancelación de Notas (LO 8/2014)",
+    frente: "¿Cuál es el plazo máximo de tramitación de un expediente por falta grave y muy grave, y cuándo se cancelan las notas desfavorables?",
+    reverso: "⏳ PLAZO DE TRAMITACIÓN (Art. 48):\n• Expediente por Falta GRAVE: máximo 3 MESES.\n• Expediente por Falta MUY GRAVE: máximo 6 MESES.\n\n🧹 CANCELACIÓN DE NOTAS DESFAVORABLES (Art. 65):\n• Falta Leve: 1 AÑO.\n• Falta Grave: 2 AÑOS.\n• Falta Muy Grave: 4 AÑOS.\n(Se cancelan de oficio o a instancia salvo Separación del servicio y Resolución de compromiso).",
+    clave: "LO 8/2014 Arts. 48 y 65"
+  },
+  {
+    id: "FC-046",
+    temaCodigo: "B2-T04",
+    bloque: "Bloque 2: Jurídico-Social",
+    categoria: "Plazos y Sanciones",
+    esPlazo: true,
+    concepto: "⏱️ Recursos en materia Disciplinaria Militar (Art. 68 LO 8/2014)",
+    frente: "¿Cuál es el plazo para interponer recurso de alzada o reposición contra una sanción disciplinaria militar y ante quién se interpone?",
+    reverso: "• Plazo de interposición: 1 MES (contado desde el día siguiente a la notificación).\n• Si la sanción fue impuesta por el Ministro de Defensa o la Sala de Gobierno del Tribunal Militar Central: cabe recurso de REPOSICIÓN (en 1 mes) previo al contencioso-disciplinario militar.\n• En el resto de autoridades/mandos: recurso de ALZADA ante la autoridad superior competente.\n• Plazo para resolver el recurso disciplinario: 2 MESES (transcurridos sin resolución, se entiende desestimado por silencio negativo).",
+    clave: "LO 8/2014 Arts. 66-70"
+  },
+  {
+    id: "FC-047",
+    temaCodigo: "B2-T04",
+    bloque: "Bloque 2: Jurídico-Social",
+    categoria: "Plazos y Sanciones",
+    esPlazo: true,
+    concepto: "⏱️ Orden de Arresto Preventivo (Art. 41 LO 8/2014)",
+    frente: "¿Cuánto tiempo máximo puede durar la orden de permanencia en arresto preventivo ordenada para restablecer la disciplina?",
+    reverso: "🔥 Máximo 48 HORAS.\nCualquier militar con mando o de empleo superior puede ordenar preventivamente el arresto en su unidad o alojamiento por un máximo de 48 horas cuando sea imprescindible para restablecer de inmediato la disciplina, dando cuenta inmediata a quien tenga potestad sancionadora (el tiempo cumplido se abona a la sanción final).",
+    clave: "LO 8/2014 Art. 41"
+  },
+  {
+    id: "FC-048",
+    temaCodigo: "B2-T04",
+    bloque: "Bloque 2: Jurídico-Social",
+    categoria: "Plazos y Sanciones",
+    esPlazo: true,
+    concepto: "⏱️ Acumulación de faltas leves para ser falta grave (Art. 7 LO 8/2014)",
+    frente: "¿Cuántas faltas leves sancionadas hacen falta para que la comisión de una nueva falta leve se tipifique como Falta Grave?",
+    reverso: "• La comisión de una falta leve teniendo ANOTADAS Y NO CANCELADAS al menos 3 FALTAS LEVES (es decir, sería la 4ª falta leve), O BIEN:\n• Tener anotadas y no canceladas 2 FALTAS LEVES con sanción de ARRESTO (sería la 3ª).",
+    clave: "LO 8/2014 Art. 7.36"
+  },
+  {
+    id: "FC-049",
+    temaCodigo: "B2-T05",
+    bloque: "Bloque 2: Jurídico-Social",
+    categoria: "Plazos y Sanciones",
+    esPlazo: true,
+    concepto: "⏱️ Iniciativas y Quejas (RD 176/2014) — Receptor y Plazos",
+    frente: "¿Quién se designa en cada unidad para recepcionar iniciativas/quejas y qué ocurre si pasan 1 mes o 6 meses sin respuesta?",
+    reverso: "• Receptor en la Unidad: Un Oficial, Suboficial o CABO MAYOR designado al efecto.\n• Plazo en Quejas: Si transcurre 1 MES sin que el Jefe de Unidad conteste la queja, el militar puede dirigirse directamente al MAPER (o Jefatura de Personal).\n• Plazo en Iniciativas: El órgano competente dispone de 6 MESES para resolver y notificar motivadamente.",
+    clave: "RD 176/2014"
+  },
+  {
+    id: "FC-050",
+    temaCodigo: "B2-T05",
+    bloque: "Bloque 2: Jurídico-Social",
+    categoria: "Leyes y Competencias",
+    esPlazo: false,
+    concepto: "Materias excluidas de las Iniciativas y Quejas (RD 176/2014)",
+    frente: "¿Qué materias están excluidas del procedimiento de Iniciativas y Quejas?",
+    reverso: "• Las que tengan un procedimiento específico de recurso administrativo o disciplinario.\n• Las decisiones operativas o de mando en operaciones.\n• Las cuestiones sometidas a procedimiento judicial.\n⚠️ Tampoco se admiten quejas o iniciativas anónimas o colectivas.",
+    clave: "RD 176/2014 Art. 3"
+  },
+  {
+    id: "FC-051",
+    temaCodigo: "B2-T06",
+    bloque: "Bloque 2: Jurídico-Social",
+    categoria: "Plazos y Sanciones",
+    esPlazo: true,
+    concepto: "⏱️ LO 3/2007 de Igualdad y Observatorio Militar para la Igualdad",
+    frente: "¿Qué se entiende por composición equilibrada en la LO 3/2007 y dónde se adscribe el Observatorio Militar para la Igualdad?",
+    reverso: "• Presencia equilibrada (LO 3/2007): Ningún sexo supere el 60% ni sea inferior al 40%.\n• Observatorio Militar para la Igualdad (Orden DEF/111/2019): Adscrito a la SUBSECRETARÍA DE DEFensa (SUBDEF), presidido por la persona titular de la SUBDEF (se reúne en pleno al menos 2 veces al año).",
+    clave: "LO 3/2007 y Orden DEF/111/2019"
+  },
+  {
+    id: "FC-052",
+    temaCodigo: "B2-T06",
+    bloque: "Bloque 2: Jurídico-Social",
+    categoria: "Leyes y Competencias",
+    esPlazo: false,
+    concepto: "Acoso Sexual vs Acoso por Razón de Sexo (Art. 7 LO 3/2007)",
+    frente: "¿Cuál es la diferencia legal entre Acoso Sexual y Acoso por Razón de Sexo según el Art. 7 de la LO 3/2007?",
+    reverso: "• ACOSO SEXUAL (Art. 7.1): Cualquier comportamiento, verbal o físico, de NATURALEZA SEXUAL que tenga el propósito o produzca el efecto de atentar contra la dignidad de una persona.\n• ACOSO POR RAZÓN DE SEXO (Art. 7.2): Cualquier comportamiento realizado EN FUNCIÓN DEL SEXO de una persona (por ejemplo, por embarazo o maternidad) con el propósito o efecto de atentar contra su dignidad y crear un entorno intimidatorio, degradante u ofensivo.",
+    clave: "LO 3/2007 Art. 7"
+  },
+  {
+    id: "FC-053",
+    temaCodigo: "B2-T07",
+    bloque: "Bloque 2: Jurídico-Social",
+    categoria: "Leyes y Competencias",
+    esPlazo: false,
+    concepto: "Unidades de Protección frente al Acoso (UPA) y Conducto Reglamentario",
+    frente: "¿Dónde se ubican las UPA y es obligatorio seguir el conducto reglamentario para denunciar acoso sexual o profesional?",
+    reverso: "• Hay una UPA Central en la DIGENPER (SUBDEF) y UPAs en los Mandos/Jefaturas de Personal (MAPER del ET, JEPER de la Armada y MAPER del EA).\n• 🔥 ¡IMPORTANTE!: La víctima o cualquier militar que tenga conocimiento del acoso puede dirigirse DIRECTAMENTE a la UPA SIN necesidad de utilizar el conducto reglamentario.",
+    clave: "Protocolo Acoso FAS (UPA)"
+  },
+  {
+    id: "FC-054",
+    temaCodigo: "B2-T08",
+    bloque: "Bloque 2: Jurídico-Social",
+    categoria: "Plazos y Sanciones",
+    esPlazo: true,
+    concepto: "⏱️ Cómputo de Plazos Administrativos (Art. 30 Ley 39/2015 LPACAP)",
+    frente: "¿Cómo se computan los plazos por días en la Ley 39/2015 y qué días son inhábiles?",
+    reverso: "• Regla general (Art. 30.2): Siempre que por Ley o Derecho de la UE no se exprese otro cómputo, cuando los plazos se señalen por días se entiende que éstos son HÁBILES.\n• Son INHÁBILES: Los SÁBADOS, los DOMINGOS y los declarados FESTIVOS.\n• Los plazos por meses o años se computan de fecha a fecha a partir del día siguiente a la notificación.",
+    clave: "Ley 39/2015 Art. 30"
+  },
+  {
+    id: "FC-055",
+    temaCodigo: "B2-T08",
+    bloque: "Bloque 2: Jurídico-Social",
+    categoria: "Plazos y Sanciones",
+    esPlazo: true,
+    concepto: "⏱️ Plazo Máximo para Resolver un Procedimiento Administrativo (Art. 21 Ley 39/2015)",
+    frente: "¿Cuál es el plazo máximo para resolver y notificar un procedimiento según el Art. 21 de la Ley 39/2015 y cuál es el plazo supletorio si la norma no fija ninguno?",
+    reverso: "• Límite legal (Art. 21.2): El plazo máximo fijado por la norma reguladora NO podrá exceder de 6 MESES (salvo que una norma con rango de Ley o de Derecho de la UE establezca uno mayor).\n• Plazo supletorio (Art. 21.3): Cuando las normas reguladoras no fijen plazo máximo, éste será de 3 MESES.",
+    clave: "Ley 39/2015 Art. 21"
+  },
+  {
+    id: "FC-056",
+    temaCodigo: "B2-T08",
+    bloque: "Bloque 2: Jurídico-Social",
+    categoria: "Leyes y Competencias",
+    esPlazo: false,
+    concepto: "⚠️ SÚPER TRAMPA: Nulidad de Pleno Derecho vs Anulabilidad (Arts. 47 y 48 Ley 39/2015)",
+    frente: "¿Qué diferencia hay entre la incompetencia por razón de la materia/territorio y la incompetencia jerárquica?",
+    reverso: "🔥 ¡CLÁSICO DE EXAMEN!\n• Actos dictados por órgano manifiestamente incompetente por razón de la MATERIA o del TERRITORIO = NULIDAD DE PLENO DERECHO (Art. 47.1.b — no convalidable).\n• Incompetencia JERÁRQUICA = ANULABILIDAD (Art. 48 y 52 — SÍ es convalidable por el órgano superior jerárquico).",
+    clave: "Ley 39/2015 Arts. 47, 48 y 52"
+  },
+  {
+    id: "FC-057",
+    temaCodigo: "B2-T08",
+    bloque: "Bloque 2: Jurídico-Social",
+    categoria: "Plazos y Sanciones",
+    esPlazo: true,
+    concepto: "⏱️ Recurso de Alzada vs Recurso Potestativo de Reposición (Arts. 121-124 Ley 39/2015)",
+    frente: "Compara objeto, plazo de interposición y plazo máximo de resolución del Recurso de Alzada y del de Reposición:",
+    reverso: "🔼 RECURSO DE ALZADA (Arts. 121-122):\n• Contra actos que NO ponen fin a la vía administrativa (ante el superior jerárquico).\n• Interposición: 1 MES (acto expreso) / En cualquier momento (acto presunto).\n• Plazo para RESOLVER: 3 MESES.\n\n🔄 RECURSO POTESTATIVO DE REPOSICIÓN (Arts. 123-124):\n• Contra actos que SÍ ponen fin a la vía administrativa (ante el mismo órgano).\n• Interposición: 1 MES (expreso) / En cualquier momento (presunto).\n• Plazo para RESOLVER: 1 MES.",
+    clave: "Ley 39/2015 Arts. 121-124"
+  },
+  {
+    id: "FC-058",
+    temaCodigo: "B2-T08",
+    bloque: "Bloque 2: Jurídico-Social",
+    categoria: "Plazos y Sanciones",
+    esPlazo: true,
+    concepto: "⏱️ Recurso Extraordinario de Revisión (Arts. 125-126 Ley 39/2015)",
+    frente: "¿Contra qué actos cabe el Recurso Extraordinario de Revisión y cuáles son sus plazos de interposición y resolución?",
+    reverso: "• Objeto: Contra los ACTOS FIRMES en vía administrativa.\n• Plazos de interposición:\n  - 4 AÑOS desde la notificación del acto si se trata de error de hecho que resulte de los propios documentos del expediente (causa 1ª).\n  - 3 MESES desde el conocimiento de los documentos o desde que la sentencia quedó firme en el resto de causas (documentos esenciales ignorados, documentos/testimonios declarados falsos o prevaricación/cohecho).\n• Plazo para resolver: 3 MESES (silencio desestimatorio).",
+    clave: "Ley 39/2015 Arts. 125 y 126"
+  },
+  {
+    id: "FC-059",
+    temaCodigo: "B2-T08",
+    bloque: "Bloque 2: Jurídico-Social",
+    categoria: "Plazos y Sanciones",
+    esPlazo: true,
+    concepto: "⏱️ Revisión de Oficio y Declaración de Lesividad (Arts. 106 y 107 Ley 39/2015)",
+    frente: "¿Qué plazos rigen en la Revisión de Oficio de actos nulos (Art. 106) y en la Declaración de Lesividad de actos anulables (Art. 107)?",
+    reverso: "• Revisión de oficio de actos NULOS (Art. 106): Puede iniciarse en cualquier momento (con dictamen favorable del Consejo de Estado). Si se inicia de oficio, caduca a los 6 MESES.\n• Declaración de lesividad de actos favorables ANULABLES (Art. 107): No podrá adoptarse una vez transcurridos 4 AÑOS desde que se dictó el acto, y el procedimiento caduca a los 6 MESES de su iniciación.",
+    clave: "Ley 39/2015 Arts. 106 y 107"
+  },
+  {
+    id: "FC-060",
+    temaCodigo: "B2-T08",
+    bloque: "Bloque 2: Jurídico-Social",
+    categoria: "Plazos y Sanciones",
+    esPlazo: true,
+    concepto: "⏱️ Subsanación de Solicitudes (Art. 68) y Trámite de Audiencia (Art. 82 Ley 39/2015)",
+    frente: "¿Qué plazo se da para subsanar una solicitud y qué plazo dura el trámite de audiencia en la Ley 39/2015?",
+    reverso: "• Subsanación de solicitud (Art. 68): 10 DÍAS hábiles (ampliables hasta 5 días más en procedimientos no selectivos).\n• Trámite de audiencia (Art. 82): No inferior a 10 DÍAS ni superior a 15 DÍAS.\n• Emisión de informes (Art. 80): Plazo general de 10 DÍAS.",
+    clave: "Ley 39/2015 Arts. 68, 80 y 82"
+  },
+  {
+    id: "FC-061",
+    temaCodigo: "B2-T08",
+    bloque: "Bloque 2: Jurídico-Social",
+    categoria: "Leyes y Competencias",
+    esPlazo: false,
+    concepto: "Doble Silencio Administrativo en el Recurso de Alzada (Art. 24.1 Ley 39/2015)",
+    frente: "¿Cuándo se vuelve POSITIVO (estimatorio) el silencio administrativo en un Recurso de Alzada?",
+    reverso: "🔥 ¡REGLA DE ORO DEL DOBLE SILENCIO!\nCuando el recurso de alzada se haya interpuesto contra la DESESTIMACIÓN POR SILENCIO ADMINISTRATIVO de una solicitud, y el órgano superior tampoco resuelva el recurso en plazo (3 meses), se entenderá ESTIMADO (silencio positivo), salvo que se refiera a materias de dominio público, servicio público, derecho de petición, etc.",
+    clave: "Ley 39/2015 Art. 24.1"
+  },
+  {
+    id: "FC-062",
+    temaCodigo: "B2-T01",
+    bloque: "Bloque 2: Jurídico-Social",
+    categoria: "Plazos y Sanciones",
+    esPlazo: true,
+    concepto: "⏱️ Excedencia Voluntaria por Interés Particular (Art. 110 Ley 39/2007)",
+    frente: "¿Cuántos años de servicios efectivos se exigen para pedir Excedencia Voluntaria por Interés Particular y cuál es el tiempo mínimo de permanencia en ella?",
+    reverso: "• Para solicitarla: Tener cumplidos los tiempos de servicios efectivos reglamentarios (con carácter general 8 años desde la adquisición de la condición de militar de carrera / según escala).\n• Permanencia mínima en la situación de excedencia voluntaria por interés particular: NO INFERIOR A 2 AÑOS.",
+    clave: "Ley 39/2007 Art. 110"
+  },
+  {
+    id: "FC-063",
+    temaCodigo: "B2-T03",
+    bloque: "Bloque 2: Jurídico-Social",
+    categoria: "Plazos y Sanciones",
+    esPlazo: true,
+    concepto: "⏱️ Duración del mandato de los vocales del COPERFAS (LO 9/2011)",
+    frente: "¿Quién preside el Consejo de Personal de las Fuerzas Armadas (COPERFAS) y cada cuánto se reúne?",
+    reverso: "• Presidencia (Art. 47 LO 9/2011): El MINISTRO DE DEFENSA (cuando no asista, lo preside el Subsecretario de Defensa).\n• Mandato de representantes asociativos: 4 AÑOS.\n• Reuniones ordinarias: Al menos 1 vez al trimestre (o 2 veces al año en Pleno según su reglamento RD 910/2012).",
+    clave: "LO 9/2011 Arts. 47-50"
+  },
+  {
+    id: "FC-064",
+    temaCodigo: "B2-T01",
+    bloque: "Bloque 2: Jurídico-Social",
+    categoria: "Leyes y Competencias",
+    esPlazo: false,
+    concepto: "Tarjeta Militar de Identidad — TMI (Ley 39/2007 y Ley 8/2006)",
+    frente: "¿Qué documento acredita la condición de militar profesional y qué efecto tiene adquirir la condición de Militar de Carrera (Permanente)?",
+    reverso: "• La Tarjeta Militar de Identidad (TMI) es el documento oficial que acredita la condición de militar.\n• Al superar el proceso selectivo de Permanencia, el militar de Tropa y Marinería adquiere la condición de MILITAR DE CARRERA (Art. 76 Ley 39/2007 y Art. 12 Ley 8/2006), manteniendo una relación de servicios de carácter permanente hasta el pase a la reserva o retiro.",
+    clave: "Ley 39/2007 Art. 76 / Ley 8/2006 Art. 12"
+  },
+
+  // =========================================================================
+  // BLOQUE 3: SEGURIDAD NACIONAL Y OO.II. (TEMAS B3-T01 A B3-T07) — 22 TARJETAS
+  // =========================================================================
+  {
+    id: "FC-065",
+    temaCodigo: "B3-T01",
     bloque: "Bloque 3: Seguridad Nacional",
-    concepto: "🔥 España en Misiones Internacionales (Actualizado 2024/2025)",
-    frente: "¿Cuándo empezaron las misiones en el exterior, quién las autoriza y dónde es España 'Nación Marco' de la OTAN desde 2024?",
-    reverso: "• Inicio histórico: 1989 en Angola (UNAVEM I) y Namibia (UNTAG).\n• Autorización (Art. 17 LO 5/2005): el CONGRESO DE LOS DIPUTADOS.\n• Misiones clave actuales: FINUL ('Libre Hidalgo' en Líbano), EUNAVFOR Atalanta (OHQ en Rota), Letonia (eFP Adazi) y ESLOVAQUIA (Lešť), donde España lidera como 'Nación Marco' desde 2024.",
+    categoria: "Plazos y Sanciones",
+    esPlazo: true,
+    concepto: "⏱️ Ley 36/2015 de Seguridad Nacional — Declaración, Componentes y Plazos",
+    frente: "¿Quién declara la Situación de Interés para la Seguridad Nacional, cuáles son sus 3 componentes y cada cuánto se revisa la ESN?",
+    reverso: "• Declaración (Art. 24 Ley 36/2015): El PRESIDENTE DEL GOBIERNO mediante REAL DECRETO.\n• Los 3 Componentes Fundamentales (Art. 9): 1) Defensa Nacional, 2) Seguridad Pública, y 3) Acción Exterior.\n• Reuniones del Consejo de Seguridad Nacional: Al menos con carácter BIMESTRAL (cada 2 meses).\n• Revisión de la Estrategia de Seguridad Nacional (ESN): Cada 5 AÑOS (o cuando lo aconsejen las circunstancias).",
+    clave: "Ley 36/2015 Arts. 4, 9, 21 y 24"
+  },
+  {
+    id: "FC-066",
+    temaCodigo: "B3-T01",
+    bloque: "Bloque 3: Seguridad Nacional",
+    categoria: "Seguridad y OO.II.",
+    esPlazo: false,
+    concepto: "Estrategia de Seguridad Nacional 2021 (RD 1150/2021) — Lema y 3 Ejes",
+    frente: "¿Cuál es el lema de la Estrategia de Seguridad Nacional 2021 (RD 1150/2021) y cuáles son sus 3 Ejes Estratégicos?",
+    reverso: "• Lema: \"Un proyecto compartido\".\n• Los 3 Ejes Estratégicos (Cap. 5 ESN 2021):\n  1. PROTEGER (la vida de las personas, el Estado de derecho y el bienestar).\n  2. PROMOVER (una España próspera, resiliente y tecnológicamente avanzada).\n  3. PARTICIPAR (en la preservación de la paz y seguridad internacional).\n• Secretaría Técnica del CSN: El Departamento de Seguridad Nacional (DSN).",
+    clave: "RD 1150/2021 (ESN 2021)"
+  },
+  {
+    id: "FC-067",
+    temaCodigo: "B3-T01",
+    bloque: "Bloque 3: Seguridad Nacional",
+    categoria: "Seguridad y OO.II.",
+    esPlazo: false,
+    concepto: "Presidencia del Consejo de Seguridad Nacional (Art. 21 Ley 36/2015)",
+    frente: "¿Quién preside el Consejo de Seguridad Nacional?",
+    reverso: "• Con carácter ordinario lo preside el PRESIDENTE DEL GOBIERNO.\n• Cuando Su Majestad el REY asista a sus reuniones (a petición del Presidente del Gobierno), lo presidirá el REY.",
+    clave: "Ley 36/2015 Art. 21"
+  },
+  {
+    id: "FC-068",
+    temaCodigo: "B3-T02",
+    bloque: "Bloque 3: Seguridad Nacional",
+    categoria: "Seguridad y OO.II.",
+    esPlazo: false,
+    concepto: "Doctrina PDC-01 (A) — Operación Conjunta vs Combinada y 5 Dominios",
+    frente: "¿Qué diferencia hay entre Operación Conjunta, Combinada e Integrada, y cuáles son los 5 ámbitos o dominios de operación?",
+    reverso: "• CONJUNTA: Emplea fuerzas de dos o más Ejércitos nacionales (ET, Armada, EA).\n• COMBINADA (o multinacional): Emplea fuerzas de dos o más Estados aliados.\n• INTEGRADA (Enfoque Integral): Coordina instrumentos militares y no militares (diplomáticos, civiles, económicos).\n• 5 Dominios / Ámbitos: Terrestre, Marítimo, Aéreo, Espacial y Ciberespacial (+ Entorno Cognitivo).",
+    clave: "Doctrina PDC-01 (A)"
+  },
+  {
+    id: "FC-069",
+    temaCodigo: "B3-T02",
+    bloque: "Bloque 3: Seguridad Nacional",
+    categoria: "Seguridad y OO.II.",
+    esPlazo: false,
+    concepto: "Doctrina PDC-01 (A) — Entorno VUCA, Niveles de Operación y Mando Tipo Misión",
+    frente: "¿Qué significa el acrónimo VUCA, cuáles son los 3 niveles de las operaciones militares y en qué consiste el Mando Tipo Misión?",
+    reverso: "• Entorno VUCA: Volátil (Volatile), Incierto (Uncertain), Complejo (Complex) y Ambiguo (Ambiguous).\n• 3 Niveles de conducción: 1) Estratégico, 2) Operacional, y 3) Táctico.\n• Mando Tipo Misión (Mission Command): Filosofía de mando basada en la confianza mutua, dirección centralizada (expresando claramente el PROPÓSITO del comandante) y ejecución descentralizada (libertad de acción del subordinado).",
+    clave: "Doctrina PDC-01 (A)"
+  },
+  {
+    id: "FC-070",
+    temaCodigo: "B3-T02",
+    bloque: "Bloque 3: Seguridad Nacional",
+    categoria: "Seguridad y OO.II.",
+    esPlazo: false,
+    concepto: "Cadenas de Mando Operativo en la PDC-01: JEMAD y CMOPS",
+    frente: "¿Qué nivel de conducción ejerce el JEMAD y qué nivel ejerce el Comandante del Mando de Operaciones (CMOPS)?",
+    reverso: "• JEMAD: Ejerce el Mando ESTRATÉGICO militar de las operaciones.\n• CMOPS (Mando de Operaciones): Ejerce el Mando OPERACIONAL de las fuerzas transferidas a la estructura operativa.\n• Los Comandantes de Fuerza / Componentes ejercen el nivel TÁCTICO.",
+    clave: "Doctrina PDC-01 (A)"
+  },
+  {
+    id: "FC-071",
+    temaCodigo: "B3-T03",
+    bloque: "Bloque 3: Seguridad Nacional",
+    categoria: "Plazos y Sanciones",
+    esPlazo: true,
+    concepto: "⏱️ ONU — Fechas Clave, Sede y los 6 Órganos Principales",
+    frente: "¿Cuándo se firmó la Carta de la ONU, cuándo ingresó España y cuáles son sus 6 órganos principales?",
+    reverso: "• Carta de San Francisco: Firmada el 26 de junio de 1945 (entró en vigor el 24 de octubre de 1945). Sede: Nueva York.\n• Ingreso de España en la ONU: 14 de diciembre de 1955.\n• 6 Órganos principales (Art. 7 Carta):\n  1. Asamblea General.\n  2. Consejo de Seguridad.\n  3. Consejo Económico y Social (ECOSOC - 54 miembros por 3 años).\n  4. Consejo de Administración Fiduciaria (inactivo desde 1994).\n  5. Corte Internacional de Justicia (La Haya - 15 jueces por 9 años).\n  6. Secretaría General (mandato de 5 años renovable).",
+    clave: "Carta de la ONU (1945)"
+  },
+  {
+    id: "FC-072",
+    temaCodigo: "B3-T03",
+    bloque: "Bloque 3: Seguridad Nacional",
+    categoria: "Plazos y Sanciones",
+    esPlazo: true,
+    concepto: "⏱️ Consejo de Seguridad de la ONU y Capítulos VI, VII y VIII",
+    frente: "¿Cómo se compone el Consejo de Seguridad de la ONU, qué mayoría exige para adoptar decisiones y qué regulan los Capítulos VI, VII y VIII?",
+    reverso: "• Composición: 15 miembros = 5 Permanentes con derecho de veto (EE.UU., Rusia, China, Francia y Reino Unido) + 10 No Permanentes elegidos por la Asamblea General por 2 AÑOS.\n• Mayoría para decisiones: Voto afirmativo de al menos 9 MIEMBROS (incluidos los 5 permanentes en cuestiones de fondo).\n• Capítulo VI: Arreglo PACÍFICO de controversias.\n• Capítulo VII: Acción COERCITIVA y uso de la fuerza en caso de amenazas a la paz o actos de agresión.\n• Capítulo VIII: Acuerdos Regionales.",
+    clave: "Carta ONU Capítulos V, VI, VII y VIII"
+  },
+  {
+    id: "FC-073",
+    temaCodigo: "B3-T04",
+    bloque: "Bloque 3: Seguridad Nacional",
+    categoria: "Plazos y Sanciones",
+    esPlazo: true,
+    concepto: "⏱️ OTAN — Tratado de Washington, Ingreso de España y 32 Aliados (2024)",
+    frente: "¿Cuándo se firmó el Tratado de Washington, cuándo ingresó España y cuántos miembros tiene hoy la OTAN?",
+    reverso: "• Tratado de Washington: 4 de abril de 1949 (por 12 países fundadores). Sede política y militar: Bruselas (Bélgica).\n• Ingreso de España: 30 de mayo de 1982 (miembro nº 16; en la estructura militar integrada en 1999).\n• 🔥 Total miembros actuales: 32 ALIADOS:\n  - Miembro nº 31: FINLANDIA (4 de abril de 2023).\n  - Miembro nº 32: SUECIA (7 de marzo de 2024).",
+    clave: "OTAN (32 Estados Miembros)"
+  },
+  {
+    id: "FC-074",
+    temaCodigo: "B3-T04",
+    bloque: "Bloque 3: Seguridad Nacional",
+    categoria: "Seguridad y OO.II.",
+    esPlazo: false,
+    concepto: "Artículos 4 y 5 del Tratado de Washington y Concepto Estratégico de Madrid (2022)",
+    frente: "¿Qué regulan los Artículos 4 y 5 del Tratado de la OTAN y cuáles son las 3 tareas fundamentales del Concepto Estratégico de Madrid 2022?",
+    reverso: "• Art. 4: Consulta entre los aliados cuando peligre su integridad territorial, independencia política o seguridad.\n• Art. 5 (Defensa Colectiva): Un ataque armado contra uno o varios aliados en Europa o Norteamérica se considerará un ataque dirigido contra todos ellos (invocado por única vez tras el 11-S de 2001).\n• 3 Tareas Fundamentales (Concepto Estratégico de Madrid 2022):\n  1. Disuasión y Defensa.\n  2. Prevención y Gestión de Crisis.\n  3. Seguridad Cooperativa.",
+    clave: "Tratado Washington Arts. 4-5 / Madrid 2022"
+  },
+  {
+    id: "FC-075",
+    temaCodigo: "B3-T04",
+    bloque: "Bloque 3: Seguridad Nacional",
+    categoria: "Organigramas y Sedes",
+    esPlazo: false,
+    concepto: "Estructura de Mandos de la OTAN (ACO y ACT) y Sedes en España",
+    frente: "¿Cuáles son los 2 Mandos Estratégicos de la OTAN, sus 3 Mandos de Fuerzas Conjuntas (JFC) y las sedes OTAN en España?",
+    reverso: "🌍 2 MANDOS ESTRATÉGICOS:\n1. ACO (Mando Aliado de Operaciones - SACEUR): Sede en SHAPE (Mons, Bélgica). De él dependen 3 JFC: Brunssum (Países Bajos), Nápoles (Italia) y Norfolk (EE.UU.).\n2. ACT (Mando Aliado de Transformación - SACT): Sede en Norfolk (Virginia, EE.UU.).\n\n🇪🇸 EN ESPAÑA:\n• CAOC Torrejón (Madrid) — Estructura de Mandos.\n• HQ NRDC-ESP (Bétera, Valencia) — Estructura de Fuerzas.\n• COE C-IED (Hoyo de Manzanares, Madrid) — Centro de Excelencia contra Artefactos Explosivos Improvisados.",
+    clave: "Estructura Militar OTAN"
+  },
+  {
+    id: "FC-076",
+    temaCodigo: "B3-T05",
+    bloque: "Bloque 3: Seguridad Nacional",
+    categoria: "Plazos y Sanciones",
+    esPlazo: true,
+    concepto: "⏱️ OSCE — Origen, 57 Miembros, Sede, 3 Dimensiones y Presidencia",
+    frente: "¿Dónde nació la OSCE, cuántos Estados participantes tiene, dónde está su sede y cuáles son sus 3 dimensiones?",
+    reverso: "• Origen: Acta Final de Helsinki (1975) como CSCE; pasa a llamarse OSCE en la Cumbre de Budapest (1994, efectiva el 1 de enero de 1995).\n• Miembros: 57 Estados participantes (Norteamérica, Europa y Asia Central). Toma sus decisiones por CONSENSO.\n• Sede del Secretariado y Consejo Permanente: VIENA (Austria).\n• Presidencia en Ejercicio: Rota anualmente (1 AÑO); España la ejerció en 2007.\n• 3 Dimensiones ('Cestas'): 1) Político-Militar, 2) Económica y Medioambiental, y 3) Humana (ODIHR en Varsovia).",
+    clave: "OSCE (Tema 5 Bloque 3)"
+  },
+  {
+    id: "FC-077",
+    temaCodigo: "B3-T06",
+    bloque: "Bloque 3: Seguridad Nacional",
+    categoria: "Plazos y Sanciones",
+    esPlazo: true,
+    concepto: "⏱️ Unión Europea — Tratados, 27 Miembros e Instituciones (Art. 13 TUE)",
+    frente: "¿Cuántos Estados forman hoy la UE, cuándo ingresó España y cuáles son las 7 Instituciones oficiales de la Unión Europea?",
+    reverso: "• Miembros actuales: 27 Estados (tras el Brexit del Reino Unido en 2020). España ingresó el 1 de enero de 1986.\n• Las 7 Instituciones de la UE (Art. 13 TUE):\n  1. Parlamento Europeo (Estrasburgo/Bruselas).\n  2. Consejo Europeo (Jefes de Estado/Gobierno).\n  3. Consejo de la Unión Europea (Ministros).\n  4. Comisión Europea (Bruselas).\n  5. Tribunal de Justicia de la UE (Luxemburgo).\n  6. Banco Central Europeo (Fráncfort).\n  7. Tribunal de Cuentas (Luxemburgo).",
+    clave: "TUE Art. 13 (27 Estados)"
+  },
+  {
+    id: "FC-078",
+    temaCodigo: "B3-T06",
+    bloque: "Bloque 3: Seguridad Nacional",
+    categoria: "Seguridad y OO.II.",
+    esPlazo: false,
+    concepto: "⚠️ Trampa UE: Cláusula de Asistencia Mutua (Art. 42.7 TUE) vs Solidaridad (Art. 222 TFUE)",
+    frente: "¿Qué diferencia hay entre la Cláusula de Asistencia Mutua del Art. 42.7 TUE y la Cláusula de Solidaridad del Art. 222 TFUE?",
+    reverso: "🔥 ¡PREGUNTA FIJA DE EXAMEN!\n• Art. 42.7 TUE (Asistencia Mutua): Se activa si un Estado miembro es objeto de una AGRESIÓN ARMADA en su territorio (invocada por Francia tras los atentados de París de 2015).\n• Art. 222 TFUE (Cláusula de Solidaridad): Se activa si un Estado miembro es objeto de un ATAQUE TERRORISTA o víctima de una CATÁSTROFE natural o de origen humano.",
+    clave: "Art. 42.7 TUE vs Art. 222 TFUE"
+  },
+  {
+    id: "FC-079",
+    temaCodigo: "B3-T06",
+    bloque: "Bloque 3: Seguridad Nacional",
+    categoria: "Seguridad y OO.II.",
+    esPlazo: false,
+    concepto: "PCSD de la UE: PESCO, EDA, SATCEN y Brújula Estratégica (2022)",
+    frente: "¿Qué son la PESCO, la EDA, el SATCEN y qué capacidad de despliegue rápido prevé la Brújula Estratégica de la UE?",
+    reverso: "• PESCO: Cooperación Estructurada Permanente en defensa.\n• EDA: Agencia Europea de Defensa (presidida por el Alto Representante).\n• SATCEN: Centro de Satélites de la UE, con sede en TORREJÓN DE ARDOZ (Madrid).\n• Brújula Estratégica (Strategic Compass 2022): Crea la Capacidad de Despliegue Rápido de la UE (RDC) de hasta 5.000 efectivos.",
+    clave: "PCSD Unión Europea"
+  },
+  {
+    id: "FC-080",
+    temaCodigo: "B3-T07",
+    bloque: "Bloque 3: Seguridad Nacional",
+    categoria: "Seguridad y OO.II.",
+    esPlazo: false,
+    concepto: "🔥 España en Misiones Internacionales: Origen (1989) y Eslovaquia (2024/2025)",
+    frente: "¿Cuáles fueron las primeras misiones de España en el exterior en 1989 y en qué país lidera hoy España una Brigada Multinacional de la OTAN como 'Nación Marco'?",
+    reverso: "• Inicio histórico (1989): Misiones de la ONU en ANGOLA (UNAVEM I) y NAMIBIA (UNTAG).\n• 🔥 NOVEDAD 2024/2025: España asumió en julio de 2024 el liderazgo como 'Nación Marco' (Framework Nation) del Grupo de Combate / Brigada Multinacional de la OTAN en ESLOVAQUIA (campo de maniobras de Lešť).",
+    clave: "Misiones Internacionales FAS (2024/2025)"
+  },
+  {
+    id: "FC-081",
+    temaCodigo: "B3-T07",
+    bloque: "Bloque 3: Seguridad Nacional",
+    categoria: "Seguridad y OO.II.",
+    esPlazo: false,
+    concepto: "Principales Misiones Actuales de las FAS (ONU, OTAN y UE)",
+    frente: "Relaciona cada operación exterior con su organización internacional y país: Libre Hidalgo, Atalanta, eFP Adazi, Althea y Apoyo a Irak.",
+    reverso: "• Operación 'Libre Hidalgo' (FINUL / UNIFIL): ONU — Sur del Líbano (Base 'Miguel de Cervantes' en Marjayoun).\n• Operación EUNAVFOR 'Atalanta': UNIÓN EUROPEA — Lucha contra la piratería en el Índico/Somalia (Cuartel General OHQ en la Base Naval de ROTA).\n• Presencia Avanzada Reforzada (eFP): OTAN — Letonia (Base de Adazi) y Brigada Multinacional en Eslovaquia (Lešť).\n• EUFOR 'Althea': UNIÓN EUROPEA — Bosnia y Herzegovina.\n• Misión en Irak: OTAN (NMI) y Coalición Internacional (Operación Inherent Resolve).",
     clave: "Misiones Internacionales FAS"
+  },
+  {
+    id: "FC-082",
+    temaCodigo: "B1-T01",
+    bloque: "Bloque 1: Organización",
+    categoria: "Plazos y Sanciones",
+    esPlazo: true,
+    concepto: "⏱️ Detención Preventiva y Habeas Corpus (Art. 17 CE)",
+    frente: "¿Cuál es el plazo máximo de la detención preventiva según el Art. 17.2 de la Constitución Española?",
+    reverso: "• La detención preventiva no podrá durar más del tiempo estrictamente necesario para la realización de las averiguaciones tendentes al esclarecimiento de los hechos y, en todo caso, en el plazo máximo de 72 HORAS el detenido deberá ser puesto en libertad o a disposición de la autoridad judicial.\n• La ley regulará un procedimiento de 'habeas corpus' (Art. 17.4 CE).",
+    clave: "CE Art. 17.2 (72 Horas)"
+  },
+  {
+    id: "FC-083",
+    temaCodigo: "B2-T04",
+    bloque: "Bloque 2: Jurídico-Social",
+    categoria: "Plazos y Sanciones",
+    esPlazo: true,
+    concepto: "⏱️ Audiencia en Faltas Leves y Alegaciones al Pliego de Cargos (LO 8/2014)",
+    frente: "En un expediente disciplinario por falta grave o muy grave, ¿de qué plazo dispone el expedientado para contestar al pliego de cargos y proponer prueba?",
+    reverso: "• En el procedimiento por faltas graves y muy graves (Art. 56 LO 8/2014): El pliego de cargos se notifica al interesado dándole un plazo de 10 DÍAS para formular alegaciones y proponer las pruebas que estime convenientes (y otro plazo de 10 DÍAS tras la propuesta de resolución).\n• En faltas leves (procedimiento preferentemente oral, Art. 46): Audiencia previa del interesado.",
+    clave: "LO 8/2014 Arts. 46 y 56"
+  },
+  {
+    id: "FC-084",
+    temaCodigo: "B2-T08",
+    bloque: "Bloque 2: Jurídico-Social",
+    categoria: "Plazos y Sanciones",
+    esPlazo: true,
+    concepto: "⏱️ Caducidad por Paralización Imputable al Interesado (Art. 95 Ley 39/2015)",
+    frente: "En los procedimientos iniciados a solicitud del interesado, ¿qué plazo le da la Administración antes de declarar la caducidad por paralización?",
+    reverso: "• Cuando se produzca su paralización por causa imputable al interesado, la Administración le advertirá que, transcurridos 3 MESES, se producirá la caducidad del procedimiento (Art. 95.1 Ley 39/2015).",
+    clave: "Ley 39/2015 Art. 95.1 (3 Meses)"
+  },
+  {
+    id: "FC-085",
+    temaCodigo: "B2-T08",
+    bloque: "Bloque 2: Jurídico-Social",
+    categoria: "Plazos y Sanciones",
+    esPlazo: true,
+    concepto: "⏱️ Práctica de Notificaciones en Papel y Electrónicas (Arts. 40-43 Ley 39/2015)",
+    frente: "¿En qué plazo debe cursarse toda notificación, cuándo se entiende rechazada una notificación electrónica y cómo se hace el 2º intento en domicilio?",
+    reverso: "• Plazo para cursar la notificación (Art. 40.2): Dentro del plazo de 10 DÍAS a partir de la fecha en que el acto haya sido dictado.\n• Notificación electrónica (Art. 43.2): Se entenderá RECHAZADA cuando hayan transcurrido 10 DÍAS NATURALES desde la puesta a disposición de la notificación sin que se acceda a su contenido.\n• Notificación en papel en domicilio (Art. 42.2): 2º intento dentro de los 3 DÍAS siguientes en hora distinta (con margen mínimo de 3 horas; si el 1º fue antes de las 15:00h, el 2º después de las 15:00h).",
+    clave: "Ley 39/2015 Arts. 40, 42 y 43"
+  },
+  {
+    id: "FC-086",
+    temaCodigo: "B1-T04",
+    bloque: "Bloque 1: Organización",
+    categoria: "Organigramas y Sedes",
+    esPlazo: false,
+    concepto: "⚠️ Trampa RD 205/2024: Organismos Adscritos (INTA vs INVIED/ISFAS vs CNI)",
+    frente: "Relaciona cada organismo público con el órgano superior o directivo del MINISDEF al que está adscrito:",
+    reverso: "• CNI (Centro Nacional de Inteligencia): Depende directamente de la Persona Titular del Ministerio de Defensa.\n• INTA (Instituto Nacional de Técnica Aeroespacial 'Esteban Terradas'): Adscrito a la SEDEF (Secretaría de Estado de Defensa).\n• ISFAS e INVIED: Adscritos a la SUBDEF (Subsecretaría de Defensa).",
+    clave: "RD 205/2024 (Adscripción de Organismos)"
   }
 ];
