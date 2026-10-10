@@ -1,4 +1,4 @@
-const CACHE_NAME = "permanencia-fas-v8";
+const CACHE_NAME = "permanencia-fas-v9";
 const ASSETS = [
   "./",
   "./index.html",
@@ -11,8 +11,10 @@ const ASSETS = [
   "./js/questions-wave2-data.js",
   "./js/questions-wave3-data.js",
   "./js/questions-wave4-data.js",
+  "./js/questions-wave5-data.js",
   "./js/flashcards-data.js",
   "./js/storage.js",
+  "./js/cloud-sync.js",
   "./js/simulator.js",
   "./js/app.js",
   "./manifest.json"
@@ -42,6 +44,9 @@ self.addEventListener("activate", (event) => {
 
 // Estrategia Network-First con respaldo Offline para tener siempre la última versión
 self.addEventListener("fetch", (event) => {
+  if (event.request.url.includes("/api/")) {
+    return;
+  }
   event.respondWith(
     fetch(event.request)
       .then((networkResponse) => {

@@ -89,6 +89,7 @@ class AppController {
       "tab-simulator-config",
       "tab-simulator-active",
       "tab-simulator-results",
+      "tab-baremo",
       "tab-temario",
       "tab-trampas",
       "tab-failed-bag",
@@ -111,6 +112,8 @@ class AppController {
       this.renderDashboard();
     } else if (tabName === "simulator-config") {
       this.renderOfficialExamPacks();
+    } else if (tabName === "baremo") {
+      this.renderBaremoTab();
     } else if (tabName === "temario") {
       this.renderTemario();
     } else if (tabName === "trampas") {
@@ -124,6 +127,9 @@ class AppController {
     }
 
     this.updateHeaderStats();
+    if (window.cloudSyncManager && typeof window.cloudSyncManager.updateHeaderIndicator === "function") {
+      window.cloudSyncManager.updateHeaderIndicator();
+    }
   }
 
   // ==========================================
@@ -267,12 +273,22 @@ class AppController {
     const numVal = Number(value);
     window.storageManager.saveBaremo({ [field]: isNaN(numVal) ? 0 : numVal });
     this.renderBaremoCalculator();
+    this.renderBaremoTab();
   }
 
-  renderBaremoCalculator() {
-    const container = document.getElementById("baremo-calculator-container");
-    if (!container) return;
+  addMedalPoints(delta) {
+    const b = window.storageManager.getBaremo();
+    if (delta === 0) {
+      window.storageManager.saveBaremo({ recompensasPuntos: 0 });
+    } else {
+      const next = Math.min(25, Math.max(0, Number(((Number(b.recompensasPuntos || 0)) + Number(delta)).toFixed(2))));
+      window.storageManager.saveBaremo({ recompensasPuntos: next });
+    }
+    this.renderBaremoCalculator();
+    this.renderBaremoTab();
+  }
 
+  _buildBaremoWidgetHTML(isFullTab = false) {
     const b = window.storageManager.getBaremo();
     const calc = this.calculateBaremoBreakdown(b);
     const history = window.storageManager.getSimulatorHistory();
@@ -293,190 +309,245 @@ class AppController {
     const notaExamenNecesaria = Number(Math.max(50, corteObjetivo - calc.concursoTotal).toFixed(2));
     const inPlaza = totalFinal200 >= corteObjetivo && avgExam100 >= 50;
 
-    container.innerHTML = `
-      <div class="tactical-card rounded-2xl p-5 border-2 border-emerald-500/40 bg-gradient-to-br from-slate-950 via-slate-900/95 to-emerald-950/20 space-y-4">
-        <div class="flex flex-wrap items-center justify-between gap-3 border-b border-slate-800 pb-3">
+    return `
+      <div class="tactical-card rounded-2xl p-5 sm:p-6 border-2 border-emerald-500/50 bg-gradient-to-br from-slate-950 via-slate-900/95 to-emerald-950/20 space-y-5">
+        <div class="flex flex-wrap items-center justify-between gap-3 border-b border-slate-800 pb-4">
           <div>
             <div class="flex flex-wrap items-center gap-2">
-              <span class="px-2.5 py-0.5 rounded bg-emerald-500 text-slate-950 font-black text-[11px] uppercase">
+              <span class="px-2.5 py-0.5 rounded bg-emerald-500 text-slate-950 font-black text-xs uppercase">
                 🎖️ Calculadora Oficial de Baremo + Simulador "¿Estoy en Plaza?"
               </span>
               <span class="text-xs font-mono text-amber-300">
                 Anexo II Orden DEF/1341/2017 + Orden DEF/15/2026 (Pruebas Físicas Unificadas)
               </span>
             </div>
-            <h3 class="text-base sm:text-lg font-black text-white mt-1">
-              📊 Tu Nota de Concurso (0–100 pts) + Tu Nota de Examen (0–100 pts) = Calificación Final (0–200 pts)
+            <h3 class="text-base sm:text-xl font-black text-white mt-1.5">
+              📊 Fase Concurso (0–100 pts) + Fase Oposición (0–100 pts) = Nota Final de Escalafón (0–200 pts)
             </h3>
           </div>
-          <div class="flex items-center gap-2">
-            <span class="text-xs text-slate-400 font-bold">Especialidad / Corte Ref.:</span>
+          <div class="flex flex-wrap items-center gap-2">
+            <span class="text-xs text-slate-300 font-bold">Especialidad / Corte Ref.:</span>
             <select
               onchange="window.appController.updateBaremoField('ejercitoCorte', this.value)"
-              class="p-2 rounded-xl bg-slate-950 border border-amber-500/50 text-xs font-black text-amber-300"
+              class="p-2 rounded-xl bg-slate-950 border border-amber-500/60 text-xs font-black text-amber-300"
             >
               <option value="126.5" ${corteObjetivo === 126.5 ? "selected" : ""}>🪖 ET — Especialidades Operativas (~126.5 pts)</option>
               <option value="130.5" ${corteObjetivo === 130.5 ? "selected" : ""}>🪖 ET — Corte Medio Estimado (~130.5 pts)</option>
               <option value="137.0" ${corteObjetivo === 137.0 ? "selected" : ""}>🔧 ET — Especialidades Técnicas (~137.0 pts)</option>
               <option value="134.0" ${corteObjetivo === 134.0 ? "selected" : ""}>⚓ Armada / ✈️ Ejército del Aire (~134.0 pts)</option>
             </select>
+            ${!isFullTab ? `
+              <button onclick="window.appController.showTab('baremo')" class="px-3 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-xs uppercase tracking-wider transition">
+                🎖️ Abrir Pestaña Baremo ➔
+              </button>
+            ` : ""}
           </div>
         </div>
 
         <!-- Marcador Central de Plaza -->
         <div class="grid grid-cols-1 md:grid-cols-4 gap-3">
-          <div class="p-3.5 rounded-xl bg-slate-950/90 border border-slate-800">
-            <div class="text-[11px] font-mono uppercase text-slate-400">1️⃣ Fase Concurso (Baremo)</div>
-            <div class="text-2xl font-black text-amber-400 mt-0.5">${calc.concursoTotal} <span class="text-xs font-normal text-slate-400">/ 100 pts</span></div>
-            <div class="text-[11px] text-slate-400 mt-1">
-              Prof: <strong>${calc.profTotal}</strong> • Acad: <strong>${calc.acadTotal}</strong> • IPEC: <strong>${calc.ipecTotal}</strong> • Fís: <strong>${calc.fisicasTotal}</strong>
+          <div class="p-4 rounded-xl bg-slate-950/90 border border-amber-500/40">
+            <div class="text-[11px] font-mono uppercase text-amber-300 font-bold">1️⃣ Fase Concurso (Tu Baremo)</div>
+            <div class="text-2xl sm:text-3xl font-black text-amber-400 mt-1">${calc.concursoTotal} <span class="text-xs font-normal text-slate-400">/ 100 pts</span></div>
+            <div class="text-[11px] text-slate-300 mt-1.5">
+              Prof: <strong>${calc.profTotal}/40</strong> • Acad: <strong>${calc.acadTotal}/20</strong> • IPEC: <strong>${calc.ipecTotal}/25</strong> • Fís: <strong>${calc.fisicasTotal}/15</strong>
             </div>
           </div>
 
-          <div class="p-3.5 rounded-xl bg-slate-950/90 border border-slate-800">
-            <div class="text-[11px] font-mono uppercase text-slate-400">2️⃣ Fase Oposición (Test 100p)</div>
-            <div class="text-2xl font-black text-sky-400 mt-0.5">${avgExam100} <span class="text-xs font-normal text-slate-400">/ 100 pts</span></div>
-            <div class="text-[11px] text-slate-400 mt-1">
-              ${hasRealHistory ? "Media de tus últimos simulacros" : "Estimación inicial (haz 1 simulacro)"}
+          <div class="p-4 rounded-xl bg-slate-950/90 border border-sky-500/40">
+            <div class="text-[11px] font-mono uppercase text-sky-300 font-bold">2️⃣ Fase Oposición (Test 100p)</div>
+            <div class="text-2xl sm:text-3xl font-black text-sky-400 mt-1">${avgExam100} <span class="text-xs font-normal text-slate-400">/ 100 pts</span></div>
+            <div class="text-[11px] text-slate-300 mt-1.5">
+              ${hasRealHistory ? "Media real de tus últimos simulacros" : "Estimación base 6,50/10 (haz 1 simulacro)"}
             </div>
           </div>
 
-          <div class="p-3.5 rounded-xl bg-slate-950/90 border border-slate-800">
-            <div class="text-[11px] font-mono uppercase text-slate-400">🎯 Nota Examen Necesaria</div>
-            <div class="text-2xl font-black text-emerald-400 mt-0.5">${notaExamenNecesaria} <span class="text-xs font-normal text-slate-400">/ 100 pts</span></div>
-            <div class="text-[11px] text-slate-400 mt-1">
-              Necesitas <strong>${(notaExamenNecesaria / 10).toFixed(2)}/10</strong> en el examen para el corte
+          <div class="p-4 rounded-xl bg-slate-950/90 border border-emerald-500/40">
+            <div class="text-[11px] font-mono uppercase text-emerald-300 font-bold">🎯 Nota Examen Necesaria</div>
+            <div class="text-2xl sm:text-3xl font-black text-emerald-400 mt-1">${notaExamenNecesaria} <span class="text-xs font-normal text-slate-400">/ 100 pts</span></div>
+            <div class="text-[11px] text-slate-300 mt-1.5">
+              Con tu baremo necesitas un <strong>${(notaExamenNecesaria / 10).toFixed(2)} sobre 10</strong> en el examen oficial
             </div>
           </div>
 
-          <div class="p-3.5 rounded-xl border-2 ${inPlaza ? "bg-emerald-950/40 border-emerald-500" : "bg-amber-950/30 border-amber-500/70"}">
+          <div class="p-4 rounded-xl border-2 ${inPlaza ? "bg-emerald-950/40 border-emerald-500" : "bg-amber-950/30 border-amber-500/70"}">
             <div class="text-[11px] font-mono uppercase ${inPlaza ? "text-emerald-300" : "text-amber-300"} font-bold">
               ${inPlaza ? "🏆 PROYECCIÓN: ¡EN PLAZA!" : "⚠️ PROYECCIÓN: AÚN FUERA DE CORTE"}
             </div>
-            <div class="text-2xl font-black text-white mt-0.5">
+            <div class="text-2xl sm:text-3xl font-black text-white mt-1">
               ${totalFinal200} <span class="text-xs font-normal text-slate-300">/ 200 pts</span>
             </div>
-            <div class="text-[11px] ${inPlaza ? "text-emerald-300" : "text-amber-200"} mt-1 font-semibold">
+            <div class="text-[11px] ${inPlaza ? "text-emerald-300" : "text-amber-200"} mt-1.5 font-semibold">
               ${diffCorte >= 0 ? `+${diffCorte} pts por encima del corte (${corteObjetivo})` : `Te faltan ${Math.abs(diffCorte)} pts para el corte (${corteObjetivo})`}
             </div>
           </div>
         </div>
 
-        <!-- Controles Rápidos de los 4 Bloques del Baremo Oficial -->
-        <details class="group bg-slate-950/80 rounded-xl border border-slate-800 p-3.5">
-          <summary class="cursor-pointer text-xs font-black uppercase text-amber-400 flex items-center justify-between">
-            <span>⚙️ Configurar mis puntos reales de Baremo (Tiempos, Empleo, SLP, Titulación, IPEC y Físicas)</span>
-            <span class="text-slate-400 group-open:rotate-180 transition">▼</span>
-          </summary>
-
-          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 mt-3 pt-3 border-t border-slate-800 text-xs">
-            <!-- Bloque 1: Profesionales (Máx 40) -->
-            <div class="p-3 rounded-xl bg-slate-900/70 border border-slate-800 space-y-2">
-              <div class="font-black text-amber-300 uppercase flex justify-between">
-                <span>1. Profesionales</span>
-                <span>${calc.profTotal}/40</span>
-              </div>
-              <div>
-                <label class="block text-[11px] text-slate-400">Meses en Unidad Preferente (0,08/mes):</label>
-                <input type="number" min="0" max="300" value="${b.mesesPreferente}" onchange="window.appController.updateBaremoField('mesesPreferente', this.value)" class="w-full mt-0.5 p-1.5 rounded bg-slate-950 border border-slate-700 text-white font-mono" />
-              </div>
-              <div>
-                <label class="block text-[11px] text-slate-400">Meses en Otras Unidades (0,04/mes):</label>
-                <input type="number" min="0" max="300" value="${b.mesesOtras}" onchange="window.appController.updateBaremoField('mesesOtras', this.value)" class="w-full mt-0.5 p-1.5 rounded bg-slate-950 border border-slate-700 text-white font-mono" />
-              </div>
-              <div>
-                <label class="block text-[11px] text-slate-400">Meses Misión Extranjero (máx 24 • 0,10/mes):</label>
-                <input type="number" min="0" max="24" value="${b.mesesMision}" onchange="window.appController.updateBaremoField('mesesMision', this.value)" class="w-full mt-0.5 p-1.5 rounded bg-slate-950 border border-slate-700 text-white font-mono" />
-              </div>
-              <div class="grid grid-cols-2 gap-1.5">
-                <div>
-                  <label class="block text-[11px] text-slate-400">Empleo:</label>
-                  <select onchange="window.appController.updateBaremoField('empleo', this.value)" class="w-full mt-0.5 p-1.5 rounded bg-slate-950 border border-slate-700 text-white">
-                    <option value="5" ${Number(b.empleo) === 5 ? "selected" : ""}>Cabo 1º (5p)</option>
-                    <option value="2" ${Number(b.empleo) === 2 ? "selected" : ""}>Cabo (2p)</option>
-                    <option value="1" ${Number(b.empleo) === 1 ? "selected" : ""}>Sold. 1ª (1p)</option>
-                    <option value="0" ${Number(b.empleo) === 0 ? "selected" : ""}>Soldado (0p)</option>
-                  </select>
-                </div>
-                <div>
-                  <label class="block text-[11px] text-slate-400">Medallas/Felic. (pts):</label>
-                  <input type="number" step="0.25" min="0" max="25" value="${b.recompensasPuntos}" onchange="window.appController.updateBaremoField('recompensasPuntos', this.value)" class="w-full mt-0.5 p-1.5 rounded bg-slate-950 border border-slate-700 text-white font-mono" />
-                </div>
-              </div>
+        <!-- Los 4 Bloques Oficiales del Baremo (Abiertos y Editables en Tiempo Real) -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 text-xs">
+          <!-- Bloque 1: Profesionales (Máx 40) -->
+          <div class="p-4 rounded-xl bg-slate-900/80 border border-amber-500/40 space-y-2.5">
+            <div class="font-black text-amber-300 uppercase flex justify-between items-center border-b border-slate-800 pb-1.5">
+              <span>🎖️ 1. Méritos Profesionales</span>
+              <span class="px-2 py-0.5 rounded bg-amber-950 text-amber-300 font-mono">${calc.profTotal} / 40</span>
             </div>
-
-            <!-- Bloque 2: Académicos (Máx 20) -->
-            <div class="p-3 rounded-xl bg-slate-900/70 border border-slate-800 space-y-2">
-              <div class="font-black text-emerald-300 uppercase flex justify-between">
-                <span>2. Académicos</span>
-                <span>${calc.acadTotal}/20</span>
-              </div>
+            <div>
+              <label class="block text-[11px] text-slate-300 font-semibold">Meses en Unidad Preferente (0,08 pts/mes):</label>
+              <input type="number" min="0" max="300" value="${b.mesesPreferente}" onchange="window.appController.updateBaremoField('mesesPreferente', this.value)" class="w-full mt-1 p-2 rounded-lg bg-slate-950 border border-slate-700 text-white font-mono" />
+            </div>
+            <div>
+              <label class="block text-[11px] text-slate-300 font-semibold">Meses en Otras Unidades (0,04 pts/mes):</label>
+              <input type="number" min="0" max="300" value="${b.mesesOtras}" onchange="window.appController.updateBaremoField('mesesOtras', this.value)" class="w-full mt-1 p-2 rounded-lg bg-slate-950 border border-slate-700 text-white font-mono" />
+            </div>
+            <div>
+              <label class="block text-[11px] text-slate-300 font-semibold">Meses Misión Extranjero (máx 24 • 0,10/mes):</label>
+              <input type="number" min="0" max="24" value="${b.mesesMision}" onchange="window.appController.updateBaremoField('mesesMision', this.value)" class="w-full mt-1 p-2 rounded-lg bg-slate-950 border border-slate-700 text-white font-mono" />
+            </div>
+            <div class="grid grid-cols-2 gap-2">
               <div>
-                <label class="block text-[11px] text-slate-400">Titulación Académica (1 título):</label>
-                <select onchange="window.appController.updateBaremoField('titulacionPuntos', this.value)" class="w-full mt-0.5 p-1.5 rounded bg-slate-950 border border-slate-700 text-white">
-                  <option value="6" ${Number(b.titulacionPuntos) === 6 ? "selected" : ""}>Doctor MECES 4 (6 pts)</option>
-                  <option value="5" ${Number(b.titulacionPuntos) === 5 ? "selected" : ""}>Máster / Licenciado MECES 3 (5 pts)</option>
-                  <option value="4" ${Number(b.titulacionPuntos) === 4 ? "selected" : ""}>Grado Univ. MECES 2 (4 pts)</option>
-                  <option value="3.5" ${Number(b.titulacionPuntos) === 3.5 ? "selected" : ""}>Diplomado / Ing. Téc. (3,5 pts)</option>
-                  <option value="3" ${Number(b.titulacionPuntos) === 3 ? "selected" : ""}>Técnico Superior FP GS (3 pts)</option>
-                  <option value="2" ${Number(b.titulacionPuntos) === 2 ? "selected" : ""}>Bachiller o equivalente (2 pts)</option>
-                  <option value="0" ${Number(b.titulacionPuntos) === 0 ? "selected" : ""}>ESO / Sin título baremable (0 pts)</option>
+                <label class="block text-[11px] text-slate-300 font-semibold">Empleo actual:</label>
+                <select onchange="window.appController.updateBaremoField('empleo', this.value)" class="w-full mt-1 p-2 rounded-lg bg-slate-950 border border-slate-700 text-white">
+                  <option value="5" ${Number(b.empleo) === 5 ? "selected" : ""}>Cabo 1º (5p)</option>
+                  <option value="2" ${Number(b.empleo) === 2 ? "selected" : ""}>Cabo (2p)</option>
+                  <option value="1" ${Number(b.empleo) === 1 ? "selected" : ""}>Sold. 1ª (1p)</option>
+                  <option value="0" ${Number(b.empleo) === 0 ? "selected" : ""}>Soldado (0p)</option>
                 </select>
               </div>
               <div>
-                <label class="block text-[11px] text-slate-400">Idioma Inglés (SLP en vigor):</label>
-                <select onchange="window.appController.updateBaremoField('inglesPuntos', this.value)" class="w-full mt-0.5 p-1.5 rounded bg-slate-950 border border-slate-700 text-white">
-                  <option value="0" ${Number(b.inglesPuntos) === 0 ? "selected" : ""}>Sin perfil SLP inglés (0 pts)</option>
-                  <option value="1" ${Number(b.inglesPuntos) === 1 ? "selected" : ""}>SLP Funcional 1.1.1.1 (1 pt)</option>
-                  <option value="3" ${Number(b.inglesPuntos) === 3 ? "selected" : ""}>SLP Profesional 2.2.2.2 (3 pts)</option>
-                  <option value="5" ${Number(b.inglesPuntos) === 5 ? "selected" : ""}>SLP Experto 3.3.3.3+ (5 pts)</option>
-                </select>
-              </div>
-              <div class="grid grid-cols-2 gap-1.5">
-                <div>
-                  <label class="block text-[11px] text-slate-400">Cursos Espec. (2p):</label>
-                  <input type="number" min="0" max="4" value="${b.cursosEspecializacion}" onchange="window.appController.updateBaremoField('cursosEspecializacion', this.value)" class="w-full mt-0.5 p-1.5 rounded bg-slate-950 border border-slate-700 text-white font-mono" />
-                </div>
-                <div>
-                  <label class="block text-[11px] text-slate-400">Cursos Inf. (0,5p):</label>
-                  <input type="number" min="0" max="4" value="${b.cursosInformativos}" onchange="window.appController.updateBaremoField('cursosInformativos', this.value)" class="w-full mt-0.5 p-1.5 rounded bg-slate-950 border border-slate-700 text-white font-mono" />
-                </div>
+                <label class="block text-[11px] text-slate-300 font-semibold">Medallas/Felic.:</label>
+                <input type="number" step="0.25" min="0" max="25" value="${b.recompensasPuntos}" onchange="window.appController.updateBaremoField('recompensasPuntos', this.value)" class="w-full mt-1 p-2 rounded-lg bg-slate-950 border border-slate-700 text-white font-mono" />
               </div>
             </div>
-
-            <!-- Bloque 3: IPEC (Máx 25) -->
-            <div class="p-3 rounded-xl bg-slate-900/70 border border-slate-800 space-y-2">
-              <div class="font-black text-sky-300 uppercase flex justify-between">
-                <span>3. Informes IPEC</span>
-                <span>${calc.ipecTotal}/25</span>
+            <div class="pt-1 border-t border-slate-800/80 space-y-1">
+              <span class="text-[10px] font-bold text-amber-400 uppercase block">⚡ Sumador Rápido Recompensas:</span>
+              <div class="flex flex-wrap gap-1">
+                <button onclick="window.appController.addMedalPoints(2.0)" class="px-1.5 py-0.5 rounded bg-amber-950/90 hover:bg-amber-900 text-amber-200 border border-amber-700 text-[10px] font-bold" title="Cruz al Mérito Militar/Naval/Aeronáutico con Distintivo Blanco (+2,00 pts)">+2,0 Cruz Blanco</button>
+                <button onclick="window.appController.addMedalPoints(1.0)" class="px-1.5 py-0.5 rounded bg-amber-950/90 hover:bg-amber-900 text-amber-200 border border-amber-700 text-[10px] font-bold" title="Mención Honorífica (+1,00 pt)">+1,0 Mención</button>
+                <button onclick="window.appController.addMedalPoints(0.5)" class="px-1.5 py-0.5 rounded bg-slate-800 hover:bg-slate-700 text-slate-200 text-[10px] font-bold" title="Felicitación Individual en Orden General (+0,50 pts)">+0,5 Fel. OG</button>
+                <button onclick="window.appController.addMedalPoints(0.25)" class="px-1.5 py-0.5 rounded bg-slate-800 hover:bg-slate-700 text-slate-200 text-[10px] font-bold" title="Felicitación Individual anotada en Hoja de Servicios (+0,25 pts)">+0,25 Fel. HS</button>
+                <button onclick="window.appController.addMedalPoints(0)" class="px-1.5 py-0.5 rounded bg-red-950/80 hover:bg-red-900 text-red-300 text-[10px] font-bold">Reset 0</button>
               </div>
-              <div>
-                <label class="block text-[11px] text-slate-400">Nota Media 5 últimos IPEC (sobre 10):</label>
-                <input type="number" step="0.1" min="0" max="10" value="${b.ipecMedia}" onchange="window.appController.updateBaremoField('ipecMedia', this.value)" class="w-full mt-0.5 p-1.5 rounded bg-slate-950 border border-slate-700 text-white font-mono" />
-              </div>
-              <p class="text-[11px] text-slate-400 leading-relaxed">
-                📌 El Anexo II multiplica tu nota media de los 5 últimos IPEC por <strong>2,5</strong> (ej: media de 8,0 = 20,00 puntos).
-              </p>
             </div>
+          </div>
 
-            <!-- Bloque 4: Aptitud Psicofísica (Máx 15) -->
-            <div class="p-3 rounded-xl bg-slate-900/70 border border-slate-800 space-y-2">
-              <div class="font-black text-purple-300 uppercase flex justify-between">
-                <span>4. Físicas (DEF/15/2026)</span>
-                <span>${calc.fisicasTotal}/15</span>
+          <!-- Bloque 2: Académicos (Máx 20) -->
+          <div class="p-4 rounded-xl bg-slate-900/80 border border-emerald-500/40 space-y-2.5">
+            <div class="font-black text-emerald-300 uppercase flex justify-between items-center border-b border-slate-800 pb-1.5">
+              <span>🎓 2. Méritos Académicos</span>
+              <span class="px-2 py-0.5 rounded bg-emerald-950 text-emerald-300 font-mono">${calc.acadTotal} / 20</span>
+            </div>
+            <div>
+              <label class="block text-[11px] text-slate-300 font-semibold">Titulación Académica (se valora la mayor):</label>
+              <select onchange="window.appController.updateBaremoField('titulacionPuntos', this.value)" class="w-full mt-1 p-2 rounded-lg bg-slate-950 border border-slate-700 text-white">
+                <option value="6" ${Number(b.titulacionPuntos) === 6 ? "selected" : ""}>Doctor MECES 4 (6 pts)</option>
+                <option value="5" ${Number(b.titulacionPuntos) === 5 ? "selected" : ""}>Máster / Licenciado MECES 3 (5 pts)</option>
+                <option value="4" ${Number(b.titulacionPuntos) === 4 ? "selected" : ""}>Grado Univ. MECES 2 (4 pts)</option>
+                <option value="3.5" ${Number(b.titulacionPuntos) === 3.5 ? "selected" : ""}>Diplomado / Ing. Téc. (3,5 pts)</option>
+                <option value="3" ${Number(b.titulacionPuntos) === 3 ? "selected" : ""}>Técnico Superior FP GS (3 pts)</option>
+                <option value="2" ${Number(b.titulacionPuntos) === 2 ? "selected" : ""}>Bachiller o equivalente (2 pts)</option>
+                <option value="0" ${Number(b.titulacionPuntos) === 0 ? "selected" : ""}>ESO / Técnico GM (0 pts)</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-[11px] text-slate-300 font-semibold">Idioma Inglés (SLP en vigor):</label>
+              <select onchange="window.appController.updateBaremoField('inglesPuntos', this.value)" class="w-full mt-1 p-2 rounded-lg bg-slate-950 border border-slate-700 text-white">
+                <option value="0" ${Number(b.inglesPuntos) === 0 ? "selected" : ""}>Sin perfil SLP inglés (0 pts)</option>
+                <option value="1" ${Number(b.inglesPuntos) === 1 ? "selected" : ""}>SLP Funcional 1.1.1.1 (1 pt)</option>
+                <option value="3" ${Number(b.inglesPuntos) === 3 ? "selected" : ""}>SLP Profesional 2.2.2.2 (3 pts)</option>
+                <option value="5" ${Number(b.inglesPuntos) === 5 ? "selected" : ""}>SLP Experto 3.3.3.3+ (5 pts)</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-[11px] text-slate-300 font-semibold">Otros Idiomas Extranjeros (pts SLP):</label>
+              <input type="number" step="0.5" min="0" max="6" value="${b.otroIdiomaPuntos || 0}" onchange="window.appController.updateBaremoField('otroIdiomaPuntos', this.value)" class="w-full mt-1 p-2 rounded-lg bg-slate-950 border border-slate-700 text-white font-mono" />
+            </div>
+            <div class="grid grid-cols-2 gap-2">
+              <div>
+                <label class="block text-[11px] text-slate-300 font-semibold">Cursos Espec. (2p):</label>
+                <input type="number" min="0" max="4" value="${b.cursosEspecializacion}" onchange="window.appController.updateBaremoField('cursosEspecializacion', this.value)" class="w-full mt-1 p-2 rounded-lg bg-slate-950 border border-slate-700 text-white font-mono" />
               </div>
               <div>
-                <label class="block text-[11px] text-slate-400">Puntos Pruebas Físicas (0 a 15 pts):</label>
-                <input type="number" step="0.5" min="0" max="15" value="${b.fisicasPuntos}" onchange="window.appController.updateBaremoField('fisicasPuntos', this.value)" class="w-full mt-0.5 p-1.5 rounded bg-slate-950 border border-slate-700 text-white font-mono" />
+                <label class="block text-[11px] text-slate-300 font-semibold">Cursos Inf. (0,5p):</label>
+                <input type="number" min="0" max="4" value="${b.cursosInformativos}" onchange="window.appController.updateBaremoField('cursosInformativos', this.value)" class="w-full mt-1 p-2 rounded-lg bg-slate-950 border border-slate-700 text-white font-mono" />
               </div>
-              <p class="text-[11px] text-slate-400 leading-relaxed">
-                🆕 Actualizado a la <strong>Orden DEF/15/2026 (BOE 21/01/2026)</strong> que unifica las pruebas físicas en las FAS.
+            </div>
+          </div>
+
+          <!-- Bloque 3: IPEC (Máx 25) -->
+          <div class="p-4 rounded-xl bg-slate-900/80 border border-sky-500/40 space-y-2.5">
+            <div class="font-black text-sky-300 uppercase flex justify-between items-center border-b border-slate-800 pb-1.5">
+              <span>📋 3. Informes IPEC</span>
+              <span class="px-2 py-0.5 rounded bg-sky-950 text-sky-300 font-mono">${calc.ipecTotal} / 25</span>
+            </div>
+            <div>
+              <label class="block text-[11px] text-slate-300 font-semibold">Nota Media 5 últimos IPEC (sobre 10):</label>
+              <input type="number" step="0.1" min="0" max="10" value="${b.ipecMedia}" onchange="window.appController.updateBaremoField('ipecMedia', this.value)" class="w-full mt-1 p-2 rounded-lg bg-slate-950 border border-slate-700 text-white font-mono" />
+            </div>
+            <div class="p-2.5 rounded-lg bg-slate-950/80 border border-slate-800 text-[11px] text-slate-300 space-y-1">
+              <div>📌 <strong>Fórmula Oficial Anexo II:</strong></div>
+              <div class="font-mono text-sky-300">Nota Media IPEC × 2,5 = ${calc.ipecTotal} pts</div>
+              <p class="text-slate-400">Ejemplo: una media de 8,0 en los últimos 5 IPEC aporta 20,00 puntos directos sobre 25.</p>
+            </div>
+          </div>
+
+          <!-- Bloque 4: Aptitud Psicofísica (Máx 15) -->
+          <div class="p-4 rounded-xl bg-slate-900/80 border border-purple-500/40 space-y-2.5">
+            <div class="font-black text-purple-300 uppercase flex justify-between items-center border-b border-slate-800 pb-1.5">
+              <span>🏃 4. Físicas (DEF/15/2026)</span>
+              <span class="px-2 py-0.5 rounded bg-purple-950 text-purple-300 font-mono">${calc.fisicasTotal} / 15</span>
+            </div>
+            <div>
+              <label class="block text-[11px] text-slate-300 font-semibold">Puntos Pruebas Físicas (0 a 15 pts):</label>
+              <input type="number" step="0.5" min="0" max="15" value="${b.fisicasPuntos}" onchange="window.appController.updateBaremoField('fisicasPuntos', this.value)" class="w-full mt-1 p-2 rounded-lg bg-slate-950 border border-slate-700 text-white font-mono" />
+            </div>
+            <div class="p-2.5 rounded-lg bg-slate-950/80 border border-slate-800 text-[11px] text-slate-300 space-y-1">
+              <div class="text-purple-300 font-bold">🆕 Orden DEF/15/2026 (BOE 21/01/2026):</div>
+              <p class="text-slate-400 leading-relaxed">
+                Unifica la evaluación física periódica en las FAS. La puntuación obtenida en el TGCF en vigor se pondera hasta un máximo de <strong>15 puntos</strong> en la fase de concurso.
               </p>
             </div>
           </div>
-        </details>
+        </div>
+
+        ${isFullTab ? `
+          <!-- Guía Rápida del Baremo Oficial Orden DEF/1341/2017 -->
+          <div class="p-4 rounded-2xl bg-slate-950/90 border border-slate-800 space-y-3 text-xs">
+            <h4 class="font-black text-amber-400 uppercase">📌 Desglose Oficial del Proceso Selectivo (Concurso-Oposición: 200 Puntos Totales)</h4>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-3 text-slate-300">
+              <div class="p-3 rounded-xl bg-slate-900/70 border border-slate-800">
+                <strong class="text-white block mb-1">1️⃣ Fase de Concurso (Máximo 100 pts)</strong>
+                • Méritos Profesionales: hasta <strong>40 pts</strong><br>
+                • Méritos Académicos (Título + SLP + Cursos): hasta <strong>20 pts</strong><br>
+                • Informes Personales (IPEC × 2,5): hasta <strong>25 pts</strong><br>
+                • Aptitud Psicofísica (Orden DEF/15/2026): hasta <strong>15 pts</strong>
+              </div>
+              <div class="p-3 rounded-xl bg-slate-900/70 border border-slate-800">
+                <strong class="text-white block mb-1">2️⃣ Fase de Oposición (Máximo 100 pts)</strong>
+                • 1 prueba tipo test de <strong>100 preguntas</strong> sobre los 3 Bloques del programa oficial (21 Temas BOE / 28 Temas Vídeos).<br>
+                • Fórmula oficial: <code class="text-amber-300">P = A - (E / 3)</code>.<br>
+                • Eliminatorio: mínimo <strong>50 puntos</strong> para no quedar excluido.
+              </div>
+              <div class="p-3 rounded-xl bg-slate-900/70 border border-slate-800">
+                <strong class="text-white block mb-1">3️⃣ Estrategia para Subir Baremo Antes del BOD</strong>
+                • Acreditar un <strong>SLP 1.1.1.1 (+1p)</strong> o <strong>2.2.2.2 (+3p)</strong> de inglés o un título de <strong>Técnico Superior FP (+3p)</strong> equivale a <strong>3 respuestas netas más</strong> en el examen oficial.
+              </div>
+            </div>
+          </div>
+        ` : ""}
       </div>
     `;
+  }
+
+  renderBaremoCalculator() {
+    const container = document.getElementById("baremo-calculator-container");
+    if (!container) return;
+    container.innerHTML = this._buildBaremoWidgetHTML(false);
+  }
+
+  renderBaremoTab() {
+    const container = document.getElementById("baremo-full-tab-container");
+    if (!container) return;
+    container.innerHTML = this._buildBaremoWidgetHTML(true);
   }
 
   // ==========================================
@@ -3315,9 +3386,263 @@ Devuelve ÚNICAMENTE el bloque JSON válido.`;
   }
 
   renderImporter() {
+    this.renderCloudSyncPanel();
     const promptEl = document.getElementById("notebooklm-prompt-text");
     if (promptEl) {
       promptEl.value = this.getNotebookLMPromptByType("video_questions");
+    }
+  }
+
+  renderCloudSyncPanel(statusBanner = null) {
+    const container = document.getElementById("cloud-sync-panel-container");
+    if (!container || !window.cloudSyncManager) return;
+
+    const cfg = window.cloudSyncManager.getConfig();
+    const lastSyncFormatted = cfg.lastSyncAt
+      ? new Date(cfg.lastSyncAt).toLocaleString("es-ES")
+      : "Pendiente de primera sincronización";
+
+    container.innerHTML = `
+      <div class="tactical-card rounded-2xl p-6 border-2 border-sky-500/50 bg-gradient-to-br from-slate-950 via-slate-900/95 to-sky-950/20 space-y-5">
+        <div class="flex flex-wrap items-center justify-between gap-3 border-b border-slate-800 pb-4">
+          <div class="flex items-center space-x-3">
+            <span class="text-3xl">☁️</span>
+            <div>
+              <div class="flex flex-wrap items-center gap-2">
+                <span class="px-2.5 py-0.5 rounded bg-sky-500 text-slate-950 font-black text-xs uppercase">
+                  Base de Datos en la Nube • Multi-Dispositivo
+                </span>
+                <span class="text-xs font-mono ${cfg.enabled ? "text-emerald-400" : "text-amber-300"}">
+                  ${cfg.enabled ? "🟢 Auto-Sync Activo (Últ. sync: " + lastSyncFormatted + ")" : "⚙️ Listo para conectar"}
+                </span>
+              </div>
+              <h2 class="text-lg sm:text-xl font-black text-white mt-1">
+                Sincronización en Tiempo Real (PC ↔ Móvil ↔ Tablet)
+              </h2>
+              <p class="text-xs text-slate-300">
+                Sincroniza automáticamente tus <strong>Subrayados Fluorescentes, Post-its, Calculadora de Baremo, Bolsa de Fallos, Racha, XP y Récords de los 16 Simulacros</strong>.
+              </p>
+            </div>
+          </div>
+
+          <div class="flex flex-wrap gap-2">
+            <button onclick="window.appController.triggerCloudPush()" class="px-4 py-2.5 rounded-xl bg-sky-500 hover:bg-sky-400 text-slate-950 font-black text-xs uppercase tracking-wider transition shadow-lg flex items-center space-x-1.5">
+              <span>☁️⬆️</span><span>Subir a la Nube Ahora</span>
+            </button>
+            <button onclick="window.appController.triggerCloudPull()" class="px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-black text-xs uppercase tracking-wider transition shadow-lg flex items-center space-x-1.5">
+              <span>☁️⬇️</span><span>Descargar de la Nube</span>
+            </button>
+          </div>
+        </div>
+
+        ${statusBanner ? `
+          <div class="p-3.5 rounded-xl border text-xs font-bold ${statusBanner.ok ? "bg-emerald-950/60 border-emerald-500 text-emerald-200" : "bg-red-950/60 border-red-500 text-red-200"}">
+            ${statusBanner.message}
+          </div>
+        ` : ""}
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 text-xs">
+          <!-- Columna 1: Selector de Motor Cloud y Clave Militar -->
+          <div class="p-4 rounded-xl bg-slate-950/80 border border-slate-800 space-y-3">
+            <h3 class="font-black text-sky-300 uppercase">1️⃣ Motor de Base de Datos & Identificador</h3>
+            <div>
+              <label class="block text-[11px] text-slate-300 font-semibold">Proveedor de Base de Datos en la Nube:</label>
+              <select id="cloud-provider-select" onchange="window.appController.onCloudProviderSelectChange(this.value)" class="w-full mt-1 p-2 rounded-lg bg-slate-900 border border-slate-700 text-white font-semibold">
+                <option value="local_server" ${cfg.provider === "local_server" ? "selected" : ""}>🖥️ Servidor Node Local / Wi-Fi LAN (Sin registro)</option>
+                <option value="firebase" ${cfg.provider === "firebase" ? "selected" : ""}>🔥 Firebase Realtime DB (Internet 24/7 • Recomendado Móvil)</option>
+                <option value="github_gist" ${cfg.provider === "github_gist" ? "selected" : ""}>🐙 GitHub Cloud Vault (Gist Privado en tu cuenta GitHub)</option>
+                <option value="supabase" ${cfg.provider === "supabase" ? "selected" : ""}>⚡ Supabase PostgreSQL Cloud API</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-[11px] text-slate-300 font-semibold">Clave / PIN Militar de Usuario (pon la misma en PC y Móvil):</label>
+              <input id="cloud-sync-key-input" type="text" value="${cfg.syncKey || "TROPA-PERMANENTE-2026"}" placeholder="Ej: TROPA-TUMBEROS-2026" class="w-full mt-1 p-2 rounded-lg bg-slate-900 border border-slate-700 text-amber-300 font-mono font-bold" />
+            </div>
+            <label class="flex items-center space-x-2 pt-1 cursor-pointer">
+              <input id="cloud-autosync-checkbox" type="checkbox" ${cfg.autoSync !== false ? "checked" : ""} class="rounded border-slate-700 text-sky-500" />
+              <span class="text-slate-200 font-semibold">Sincronizar automáticamente al subrayar o terminar un test</span>
+            </label>
+          </div>
+
+          <!-- Columna 2: Credenciales según el Motor Elegido -->
+          <div class="p-4 rounded-xl bg-slate-950/80 border border-slate-800 space-y-3">
+            <h3 class="font-black text-amber-300 uppercase">2️⃣ Conexión del Motor Seleccionado</h3>
+
+            <div id="cloud-fields-local" class="${cfg.provider === "local_server" ? "" : "hidden"} space-y-2">
+              <p class="text-slate-300 leading-relaxed">
+                ✅ <strong>¡Ya está activo en tu servidor local (<code class="text-emerald-300">/api/cloud-sync</code>)!</strong> Guarda automáticamente tu base de datos en <code class="text-amber-300">data/cloud-sync-db.json</code>.
+              </p>
+              <p class="text-[11px] text-slate-400">
+                Si abres la app desde tu móvil conectado al mismo Wi-Fi que tu PC (o en <code class="text-sky-300">localhost:3000</code>), se sincroniza al instante sin cuentas externas. Para sincronizar fuera de casa por 4G/5G desde GitHub Pages, elige <strong>Firebase</strong> o <strong>GitHub Cloud Vault</strong>.
+              </p>
+            </div>
+
+            <div id="cloud-fields-firebase" class="${cfg.provider === "firebase" ? "" : "hidden"} space-y-2">
+              <div>
+                <label class="block text-[11px] text-slate-300 font-semibold">URL de tu Firebase Realtime Database:</label>
+                <input id="cloud-firebase-url-input" type="text" value="${cfg.firebaseUrl || ""}" placeholder="https://tu-proyecto-default-rtdb.europe-west1.firebasedatabase.app" class="w-full mt-1 p-2 rounded-lg bg-slate-900 border border-slate-700 text-white font-mono text-[11px]" />
+              </div>
+              <div>
+                <label class="block text-[11px] text-slate-300 font-semibold">Database Secret / Auth Token (opcional si reglas públicas):</label>
+                <input id="cloud-firebase-secret-input" type="password" value="${cfg.firebaseSecret || ""}" placeholder="Opcional" class="w-full mt-1 p-2 rounded-lg bg-slate-900 border border-slate-700 text-white font-mono text-[11px]" />
+              </div>
+              <p class="text-[10px] text-slate-400">
+                💡 Crea gratis una Realtime Database en <em>console.firebase.google.com</em>, pega aquí la URL en tu PC y en tu móvil y tendrás sincronización 24/7 por Internet.
+              </p>
+            </div>
+
+            <div id="cloud-fields-github" class="${cfg.provider === "github_gist" ? "" : "hidden"} space-y-2">
+              <div>
+                <label class="block text-[11px] text-slate-300 font-semibold">GitHub Personal Access Token (con permiso <code class="text-amber-300">gist</code>):</label>
+                <input id="cloud-github-token-input" type="password" value="${cfg.githubToken || ""}" placeholder="ghp_xxxxxxxxxxxx" class="w-full mt-1 p-2 rounded-lg bg-slate-900 border border-slate-700 text-white font-mono text-[11px]" />
+              </div>
+              <div>
+                <label class="block text-[11px] text-slate-300 font-semibold">ID del Gist (se rellena solo al subir la 1ª vez):</label>
+                <input id="cloud-gist-id-input" type="text" value="${cfg.gistId || ""}" placeholder="Auto-creado al pulsar Subir a la Nube" class="w-full mt-1 p-2 rounded-lg bg-slate-900 border border-slate-700 text-emerald-300 font-mono text-[11px]" />
+              </div>
+            </div>
+
+            <div id="cloud-fields-supabase" class="${cfg.provider === "supabase" ? "" : "hidden"} space-y-2">
+              <div>
+                <label class="block text-[11px] text-slate-300 font-semibold">Supabase Project URL:</label>
+                <input id="cloud-supabase-url-input" type="text" value="${cfg.supabaseUrl || ""}" placeholder="https://xxxx.supabase.co" class="w-full mt-1 p-2 rounded-lg bg-slate-900 border border-slate-700 text-white font-mono text-[11px]" />
+              </div>
+              <div>
+                <label class="block text-[11px] text-slate-300 font-semibold">Supabase Anon API Key:</label>
+                <input id="cloud-supabase-key-input" type="password" value="${cfg.supabaseKey || ""}" placeholder="eyJhbGci..." class="w-full mt-1 p-2 rounded-lg bg-slate-900 border border-slate-700 text-white font-mono text-[11px]" />
+              </div>
+            </div>
+
+            <button onclick="window.appController.saveCloudConfigFromUI()" class="w-full py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs uppercase tracking-wider transition">
+              💾 Guardar Configuración & Activar Nube
+            </button>
+          </div>
+
+          <!-- Columna 3: Código Rápido de Transferencia Instantánea (WhatsApp / Telegram) -->
+          <div class="p-4 rounded-xl bg-slate-950/80 border border-slate-800 space-y-2.5 flex flex-col justify-between">
+            <div class="space-y-2">
+              <h3 class="font-black text-emerald-300 uppercase">3️⃣ Pase Rápido por Código (PC ↔ Móvil en 3 seg)</h3>
+              <p class="text-[11px] text-slate-300 leading-relaxed">
+                ¿Quieres pasar ahora mismo todo tu progreso al móvil o tablet por WhatsApp o Telegram sin configurar nada? Copia tu <strong>Código Militar Comprimido</strong> y pégalo en el otro dispositivo:
+              </p>
+              <button onclick="window.appController.copyInstantTransferCode()" class="w-full py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-amber-300 border border-amber-500/40 font-black text-xs uppercase transition">
+                📋 Copiar Código de Transferencia (PFAS9)
+              </button>
+              <textarea id="instant-transfer-code-input" rows="2" placeholder="O pega aquí el código PFAS9:... recibido desde tu otro dispositivo" class="w-full p-2 rounded-lg bg-slate-900 border border-slate-700 text-[10px] font-mono text-slate-200"></textarea>
+            </div>
+            <button onclick="window.appController.applyInstantTransferCodeFromUI()" class="w-full py-2 rounded-xl bg-emerald-700 hover:bg-emerald-600 text-white font-black text-xs uppercase transition">
+              ⚡ Aplicar Código en este Dispositivo
+            </button>
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+  onCloudProviderSelectChange(provider) {
+    ["local", "firebase", "github", "supabase"].forEach(k => {
+      const el = document.getElementById(`cloud-fields-${k}`);
+      if (el) el.classList.add("hidden");
+    });
+    const map = {
+      local_server: "cloud-fields-local",
+      firebase: "cloud-fields-firebase",
+      github_gist: "cloud-fields-github",
+      supabase: "cloud-fields-supabase"
+    };
+    const target = document.getElementById(map[provider]);
+    if (target) target.classList.remove("hidden");
+  }
+
+  _collectCloudConfigFromInputs() {
+    const provider = (document.getElementById("cloud-provider-select") || {}).value || "local_server";
+    const syncKey = ((document.getElementById("cloud-sync-key-input") || {}).value || "TROPA-PERMANENTE-2026").trim();
+    const autoSync = Boolean((document.getElementById("cloud-autosync-checkbox") || {}).checked);
+    const firebaseUrl = ((document.getElementById("cloud-firebase-url-input") || {}).value || "").trim();
+    const firebaseSecret = ((document.getElementById("cloud-firebase-secret-input") || {}).value || "").trim();
+    const githubToken = ((document.getElementById("cloud-github-token-input") || {}).value || "").trim();
+    const gistId = ((document.getElementById("cloud-gist-id-input") || {}).value || "").trim();
+    const supabaseUrl = ((document.getElementById("cloud-supabase-url-input") || {}).value || "").trim();
+    const supabaseKey = ((document.getElementById("cloud-supabase-key-input") || {}).value || "").trim();
+
+    return window.cloudSyncManager.saveConfig({
+      enabled: true,
+      provider,
+      syncKey,
+      autoSync,
+      firebaseUrl,
+      firebaseSecret,
+      githubToken,
+      gistId,
+      supabaseUrl,
+      supabaseKey
+    });
+  }
+
+  async saveCloudConfigFromUI() {
+    this._collectCloudConfigFromInputs();
+    const res = await window.cloudSyncManager.pushToCloud({ silent: true });
+    this.renderCloudSyncPanel({
+      ok: res.ok,
+      message: res.ok
+        ? `✅ Configuración guardada y primera sincronización completada (${res.message}).`
+        : `⚠️ Configuración guardada, pero revisa la conexión del proveedor: ${res.message}`
+    });
+  }
+
+  async triggerCloudPush() {
+    this._collectCloudConfigFromInputs();
+    const res = await window.cloudSyncManager.pushToCloud({ silent: true });
+    this.renderCloudSyncPanel({
+      ok: res.ok,
+      message: res.ok ? `☁️⬆️ ¡Éxito! ${res.message}` : `❌ Error al subir a la nube: ${res.message}`
+    });
+  }
+
+  async triggerCloudPull() {
+    this._collectCloudConfigFromInputs();
+    const res = await window.cloudSyncManager.pullFromCloud({ silent: true });
+    this.updateHeaderStats();
+    this.renderCloudSyncPanel({
+      ok: res.ok,
+      message: res.ok ? `☁️⬇️ ¡Éxito! ${res.message}` : `❌ Error al descargar de la nube: ${res.message}`
+    });
+  }
+
+  copyInstantTransferCode() {
+    try {
+      const code = window.cloudSyncManager.generateInstantTransferCode();
+      const input = document.getElementById("instant-transfer-code-input");
+      if (input) input.value = code;
+      navigator.clipboard.writeText(code).then(() => {
+        this.renderCloudSyncPanel({
+          ok: true,
+          message: "📋 ¡Código de transferencia PFAS9 copiado al portapapeles! Envíalo a tu móvil o tablet y pégalo allí."
+        });
+      });
+    } catch (e) {
+      alert("Error al generar el código: " + e.message);
+    }
+  }
+
+  applyInstantTransferCodeFromUI() {
+    const input = document.getElementById("instant-transfer-code-input");
+    if (!input || !input.value.trim()) {
+      alert("Pega primero un código PFAS9:... en el recuadro.");
+      return;
+    }
+    try {
+      window.cloudSyncManager.importInstantTransferCode(input.value.trim());
+      this.updateHeaderStats();
+      this.renderCloudSyncPanel({
+        ok: true,
+        message: "⚡ ¡Progreso, Baremo, Post-its y Subrayados transferidos con éxito a este dispositivo!"
+      });
+    } catch (e) {
+      this.renderCloudSyncPanel({
+        ok: false,
+        message: "❌ Error al aplicar el código: " + e.message
+      });
     }
   }
 

@@ -60,8 +60,14 @@
         </div>
       </div>
 
-      <!-- Indicadores Tácticos (Racha & XP) -->
+      <!-- Indicadores Tácticos (Nube, Racha & XP) -->
       <div class="flex items-center space-x-2 sm:space-x-3">
+        <button id="header-cloud-badge" onclick="window.appController.showTab('importer')" class="px-2.5 py-1.5 rounded-lg bg-slate-900/90 border border-slate-700 text-[10px] font-bold text-slate-300 hover:border-sky-500 transition flex items-center space-x-1" title="Estado de Sincronización en la Nube (PC ↔ Móvil ↔ Tablet)">
+          <span>☁️</span><span>Nube</span>
+        </button>
+        <button onclick="window.appController.showTab('baremo')" class="hidden sm:flex items-center space-x-1.5 px-2.5 py-1.5 rounded-lg bg-emerald-950/60 hover:bg-emerald-900/70 border border-emerald-600/50 text-xs font-bold text-emerald-300 transition" title="Abrir Calculadora Oficial de Baremo y Nota de Corte">
+          <span>🎖️</span><span>Mi Baremo</span>
+        </button>
         <div class="flex items-center space-x-1.5 px-2.5 py-1.5 rounded-lg bg-slate-900/90 border border-slate-800" title="Racha diaria de estudio">
           <span class="text-sm">🔥</span>
           <span class="text-xs font-mono font-bold text-orange-400" id="header-streak">1d</span>
@@ -80,13 +86,16 @@
           <span>📊</span><span>Mando</span>
         </button>
         <button data-tab="temario" class="nav-item px-3.5 py-2.5 text-xs font-bold uppercase tracking-wider border-b-2 border-transparent text-slate-400 hover:text-slate-200 flex items-center space-x-1.5 transition shrink-0">
-          <span>📖</span><span>Temario (21 Temas)</span>
+          <span>📖</span><span>Temario (21/28)</span>
         </button>
         <button data-tab="simulator-config" class="nav-item px-3.5 py-2.5 text-xs font-bold uppercase tracking-wider border-b-2 border-transparent text-slate-400 hover:text-slate-200 flex items-center space-x-1.5 transition shrink-0">
-          <span>🎯</span><span>Simulacro</span>
+          <span>🎯</span><span>Simulacros (16)</span>
+        </button>
+        <button data-tab="baremo" class="nav-item px-3.5 py-2.5 text-xs font-bold uppercase tracking-wider border-b-2 border-transparent text-emerald-400 hover:text-emerald-300 flex items-center space-x-1.5 transition shrink-0">
+          <span>🎖️</span><span>Baremo & Corte</span>
         </button>
         <button data-tab="trampas" class="nav-item px-3.5 py-2.5 text-xs font-bold uppercase tracking-wider border-b-2 border-transparent text-slate-400 hover:text-slate-200 flex items-center space-x-1.5 transition shrink-0">
-          <span>🪤</span><span>Caza-Trampas & Academias</span>
+          <span>🪤</span><span>Caza-Trampas</span>
         </button>
         <button data-tab="failed-bag" class="nav-item px-3.5 py-2.5 text-xs font-bold uppercase tracking-wider border-b-2 border-transparent text-slate-400 hover:text-slate-200 flex items-center space-x-1.5 transition shrink-0">
           <span>⚠️</span><span>Bolsa Fallos</span>
@@ -94,8 +103,8 @@
         <button data-tab="flashcards" class="nav-item px-3.5 py-2.5 text-xs font-bold uppercase tracking-wider border-b-2 border-transparent text-slate-400 hover:text-slate-200 flex items-center space-x-1.5 transition shrink-0">
           <span>🃏</span><span>Flashcards (86)</span>
         </button>
-        <button data-tab="importer" class="nav-item px-3.5 py-2.5 text-xs font-bold uppercase tracking-wider border-b-2 border-transparent text-slate-400 hover:text-slate-200 flex items-center space-x-1.5 transition shrink-0">
-          <span>🔄</span><span>NotebookLM & Backup</span>
+        <button data-tab="importer" class="nav-item px-3.5 py-2.5 text-xs font-bold uppercase tracking-wider border-b-2 border-transparent text-sky-400 hover:text-sky-300 flex items-center space-x-1.5 transition shrink-0">
+          <span>☁️</span><span>Nube & NotebookLM</span>
         </button>
       </div>
     </nav>
@@ -126,10 +135,13 @@
             <button onclick="window.appController.startSimulatorWithParams({ count: 100, bloque: 'ALL', mode: 'ponderado_100', studyMode: false })" class="px-4 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs uppercase tracking-wider shadow-lg shadow-amber-500/10 transition flex items-center space-x-1.5">
               <span>🏆</span><span>Simulacro Oficial 100p</span>
             </button>
+            <button onclick="window.appController.showTab('baremo')" class="px-3.5 py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-xs uppercase tracking-wider transition flex items-center space-x-1.5">
+              <span>🎖️</span><span>Calculadora Baremo</span>
+            </button>
             <button onclick="window.appController.startSurvivalMode()" class="px-3.5 py-2.5 rounded-xl bg-red-950 hover:bg-red-900 text-red-200 border border-red-500 font-black text-xs uppercase tracking-wider transition flex items-center space-x-1.5">
               <span>💀</span><span>Supervivencia (3 ❤️)</span>
             </button>
-            <button onclick="window.appController.openWarNotebookModal()" class="px-3.5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-slate-950 font-black text-xs uppercase tracking-wider transition flex items-center space-x-1.5">
+            <button onclick="window.appController.openWarNotebookModal()" class="px-3.5 py-2.5 rounded-xl bg-emerald-950 hover:bg-emerald-900 text-emerald-300 border border-emerald-600 font-black text-xs uppercase tracking-wider transition flex items-center space-x-1.5">
               <span>📓</span><span>Cuaderno Guerra PDF</span>
             </button>
             <button id="btn-quick-sim" class="px-3.5 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-amber-300 border border-amber-500/30 font-bold text-xs uppercase tracking-wider transition flex items-center space-x-1.5">
@@ -169,14 +181,14 @@
         </div>
         <div class="tactical-card p-4 rounded-xl col-span-2 sm:col-span-1">
           <span class="text-xs text-slate-400 block">🗄️ Banco Etiquetado</span>
-          <span class="text-xl font-black text-amber-400 mt-1 block" id="dash-total-questions">800</span>
+          <span class="text-xl font-black text-amber-400 mt-1 block" id="dash-total-questions">1000</span>
         </div>
       </div>
 
       <!-- 📈 PLANIFICADOR DIARIO DE MISIÓN (PLAN DE CHOQUE INTELIGENTE) -->
       <div id="daily-planner-container"></div>
 
-      <!-- 🎖️ CALCULADORA OFICIAL DE BAREMO Y SIMULADOR "¿ESTOY EN PLAZA?" -->
+      <!-- 🎖️ RESUMEN RÁPIDO DE BAREMO Y ACCESO A PESTAÑA BAREMO -->
       <div id="baremo-calculator-container"></div>
 
       <!-- Accesos Rápidos a los 3 Bloques Oficiales -->
@@ -364,25 +376,25 @@
       </div>
     </section>
 
-    <!-- 4. SECCIÓN: CONFIGURADOR DE SIMULACRO OFICIAL + CUARTEL GENERAL DE 12 SIMULACROS -->
+    <!-- 4. SECCIÓN: CONFIGURADOR DE SIMULACRO OFICIAL + CUARTEL GENERAL DE 16 SIMULACROS -->
     <section id="tab-simulator-config" class="hidden space-y-6">
       <div class="tactical-card rounded-2xl p-6 border border-amber-500/30">
         <div class="flex items-center space-x-3 mb-4">
           <span class="text-3xl">🎯</span>
           <div>
-            <h2 class="text-xl font-black text-white uppercase">Cuartel General de Simulacros Oficiales & Entrenamiento por Niveles</h2>
-            <p class="text-xs text-slate-400">Calificación con penalización reglamentaria: <strong class="text-amber-400">Nota = Aciertos - (Errores / 3)</strong> • Banco Activo: <strong class="text-emerald-400">800 Preguntas Etiquetadas</strong></p>
+            <h2 class="text-xl font-black text-white uppercase">Cuartel General de 16 Simulacros Oficiales & Entrenamiento por Niveles</h2>
+            <p class="text-xs text-slate-400">Calificación con penalización reglamentaria: <strong class="text-amber-400">Nota = Aciertos - (Errores / 3)</strong> • Banco Activo: <strong class="text-emerald-400">1.000 Preguntas Etiquetadas</strong></p>
           </div>
         </div>
 
         <div class="p-4 rounded-xl bg-slate-900/80 border border-slate-800 mb-6 text-xs text-slate-300 space-y-1.5">
           <div class="font-bold text-amber-400 uppercase">📌 Normas de la Prueba Oficial y Modos de Entrenamiento:</div>
           <p>• Cada respuesta acertada suma <strong>+1,00 punto</strong>; cada errónea resta <strong>-0,33 puntos (1/3 de acierto)</strong>; en blanco <strong>0 puntos</strong>.</p>
-          <p>• <strong>🏆 12 Simulacros Oficiales + 4 Retos Rápidos + 💀 Supervivencia 3 Vidas:</strong> Guarda tu mejor nota e intentos en cada examen oficial (Convocatorias 2023, 2024, 2025, Previsión 2026, Pareto Top 6, Solo Plazos, Novedades y Monográficos).</p>
+          <p>• <strong>🏆 16 Simulacros Oficiales + 4 Retos Rápidos + 💀 Supervivencia 3 Vidas:</strong> Guarda tu mejor nota e intentos en cada examen oficial (Convocatorias 2023, 2024, 2025, Previsión 2026, Especial 27 Vídeos/28 Temas, Caza-Plazos LO 8/2014 + LPACAP, Especial 3 Ejércitos + EMAD, y Gran Simulacro Élite 1.000).</p>
           <p>• <strong>💡 Modo Academia (Corrección Instantánea):</strong> Al marcar una opción ves al instante la explicación jurídica, la ubicación exacta en el temario y el truco de academia.</p>
         </div>
 
-        <!-- 🏆 CUARTEL GENERAL DE LOS 12 SIMULACROS OFICIALES CERRADOS -->
+        <!-- 🏆 CUARTEL GENERAL DE LOS 16 SIMULACROS OFICIALES CERRADOS -->
         <div id="official-packs-container"></div>
 
         <h3 class="text-xs font-bold uppercase tracking-wider text-emerald-400 mb-3">
@@ -756,8 +768,16 @@
       </div>
     </section>
 
-    <!-- 9. SECCIÓN: IMPORTADOR NOTEBOOKLM & BACKUP LOCAL -->
+    <!-- 8B. SECCIÓN DEDICADA: CALCULADORA OFICIAL DE BAREMO Y SIMULADOR DE NOTA DE CORTE (ORDEN DEF/1341/2017) -->
+    <section id="tab-baremo" class="hidden space-y-6">
+      <div id="baremo-full-tab-container"></div>
+    </section>
+
+    <!-- 9. SECCIÓN: BASE DE DATOS EN LA NUBE (CLOUD SYNC), NOTEBOOKLM & BACKUP LOCAL -->
     <section id="tab-importer" class="hidden space-y-6">
+      <!-- ☁️ PANEL CENTRAL DE BASE DE DATOS EN LA NUBE (PC ↔ MÓVIL ↔ TABLET) -->
+      <div id="cloud-sync-panel-container"></div>
+
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <div class="tactical-card rounded-2xl p-6 space-y-4 border border-amber-500/30">
           <div class="flex flex-wrap items-center justify-between gap-2">
@@ -817,8 +837,8 @@
             <div class="flex items-center space-x-2.5">
               <span class="text-2xl">💾</span>
               <div>
-                <h2 class="text-base font-black text-white uppercase">Sistema de Respaldo / Backup Militar (PC ↔ Móvil ↔ Tablet)</h2>
-                <p class="text-xs text-slate-400">Guarda tu progreso, Baremo, Post-its y Subrayados y llévalos del PC a tu teléfono móvil o tablet sin perder nada.</p>
+                <h2 class="text-base font-black text-white uppercase">Sistema de Respaldo / Backup Manual (.JSON)</h2>
+                <p class="text-xs text-slate-400">Descarga o restaura un archivo físico con tu progreso, Baremo, Post-its y Subrayados en cualquier momento.</p>
               </div>
             </div>
 
@@ -881,33 +901,37 @@
        BARRA DE NAVEGACIÓN INFERIOR (MÓVIL FIRST)
        ===================================================== -->
   <nav class="md:hidden fixed bottom-0 inset-x-0 z-50 bg-[#0d130b]/95 backdrop-blur-lg border-t border-slate-800 px-1 py-1.5 flex justify-around items-center">
-    <button data-tab="dashboard" class="nav-item flex flex-col items-center py-1 px-2 rounded-xl text-amber-400">
+    <button data-tab="dashboard" class="nav-item flex flex-col items-center py-1 px-1.5 rounded-xl text-amber-400">
       <span class="text-base">📊</span>
       <span class="text-[9px] font-bold mt-0.5">Mando</span>
     </button>
-    <button data-tab="temario" class="nav-item flex flex-col items-center py-1 px-2 rounded-xl text-slate-400">
+    <button data-tab="temario" class="nav-item flex flex-col items-center py-1 px-1.5 rounded-xl text-slate-400">
       <span class="text-base">📖</span>
       <span class="text-[9px] font-bold mt-0.5">Temario</span>
     </button>
-    <button data-tab="simulator-config" class="nav-item flex flex-col items-center py-1 px-2 rounded-xl text-slate-400">
+    <button data-tab="simulator-config" class="nav-item flex flex-col items-center py-1 px-1.5 rounded-xl text-slate-400">
       <span class="text-base">🎯</span>
       <span class="text-[9px] font-bold mt-0.5">Simulacro</span>
     </button>
-    <button data-tab="trampas" class="nav-item flex flex-col items-center py-1 px-2 rounded-xl text-slate-400">
+    <button data-tab="baremo" class="nav-item flex flex-col items-center py-1 px-1.5 rounded-xl text-slate-400">
+      <span class="text-base">🎖️</span>
+      <span class="text-[9px] font-bold mt-0.5">Baremo</span>
+    </button>
+    <button data-tab="trampas" class="nav-item flex flex-col items-center py-1 px-1.5 rounded-xl text-slate-400">
       <span class="text-base">🪤</span>
       <span class="text-[9px] font-bold mt-0.5">Trampas</span>
     </button>
-    <button data-tab="failed-bag" class="nav-item flex flex-col items-center py-1 px-2 rounded-xl text-slate-400">
+    <button data-tab="failed-bag" class="nav-item flex flex-col items-center py-1 px-1.5 rounded-xl text-slate-400">
       <span class="text-base">⚠️</span>
       <span class="text-[9px] font-bold mt-0.5">Fallos</span>
     </button>
-    <button data-tab="flashcards" class="nav-item flex flex-col items-center py-1 px-2 rounded-xl text-slate-400">
+    <button data-tab="flashcards" class="nav-item flex flex-col items-center py-1 px-1.5 rounded-xl text-slate-400">
       <span class="text-base">🃏</span>
       <span class="text-[9px] font-bold mt-0.5">Tarjetas</span>
     </button>
-    <button data-tab="importer" class="nav-item flex flex-col items-center py-1 px-2 rounded-xl text-slate-400">
-      <span class="text-base">🔄</span>
-      <span class="text-[9px] font-bold mt-0.5">Sync</span>
+    <button data-tab="importer" class="nav-item flex flex-col items-center py-1 px-1.5 rounded-xl text-slate-400">
+      <span class="text-base">☁️</span>
+      <span class="text-[9px] font-bold mt-0.5">Nube</span>
     </button>
   </nav>
 
@@ -920,8 +944,10 @@
   <script src="./js/questions-wave2-data.js"></script>
   <script src="./js/questions-wave3-data.js"></script>
   <script src="./js/questions-wave4-data.js"></script>
+  <script src="./js/questions-wave5-data.js"></script>
   <script src="./js/flashcards-data.js"></script>
   <script src="./js/storage.js"></script>
+  <script src="./js/cloud-sync.js"></script>
   <script src="./js/simulator.js"></script>
   <script src="./js/app.js"></script>
   <script>

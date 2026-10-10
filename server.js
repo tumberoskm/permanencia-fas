@@ -29,8 +29,85 @@ function getLocalNetworkIP() {
   return "localhost";
 }
 
+const DATA_DIR = path.join(ROOT_DIR, "data");
+const CLOUD_DB_FILE = path.join(DATA_DIR, "cloud-sync-db.json");
+
+function readCloudDB() {
+  try {
+    if (!fs.existsSync(CLOUD_DB_FILE)) return {};
+    return JSON.parse(fs.readFileSync(CLOUD_DB_FILE, "utf8"));
+  } catch (e) {
+    return {};
+  }
+}
+
+function writeCloudDB(db) {
+  try {
+    if (!fs.existsSync(DATA_DIR)) {
+      fs.mkdirSync(DATA_DIR, { recursive: true });
+    }
+    fs.writeFileSync(CLOUD_DB_FILE, JSON.stringify(db, null, 2), "utf8");
+    return true;
+  } catch (e) {
+    return false;
+  }
+}
+
 const server = http.createServer((req, res) => {
-  const cleanUrl = req.url.split("?")[0];
+  const parsedUrl = new URL(req.url, `http://${req.headers.host || "localhost"}`);
+  const cleanUrl = parsedUrl.pathname;
+
+  // API REST de Sincronización en Nube Local / Wi-Fi (/api/cloud-sync)
+  if (cleanUrl === "/api/cloud-sync") {
+    res.setHeader("Access-Control-Allow-Origin", "*");
+    res.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, OPTIONS");
+    res.setHeader("Access-Control-Allow-Headers", "Content-Type");
+
+    if (req.method === "OPTIONS") {
+      res.writeHead(204);
+      res.end();
+      return;
+    }
+
+    const pin = (parsedUrl.searchParams.get("pin") || "DEFAULT").trim().toUpperCase();
+
+    if (req.method === "GET") {
+      const db = readCloudDB();
+      const record = db[pin] || null;
+      res.writeHead(200, { "Content-Type": "application/json; charset=utf-8", "Cache-Control": "no-store" });
+      res.end(JSON.stringify({ ok: true, pin, found: Boolean(record), record }));
+      return;
+    }
+
+    if (req.method === "POST" || req.method === "PUT") {
+      let body = "";
+      req.on("data", chunk => {
+        body += chunk.toString();
+      });
+      req.on("end", () => {
+        try {
+          const parsed = JSON.parse(body || "{}");
+          const targetPin = (parsed.pin || pin || "DEFAULT").trim().toUpperCase();
+          const payload = parsed.payload || parsed;
+          const db = readCloudDB();
+          db[targetPin] = {
+            pin: targetPin,
+            updatedAt: new Date().toISOString(),
+            device: parsed.device || "WebApp",
+            payload
+          };
+          writeCloudDB(db);
+          res.writeHead(200, { "Content-Type": "application/json; charset=utf-8" });
+          res.end(JSON.stringify({ ok: true, pin: targetPin, updatedAt: db[targetPin].updatedAt }));
+        } catch (err) {
+          res.writeHead(400, { "Content-Type": "application/json; charset=utf-8" });
+          res.end(JSON.stringify({ ok: false, error: err.message }));
+        }
+      });
+      return;
+    }
+  }
+
   let filePath = path.join(ROOT_DIR, cleanUrl === "/" ? "index.html" : cleanUrl);
 
   // Evitar directory traversal
@@ -57,7 +134,9 @@ const server = http.createServer((req, res) => {
       }
       res.writeHead(200, {
         "Content-Type": contentType,
-        "Cache-Control": "no-cache"
+        "Cache-Control": "no-store, no-cache, must-revalidate, proxy-revalidate",
+        "Pragma": "no-cache",
+        "Expires": "0"
       });
       res.end(content);
     });
