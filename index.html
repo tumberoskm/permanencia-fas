@@ -812,7 +812,10 @@
                   🎬 1. Cosechar Test JSON de los Vídeos
                 </button>
                 <button onclick="window.appController.selectNotebookLMPromptType('video_notes')" class="px-2.5 py-1 rounded bg-emerald-950 hover:bg-emerald-900 text-emerald-300 border border-emerald-600 font-bold text-[11px] transition">
-                  📌 2. Extraer Plazos y Post-its de los Vídeos
+                  📌 2. Extraer Plazos y Post-its
+                </button>
+                <button onclick="window.appController.selectNotebookLMPromptType('podcast_debate')" class="px-2.5 py-1 rounded bg-purple-950 hover:bg-purple-900 text-purple-200 border border-purple-500 font-bold text-[11px] transition">
+                  🎙️ 3. Prompt Podcast con Ejemplos
                 </button>
                 <button onclick="window.appController.copyNotebookLMPrompt()" class="px-2.5 py-1 rounded bg-amber-500 text-slate-950 font-black text-xs hover:bg-amber-400 transition">
                   📋 Copiar Prompt
@@ -868,7 +871,7 @@
                 <span class="px-2 py-0.5 rounded bg-amber-500 text-slate-950 font-black text-[10px] shrink-0 mt-0.5">PASO 3</span>
                 <div>
                   <strong class="text-white">Vete de Maniobras sin miedo a perder nada:</strong><br/>
-                  El Service Worker (<code class="text-emerald-300">v13</code>) guarda los <strong>21 temas (+28 vídeos en Pizarra del Profesor + Modo Audio Podcast Offline), 1.400 preguntas oficiales y de vídeo, 120 flashcards y 20 simulacros</strong> dentro del teléfono. Todo lo que subrayes, anotes en Post-its o respondas sin cobertura se guarda en la <strong>Cola de Maniobras</strong> y sube solo a la nube en cuanto el móvil pille 1 raya de 4G/5G.
+                  El Service Worker (<code class="text-emerald-300">v14</code>) guarda los <strong>21 temas (+28 vídeos en Pizarra del Profesor + 21 Podcasts Conversacionales con Ejemplos), 1.400 preguntas oficiales y de vídeo, 120 flashcards y 20 simulacros</strong> dentro del teléfono. Todo lo que subrayes, anotes en Post-its o respondas sin cobertura se guarda en la <strong>Cola de Maniobras</strong> y sube solo a la nube en cuanto el móvil pille 1 raya de 4G/5G.
                 </div>
               </div>
             </div>
@@ -965,27 +968,28 @@
     </button>
   </nav>
 
-  <!-- SCRIPTS DE LA APLICACIÓN (v13 Entrenador IA + Audio Podcast Offline + Oleada 7: 1.400 Preguntas + 20 Simulacros) -->
-  <script src="./js/syllabus-data.js?v=13"></script>
-  <script src="./js/study-guides-data.js?v=13"></script>
-  <script src="./js/schemas-data.js?v=13"></script>
-  <script src="./js/questions-data.js?v=13"></script>
-  <script src="./js/questions-extra-data.js?v=13"></script>
-  <script src="./js/questions-wave2-data.js?v=13"></script>
-  <script src="./js/questions-wave3-data.js?v=13"></script>
-  <script src="./js/questions-wave4-data.js?v=13"></script>
-  <script src="./js/questions-wave5-data.js?v=13"></script>
-  <script src="./js/questions-wave6-data.js?v=13"></script>
-  <script src="./js/questions-wave7-data.js?v=13"></script>
-  <script src="./js/flashcards-data.js?v=13"></script>
-  <script src="./js/storage.js?v=13"></script>
-  <script src="./js/cloud-sync.js?v=13"></script>
-  <script src="./js/simulator.js?v=13"></script>
-  <script src="./js/app.js?v=13"></script>
+  <!-- SCRIPTS DE LA APLICACIÓN (v14 Radio Permanencia ET 21 Podcasts Conversacionales + Entrenador IA + 1.400 Preguntas + 20 Simulacros) -->
+  <script src="./js/syllabus-data.js?v=14"></script>
+  <script src="./js/study-guides-data.js?v=14"></script>
+  <script src="./js/schemas-data.js?v=14"></script>
+  <script src="./js/podcasts-data.js?v=14"></script>
+  <script src="./js/questions-data.js?v=14"></script>
+  <script src="./js/questions-extra-data.js?v=14"></script>
+  <script src="./js/questions-wave2-data.js?v=14"></script>
+  <script src="./js/questions-wave3-data.js?v=14"></script>
+  <script src="./js/questions-wave4-data.js?v=14"></script>
+  <script src="./js/questions-wave5-data.js?v=14"></script>
+  <script src="./js/questions-wave6-data.js?v=14"></script>
+  <script src="./js/questions-wave7-data.js?v=14"></script>
+  <script src="./js/flashcards-data.js?v=14"></script>
+  <script src="./js/storage.js?v=14"></script>
+  <script src="./js/cloud-sync.js?v=14"></script>
+  <script src="./js/simulator.js?v=14"></script>
+  <script src="./js/app.js?v=14"></script>
   <script>
     if ("serviceWorker" in navigator) {
       window.addEventListener("load", () => {
-        navigator.serviceWorker.register("./sw.js?v=13").catch(() => {});
+        navigator.serviceWorker.register("./sw.js?v=14").catch(() => {});
       });
     }
   </script>

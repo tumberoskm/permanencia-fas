@@ -70,7 +70,9 @@ class AppController {
   }
 
   showTab(tabName) {
-    this.stopAudio();
+    if (tabName === "simulator-active") {
+      this.stopAudio();
+    }
     this.currentTab = tabName;
 
     document.querySelectorAll("[data-tab]").forEach(btn => {
@@ -1278,19 +1280,11 @@ class AppController {
             </button>
 
             <button
-              onclick="window.appController.speakMasterSummary('${tema.codigo}', 'video_only')"
-              class="px-3 py-2 rounded-xl bg-sky-950 hover:bg-sky-900 text-sky-300 border border-sky-600/60 font-black text-xs transition flex items-center space-x-1"
-              title="Escuchar solo la Pizarra del Vídeo de YouTube y los Post-its del Profesor (100% Offline)"
+              onclick="window.appController.playTopicPodcast('${tema.codigo}', true)"
+              class="px-3.5 py-2 rounded-xl bg-gradient-to-r from-sky-500 to-emerald-500 hover:from-sky-400 hover:to-emerald-400 text-slate-950 font-black text-xs uppercase tracking-wider transition flex items-center space-x-1.5 shadow-lg"
+              title="Escuchar el Podcast Conversacional (Brigada Carlos y Cabo 1º Marta explicando el tema con ejemplos reales)"
             >
-              <span>🎬🎧</span><span>Audio Vídeo</span>
-            </button>
-
-            <button
-              onclick="window.appController.speakMasterSummary('${tema.codigo}', 'full')"
-              class="px-3 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-amber-300 border border-slate-700 font-bold text-xs transition flex items-center space-x-1"
-              title="Escuchar el Resumen Magistral completo paso a paso (Modo Podcast Offline)"
-            >
-              <span>🔊</span><span>Audio Completo</span>
+              <span>🎙️</span><span>Podcast + Ejemplos</span>
             </button>
 
             <button
@@ -1449,273 +1443,603 @@ class AppController {
   }
 
   // ==========================================
-  // 🎧 REPRODUCTOR AUDIO TÁCTICO MANOS LIBRES (100% OFFLINE — COCHE / DEPORTE / MANIOBRAS)
+  // 🎙️ ESTUDIO DE PODCAST CONVERSACIONAL «RADIO PERMANENCIA ET — LA TERTULIA DEL CUARTEL»
+  // (Voces Neurales Naturales: Brigada Carlos & Cabo 1º Marta + Casos Prácticos + NotebookLM)
   // ==========================================
-  speakMasterSummary(temaCodigo, audioMode = "full") {
-    if (!("speechSynthesis" in window)) {
-      alert("Tu navegador no soporta síntesis de voz nativa.");
-      return;
-    }
-
-    // Si ya está sonando el mismo tema y mismo modo, detener
-    if (this.isSpeaking && this.audioTemaCodigo === temaCodigo && this.audioMode === audioMode) {
-      this.stopAudio();
-      return;
-    }
-
-    const tema = OFFICIAL_SYLLABUS.find(t => t.codigo === temaCodigo);
-    const guide = (typeof MASTER_STUDY_GUIDES !== "undefined") ? MASTER_STUDY_GUIDES[temaCodigo] : null;
-    const cap = (typeof VIDEO_CLASS_CAPSULES !== "undefined") ? VIDEO_CLASS_CAPSULES[temaCodigo] : null;
-    if (!tema) return;
-
-    const stripHtml = (str) => String(str || "")
-      .replace(/<br\s*\/?>/gi, ". ")
-      .replace(/<\/li>/gi, ". ")
-      .replace(/<[^>]*>/g, " ")
-      .replace(/[🎬📌🖍️⚠️⏱️🧠❓🏛️⚖️🌍🟢🟡🔴🟣⭐🔥🪤•▸]/g, " ")
-      .replace(/\s+/g, " ")
-      .trim();
-
-    const tracks = [];
-    const notes = window.storageManager.getTopicNotes(temaCodigo);
-
-    if (audioMode === "video_only") {
-      tracks.push({
-        label: `🎬 Introducción Vídeo (${tema.codigo})`,
-        text: `Modo Audio Manos Libres: Pizarra del Profesor y Apuntes de Vídeo del tema ${tema.codigo}, ${tema.titulo}. ${cap ? stripHtml(cap.videosCubiertos) : ""}`
-      });
-      if (cap && Array.isArray(cap.puntos)) {
-        cap.puntos.forEach((pt, idx) => {
-          tracks.push({
-            label: `🎬 Pizarra Vídeo (${idx + 1}/${cap.puntos.length})`,
-            text: stripHtml(pt)
-          });
-        });
-      }
-      if (cap && Array.isArray(cap.postItsProfesor) && cap.postItsProfesor.length > 0) {
-        cap.postItsProfesor.forEach((p, idx) => {
-          tracks.push({
-            label: `📌 Post-it del Profesor (${idx + 1}/${cap.postItsProfesor.length})`,
-            text: `${stripHtml(p.titulo)}. ${stripHtml(p.texto)}`
-          });
-        });
-      }
-      if (notes.length > 0) {
-        tracks.push({
-          label: `📌 Tus Post-its en ${tema.codigo} (${notes.length})`,
-          text: `Tus notas Post-it personales en este tema: ` + notes.map(n => `${stripHtml(n.titulo)}. ${stripHtml(n.texto)}`).join(". ")
-        });
-      }
-    } else {
-      tracks.push({
-        label: `📖 Presentación ${tema.codigo}`,
-        text: `Resumen Magistral desde cero del tema ${tema.codigo}: ${tema.titulo}. Normativa oficial: ${stripHtml(tema.normativa)}.`
-      });
-      if (guide) {
-        if (guide.consejoJefeEstudios) {
-          tracks.push({
-            label: `👨‍🏫 Directriz del Jefe de Estudios`,
-            text: `Directriz del Jefe de Estudios: ${stripHtml(guide.consejoJefeEstudios)}`
-          });
-        }
-        if (guide.actualizaciones) {
-          tracks.push({
-            label: `🆕 Actualizaciones 2024–2026`,
-            text: `Actualizaciones normativas y novedades de examen: ${stripHtml(guide.actualizaciones)}`
-          });
-        }
-        (guide.epigrafes || []).forEach((ep, idx) => {
-          const body = `${stripHtml(ep.contenido || ep.explicacion || "")}. ${Array.isArray(ep.puntos) ? ep.puntos.map(stripHtml).join(". ") : ""}`;
-          tracks.push({
-            label: `${ep.esCapsulaVideo ? "🎬 Pizarra del Vídeo" : `📚 Epígrafe ${idx + 1}`}: ${stripHtml(ep.titulo).slice(0, 42)}`,
-            text: `${stripHtml(ep.titulo)}. ${body}`
-          });
-        });
-      } else {
-        tracks.push({
-          label: `📌 Resumen Ejecutivo`,
-          text: stripHtml(tema.resumen)
-        });
-      }
-      if (Array.isArray(tema.puntosCalientes) && tema.puntosCalientes.length > 0) {
-        tracks.push({
-          label: `🔥 Puntos Calientes de Examen`,
-          text: `Puntos calientes indispensables de examen: ` + tema.puntosCalientes.map(stripHtml).join(". ")
-        });
-      }
-      if (Array.isArray(tema.trampas) && tema.trampas.length > 0) {
-        tracks.push({
-          label: `🪤 Trampas Frecuentes del Tribunal`,
-          text: `Atención a las trampas frecuentes del tribunal en este tema: ` + tema.trampas.map(stripHtml).join(". ")
-        });
-      }
-    }
-
-    this.audioTemaCodigo = temaCodigo;
-    this.audioMode = audioMode;
-    this.audioTracks = tracks;
-    this.audioTrackIndex = 0;
-    this.audioRate = this.audioRate || 1.05;
-    this.isAudioPaused = false;
-    this.playAudioTrack(0);
+  speakMasterSummary(temaCodigo, _audioMode = "full") {
+    this.playTopicPodcast(temaCodigo, true);
   }
 
-  playAudioTrack(index) {
-    if (!("speechSynthesis" in window) || !Array.isArray(this.audioTracks) || this.audioTracks.length === 0) return;
-    if (index < 0 || index >= this.audioTracks.length) {
-      this.stopAudio();
+  getPodcastEpisode(temaCodigo) {
+    if (typeof PODCAST_EPISODES === "undefined") return null;
+    return PODCAST_EPISODES[temaCodigo] || null;
+  }
+
+  playTopicPodcast(temaCodigo, openStudioModal = true) {
+    const ep = this.getPodcastEpisode(temaCodigo);
+    const tema = (typeof OFFICIAL_SYLLABUS !== "undefined")
+      ? OFFICIAL_SYLLABUS.find(t => t.codigo === temaCodigo)
+      : null;
+    if (!ep || !tema) return;
+
+    if (openStudioModal) {
+      this.openPodcastStudioModal(temaCodigo);
+    }
+
+    // Si ya está cargado este mismo episodio, alternar Play/Pause si no abrimos modal o asegurar reproducción
+    if (this.podcastAudio && this.audioTemaCodigo === temaCodigo) {
+      if (this.podcastAudio.paused) {
+        this.podcastAudio.play().catch(() => {});
+        this.isSpeaking = true;
+        this.isAudioPaused = false;
+      } else if (!openStudioModal) {
+        this.podcastAudio.pause();
+        this.isAudioPaused = true;
+      }
+      this.renderTacticalAudioBar();
+      this.updatePodcastModalLiveState();
       return;
     }
 
-    window.speechSynthesis.cancel();
-    this.audioTrackIndex = index;
+    this.stopAudio();
+
+    this.audioTemaCodigo = temaCodigo;
+    this.audioRate = this.audioRate || 1.0;
     this.isSpeaking = true;
     this.isAudioPaused = false;
+    this.activePodcastTurnIndex = 0;
 
-    const currentTrack = this.audioTracks[index];
-    const utterance = new SpeechSynthesisUtterance(currentTrack.text);
-    utterance.lang = "es-ES";
-    utterance.rate = this.audioRate || 1.05;
+    // Calcular pesos proporcionales de cada intervención del diálogo para sincronizar el guion en vivo
+    const dialogo = Array.isArray(ep.dialogo) ? ep.dialogo : [];
+    const lengths = dialogo.map(d => Math.max(20, (d.texto || "").length));
+    const totalChars = lengths.reduce((a, b) => a + b, 0) || 1;
+    let acc = 0;
+    this.podcastTurnRanges = lengths.map(len => {
+      const startRatio = acc / totalChars;
+      acc += len;
+      const endRatio = acc / totalChars;
+      return { startRatio, endRatio };
+    });
 
-    const voices = window.speechSynthesis.getVoices ? window.speechSynthesis.getVoices() : [];
-    const esVoice = voices.find(v => v.lang && v.lang.toLowerCase().startsWith("es"));
-    if (esVoice) utterance.voice = esVoice;
+    const audio = new Audio(ep.audioUrl);
+    audio.preload = "auto";
+    audio.playbackRate = this.audioRate;
+    this.podcastAudio = audio;
 
-    utterance.onend = () => {
-      if (!this.isSpeaking || this.isAudioPaused) return;
-      if (this.audioTrackIndex + 1 < this.audioTracks.length) {
-        this.playAudioTrack(this.audioTrackIndex + 1);
-      } else {
-        this.stopAudio();
-      }
-    };
-
-    utterance.onerror = () => {
-      this.isSpeaking = false;
+    audio.addEventListener("loadedmetadata", () => {
       this.renderTacticalAudioBar();
-    };
+      this.updatePodcastModalLiveState();
+    });
 
-    window.speechSynthesis.speak(utterance);
+    audio.addEventListener("timeupdate", () => {
+      this.updateActiveTurnFromTime();
+      this.renderTacticalAudioBar();
+      this.updatePodcastModalLiveState();
+    });
+
+    audio.addEventListener("play", () => {
+      this.isSpeaking = true;
+      this.isAudioPaused = false;
+      this.renderTacticalAudioBar();
+      this.updatePodcastModalLiveState();
+    });
+
+    audio.addEventListener("pause", () => {
+      if (this.podcastAudio) {
+        this.isAudioPaused = true;
+        this.renderTacticalAudioBar();
+        this.updatePodcastModalLiveState();
+      }
+    });
+
+    audio.addEventListener("ended", () => {
+      this.isAudioPaused = true;
+      this.renderTacticalAudioBar();
+      this.updatePodcastModalLiveState();
+    });
+
+    audio.play().catch(err => {
+      console.warn("Aviso al iniciar audio del podcast:", err);
+      this.isAudioPaused = true;
+      this.renderTacticalAudioBar();
+      this.updatePodcastModalLiveState();
+    });
+
     this.renderTacticalAudioBar();
+    this.updatePodcastModalLiveState();
+  }
+
+  updateActiveTurnFromTime() {
+    if (!this.podcastAudio || !this.podcastAudio.duration || !Array.isArray(this.podcastTurnRanges)) return;
+    const ratio = Math.min(0.999, Math.max(0, this.podcastAudio.currentTime / this.podcastAudio.duration));
+    const idx = this.podcastTurnRanges.findIndex(r => ratio >= r.startRatio && ratio <= r.endRatio);
+    if (idx !== -1 && idx !== this.activePodcastTurnIndex) {
+      this.activePodcastTurnIndex = idx;
+      const turnEl = document.getElementById(`podcast-turn-${idx}`);
+      if (turnEl) {
+        turnEl.scrollIntoView({ behavior: "smooth", block: "nearest" });
+      }
+    }
+  }
+
+  seekPodcastToTurn(turnIdx) {
+    if (!this.podcastAudio || !Array.isArray(this.podcastTurnRanges) || !this.podcastTurnRanges[turnIdx]) return;
+    const range = this.podcastTurnRanges[turnIdx];
+    if (this.podcastAudio.duration && !isNaN(this.podcastAudio.duration)) {
+      this.podcastAudio.currentTime = range.startRatio * this.podcastAudio.duration;
+    }
+    this.activePodcastTurnIndex = turnIdx;
+    if (this.podcastAudio.paused) {
+      this.podcastAudio.play().catch(() => {});
+    }
+    this.renderTacticalAudioBar();
+    this.updatePodcastModalLiveState();
+  }
+
+  seekPodcastRelative(deltaSeconds) {
+    if (!this.podcastAudio) return;
+    const dur = this.podcastAudio.duration || 600;
+    this.podcastAudio.currentTime = Math.min(dur, Math.max(0, (this.podcastAudio.currentTime || 0) + deltaSeconds));
+    this.updateActiveTurnFromTime();
+    this.renderTacticalAudioBar();
+    this.updatePodcastModalLiveState();
+  }
+
+  seekPodcastByPercent(pct) {
+    if (!this.podcastAudio || !this.podcastAudio.duration) return;
+    const clamped = Math.min(100, Math.max(0, Number(pct) || 0));
+    this.podcastAudio.currentTime = (clamped / 100) * this.podcastAudio.duration;
+    this.updateActiveTurnFromTime();
+    this.renderTacticalAudioBar();
+    this.updatePodcastModalLiveState();
   }
 
   togglePauseAudio() {
-    if (!("speechSynthesis" in window) || !this.isSpeaking) return;
-    if (window.speechSynthesis.paused || this.isAudioPaused) {
-      window.speechSynthesis.resume();
-      this.isAudioPaused = false;
-    } else {
-      window.speechSynthesis.pause();
-      this.isAudioPaused = true;
+    if (this.podcastAudio) {
+      if (this.podcastAudio.paused) {
+        this.podcastAudio.play().catch(() => {});
+        this.isAudioPaused = false;
+      } else {
+        this.podcastAudio.pause();
+        this.isAudioPaused = true;
+      }
+      this.renderTacticalAudioBar();
+      this.updatePodcastModalLiveState();
+      return;
     }
-    this.renderTacticalAudioBar();
+    if ("speechSynthesis" in window && this.isSpeaking) {
+      if (window.speechSynthesis.paused || this.isAudioPaused) {
+        window.speechSynthesis.resume();
+        this.isAudioPaused = false;
+      } else {
+        window.speechSynthesis.pause();
+        this.isAudioPaused = true;
+      }
+      this.renderTacticalAudioBar();
+    }
   }
 
   prevAudioTrack() {
-    if (!Array.isArray(this.audioTracks)) return;
-    const prev = Math.max(0, (this.audioTrackIndex || 0) - 1);
-    this.playAudioTrack(prev);
+    this.seekPodcastRelative(-15);
   }
 
   nextAudioTrack() {
-    if (!Array.isArray(this.audioTracks)) return;
-    if ((this.audioTrackIndex || 0) + 1 < this.audioTracks.length) {
-      this.playAudioTrack(this.audioTrackIndex + 1);
-    } else {
-      this.stopAudio();
-    }
+    this.seekPodcastRelative(15);
+  }
+
+  playAdjacentPodcast(direction = 1) {
+    if (typeof OFFICIAL_SYLLABUS === "undefined") return;
+    const codes = OFFICIAL_SYLLABUS.map(t => t.codigo);
+    const curIdx = codes.indexOf(this.audioTemaCodigo || "B1-T01");
+    const nextIdx = (curIdx + direction + codes.length) % codes.length;
+    const nextCode = codes[nextIdx];
+    const modal = document.getElementById("podcast-studio-modal");
+    const isModalOpen = modal && !modal.classList.contains("hidden");
+    this.playTopicPodcast(nextCode, isModalOpen);
   }
 
   cycleAudioSpeed() {
-    const speeds = [1.0, 1.25, 1.5];
+    const speeds = [1.0, 1.25, 1.5, 1.75];
     const current = this.audioRate || 1.0;
     const nextIdx = (speeds.findIndex(s => Math.abs(s - current) < 0.08) + 1) % speeds.length;
     this.audioRate = speeds[nextIdx];
-    if (this.isSpeaking && Array.isArray(this.audioTracks)) {
-      this.playAudioTrack(this.audioTrackIndex || 0);
-    } else {
-      this.renderTacticalAudioBar();
+    if (this.podcastAudio) {
+      this.podcastAudio.playbackRate = this.audioRate;
     }
+    this.renderTacticalAudioBar();
+    this.updatePodcastModalLiveState();
+  }
+
+  formatAudioTime(sec) {
+    if (!sec || isNaN(sec) || sec < 0) return "00:00";
+    const m = Math.floor(sec / 60);
+    const s = Math.floor(sec % 60);
+    return `${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
+  }
+
+  copyNotebookLMPodcastPrompt(temaCodigo) {
+    const prompt = (typeof getNotebookLMPodcastPrompt === "function")
+      ? getNotebookLMPodcastPrompt(temaCodigo)
+      : "";
+    if (!prompt) return;
+    navigator.clipboard.writeText(prompt).then(() => {
+      if (window.cloudSyncManager && typeof window.cloudSyncManager.showTacticalToast === "function") {
+        window.cloudSyncManager.showTacticalToast(
+          `🎙️ Prompt de Podcast Conversacional para ${temaCodigo} copiado. Pégalo en "Personalizar Resumen de Audio" en NotebookLM.`,
+          "emerald"
+        );
+      } else {
+        alert(`🎙️ Prompt de Podcast para ${temaCodigo} copiado al portapapeles.`);
+      }
+    });
+  }
+
+  openPodcastStudioModal(temaCodigo) {
+    const code = temaCodigo || this.audioTemaCodigo || "B1-T01";
+    const ep = this.getPodcastEpisode(code);
+    const tema = (typeof OFFICIAL_SYLLABUS !== "undefined")
+      ? OFFICIAL_SYLLABUS.find(t => t.codigo === code)
+      : null;
+    if (!ep || !tema) return;
+
+    let modal = document.getElementById("podcast-studio-modal");
+    if (!modal) {
+      modal = document.createElement("div");
+      modal.id = "podcast-studio-modal";
+      modal.className = "fixed inset-0 z-50 bg-slate-950/90 backdrop-blur-md flex items-center justify-center p-2 sm:p-4 overflow-y-auto";
+      document.body.appendChild(modal);
+    }
+    modal.classList.remove("hidden");
+
+    const pal = (typeof TOPIC_COLOR_PALETTE !== "undefined" && TOPIC_COLOR_PALETTE[code]) || {
+      accent: "#f59e0b",
+      titleColor: "#fbbf24"
+    };
+
+    const allCodes = OFFICIAL_SYLLABUS.map(t => t.codigo);
+
+    modal.innerHTML = `
+      <div class="w-full max-w-5xl rounded-2xl bg-slate-950 border-2 border-amber-500/60 shadow-2xl overflow-hidden my-auto max-h-[92vh] flex flex-col">
+        <!-- Cabecera de Radio Permanencia ET -->
+        <div class="p-4 sm:p-5 bg-gradient-to-r from-slate-950 via-amber-950/40 to-emerald-950/40 border-b border-slate-800 flex flex-wrap items-center justify-between gap-3">
+          <div class="flex items-center space-x-3">
+            <div class="w-12 h-12 rounded-2xl bg-amber-500 text-slate-950 font-black text-2xl flex items-center justify-center shadow-lg shrink-0">
+              🎙️
+            </div>
+            <div>
+              <div class="flex flex-wrap items-center gap-2">
+                <span class="px-2.5 py-0.5 rounded bg-amber-500 text-slate-950 font-black text-[10px] uppercase tracking-wider">
+                  📻 RADIO PERMANENCIA ET • LA TERTULIA DEL CUARTEL
+                </span>
+                <span class="px-2 py-0.5 rounded bg-emerald-950 text-emerald-300 border border-emerald-500/50 text-[10px] font-mono font-bold">
+                  🗣️ 2 Voces Neurales Naturales • Casos Prácticos de Cuartel
+                </span>
+                ${tema.equivalencia28 ? `<span class="text-[11px] font-mono text-sky-300">${tema.equivalencia28}</span>` : ""}
+              </div>
+              <h2 class="text-base sm:text-xl font-black text-white mt-1" style="color:${pal.titleColor};">
+                ${ep.titulo}
+              </h2>
+              <p class="text-xs text-slate-300">${ep.subtitulo}</p>
+            </div>
+          </div>
+
+          <div class="flex flex-wrap items-center gap-2">
+            <!-- Selector rápido de cualquiera de los 21 Episodios -->
+            <select
+              onchange="window.appController.playTopicPodcast(this.value, true)"
+              class="px-2.5 py-1.5 rounded-xl bg-slate-900 border border-slate-700 text-xs font-bold text-amber-300"
+              title="Cambiar de Episodio del Podcast"
+            >
+              ${allCodes.map(c => {
+                const tItem = OFFICIAL_SYLLABUS.find(x => x.codigo === c);
+                return `<option value="${c}" ${c === code ? "selected" : ""}>🎙️ ${c} — ${tItem ? tItem.titulo.replace(/^Tema\s+\d+\.\s*/i, "").slice(0, 38) : c}</option>`;
+              }).join("")}
+            </select>
+
+            <a
+              href="${ep.audioUrl}"
+              download="Podcast-Permanencia-${code}.mp3"
+              class="px-3 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-emerald-300 border border-emerald-600/50 text-xs font-black transition"
+              title="Descargar archivo MP3 para llevar en el coche o móvil"
+            >
+              ⬇️ MP3
+            </a>
+
+            <button
+              onclick="window.appController.closePodcastStudioModal()"
+              class="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold text-xs"
+            >
+              Minimizar Reproductor ✕
+            </button>
+          </div>
+        </div>
+
+        <!-- Cuerpo scrollable: Reproductor + 3 Ejemplos Cotidianos + Guion Interactivo -->
+        <div class="p-4 sm:p-5 overflow-y-auto space-y-4 flex-1">
+          <!-- Controles Principales Tipo Spotify -->
+          <div class="p-4 rounded-2xl bg-slate-900/95 border border-amber-500/40 space-y-3">
+            <div class="flex flex-wrap items-center justify-between gap-3">
+              <div class="flex items-center space-x-3">
+                <div class="flex -space-x-2">
+                  <span class="w-9 h-9 rounded-full bg-emerald-600 text-white font-black text-xs flex items-center justify-center border-2 border-slate-950" title="Brigada Carlos (Instructor Veterano)">🎖️BC</span>
+                  <span class="w-9 h-9 rounded-full bg-amber-500 text-slate-950 font-black text-xs flex items-center justify-center border-2 border-slate-950" title="Cabo 1º Marta (Opositora)">🪖CM</span>
+                </div>
+                <div>
+                  <div class="text-xs font-black text-white">
+                    Brigada Carlos (Instructor) &amp; Cabo 1º Marta (Opositora)
+                  </div>
+                  <div id="podcast-modal-active-speaker" class="text-[11px] font-mono text-amber-400">
+                    Pulsa Play o haz clic en cualquier intervención del diálogo para escucharla
+                  </div>
+                </div>
+              </div>
+
+              <div class="flex flex-wrap items-center gap-1.5">
+                <button onclick="window.appController.playAdjacentPodcast(-1)" class="px-2.5 py-1.5 rounded-lg bg-slate-950 hover:bg-slate-800 border border-slate-700 text-xs font-bold text-slate-300" title="Episodio Anterior">
+                  ⏮️ Tema Ant.
+                </button>
+                <button onclick="window.appController.seekPodcastRelative(-15)" class="px-2.5 py-1.5 rounded-lg bg-slate-950 hover:bg-slate-800 border border-slate-700 text-xs font-mono font-bold text-slate-200">
+                  ⏪ -15s
+                </button>
+                <button
+                  id="podcast-modal-play-btn"
+                  onclick="window.appController.togglePauseAudio()"
+                  class="px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs uppercase tracking-wider shadow-lg"
+                >
+                  ⏸️ Pausar
+                </button>
+                <button onclick="window.appController.seekPodcastRelative(15)" class="px-2.5 py-1.5 rounded-lg bg-slate-950 hover:bg-slate-800 border border-slate-700 text-xs font-mono font-bold text-slate-200">
+                  +15s ⏩
+                </button>
+                <button onclick="window.appController.playAdjacentPodcast(1)" class="px-2.5 py-1.5 rounded-lg bg-slate-950 hover:bg-slate-800 border border-slate-700 text-xs font-bold text-slate-300" title="Siguiente Episodio">
+                  Sig. Tema ⏭️
+                </button>
+                <button
+                  id="podcast-modal-speed-btn"
+                  onclick="window.appController.cycleAudioSpeed()"
+                  class="px-2.5 py-1.5 rounded-lg bg-emerald-950 hover:bg-emerald-900 text-emerald-300 border border-emerald-600 font-mono font-black text-xs"
+                >
+                  ⚡ ${(this.audioRate || 1.0)}x
+                </button>
+              </div>
+            </div>
+
+            <!-- Barra de Progreso Interactiva -->
+            <div class="flex items-center space-x-3 text-xs font-mono text-slate-400">
+              <span id="podcast-modal-time-cur">00:00</span>
+              <input
+                id="podcast-modal-Range"
+                type="range"
+                min="0"
+                max="100"
+                value="0"
+                oninput="window.appController.seekPodcastByPercent(this.value)"
+                class="flex-1 accent-amber-500 cursor-pointer h-2 rounded-lg bg-slate-800"
+              />
+              <span id="podcast-modal-time-dur">${ep.duracionEstimada || "06:00"}</span>
+            </div>
+          </div>
+
+          <!-- 💡 3 EJEMPLOS REALES DE CUARTEL PARA ENTENDER LA LEY SIN DORMIRSE -->
+          <div class="p-4 rounded-2xl bg-emerald-950/20 border border-emerald-500/40 space-y-2.5">
+            <div class="flex flex-wrap items-center justify-between gap-2">
+              <span class="text-xs font-black uppercase text-emerald-400">
+                💡 Casos Prácticos de Cuartel en este Episodio (La Ley traducida al cristiano):
+              </span>
+              <div class="flex flex-wrap gap-1.5">
+                <button
+                  onclick="window.appController.copyNotebookLMPodcastPrompt('${code}')"
+                  class="px-2.5 py-1 rounded-lg bg-purple-950 hover:bg-purple-900 text-purple-200 border border-purple-500/50 text-[11px] font-bold transition"
+                  title="Copia el prompt diseñado para que NotebookLM genere otro debate de audio con ejemplos sobre este tema"
+                >
+                  🤖 Copiar Prompt Podcast NotebookLM
+                </button>
+                <button
+                  onclick="window.appController.closePodcastStudioModal(); window.appController.openStudyGuideModal('${code}');"
+                  class="px-2.5 py-1 rounded-lg bg-slate-900 hover:bg-slate-800 text-amber-300 border border-amber-500/40 text-[11px] font-bold transition"
+                >
+                  📖 Ver Resumen Escrito
+                </button>
+                <button
+                  onclick="window.appController.closePodcastStudioModal(); window.appController.startTopicStudy('${code}');"
+                  class="px-2.5 py-1 rounded-lg bg-amber-500 hover:bg-amber-400 text-slate-950 text-[11px] font-black transition"
+                >
+                  🎯 Hacer Test de ${code}
+                </button>
+              </div>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-2.5">
+              ${(ep.ejemplosClave || []).map((ej, idx) => `
+                <div class="p-3 rounded-xl bg-slate-950/90 border border-emerald-700/40 text-xs text-slate-200 leading-relaxed">
+                  <span class="px-1.5 py-0.5 rounded bg-emerald-500 text-slate-950 font-black text-[10px] mr-1">CASO ${idx + 1}</span>
+                  ${ej}
+                </div>
+              `).join("")}
+            </div>
+          </div>
+
+          <!-- 🗣️ GUION INTERACTIVO DE LA TERTULIA (HAZ CLIC EN CUALQUIER INTERVENCIÓN PARA SALTAR A ESE MOMENTO) -->
+          <div class="space-y-2.5">
+            <div class="flex items-center justify-between text-xs">
+              <span class="font-black uppercase text-amber-400">
+                🗣️ Conversación Completa Paso a Paso (Haz clic en cualquier frase para escucharla desde ahí):
+              </span>
+              <span class="text-[11px] text-slate-400 font-mono">${(ep.dialogo || []).length} intervenciones</span>
+            </div>
+
+            <div class="space-y-2.5">
+              ${(ep.dialogo || []).map((turn, idx) => {
+                const isCarlos = String(turn.locutor || "").toLowerCase().includes("carlos");
+                return `
+                  <div
+                    id="podcast-turn-${idx}"
+                    onclick="window.appController.seekPodcastToTurn(${idx})"
+                    class="podcast-turn-card cursor-pointer p-3.5 rounded-2xl border transition flex items-start space-x-3 ${
+                      isCarlos
+                        ? "bg-slate-900/90 border-emerald-700/40 hover:border-emerald-400"
+                        : "bg-slate-900/60 border-amber-700/40 hover:border-amber-400"
+                    }"
+                  >
+                    <div class="w-9 h-9 rounded-xl ${
+                      isCarlos ? "bg-emerald-600 text-white" : "bg-amber-500 text-slate-950"
+                    } font-black text-xs flex items-center justify-center shrink-0 mt-0.5">
+                      ${isCarlos ? "🎖️BC" : "🪖CM"}
+                    </div>
+                    <div class="flex-1 space-y-1">
+                      <div class="flex items-center justify-between">
+                        <span class="text-xs font-black ${isCarlos ? "text-emerald-400" : "text-amber-400"}">
+                          ${turn.locutor}
+                        </span>
+                        <span class="text-[10px] font-mono text-slate-400">▶️ Intervención ${idx + 1}/${ep.dialogo.length}</span>
+                      </div>
+                      <p class="text-xs sm:text-sm text-slate-100 leading-relaxed">${turn.texto}</p>
+                    </div>
+                  </div>
+                `;
+              }).join("")}
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
+
+    this.updatePodcastModalLiveState();
+  }
+
+  closePodcastStudioModal() {
+    const modal = document.getElementById("podcast-studio-modal");
+    if (modal) modal.classList.add("hidden");
+  }
+
+  updatePodcastModalLiveState() {
+    const modal = document.getElementById("podcast-studio-modal");
+    if (!modal || modal.classList.contains("hidden")) return;
+
+    const playBtn = document.getElementById("podcast-modal-play-btn");
+    const speedBtn = document.getElementById("podcast-modal-speed-btn");
+    const curEl = document.getElementById("podcast-modal-time-cur");
+    const durEl = document.getElementById("podcast-modal-time-dur");
+    const rangeEl = document.getElementById("podcast-modal-Range");
+    const speakerEl = document.getElementById("podcast-modal-active-speaker");
+
+    const ep = this.getPodcastEpisode(this.audioTemaCodigo);
+    const audio = this.podcastAudio;
+
+    if (playBtn) {
+      playBtn.innerHTML = (!audio || audio.paused) ? "▶️ Escuchar Tertulia" : "⏸️ Pausar";
+    }
+    if (speedBtn) {
+      speedBtn.textContent = `⚡ ${(this.audioRate || 1.0)}x`;
+    }
+    if (audio && curEl) {
+      curEl.textContent = this.formatAudioTime(audio.currentTime);
+    }
+    if (audio && audio.duration && !isNaN(audio.duration) && durEl) {
+      durEl.textContent = this.formatAudioTime(audio.duration);
+    }
+    if (audio && audio.duration && !isNaN(audio.duration) && rangeEl) {
+      rangeEl.value = String(Math.round((audio.currentTime / audio.duration) * 100));
+    }
+
+    const activeIdx = this.activePodcastTurnIndex || 0;
+    if (ep && Array.isArray(ep.dialogo) && ep.dialogo[activeIdx] && speakerEl) {
+      const turn = ep.dialogo[activeIdx];
+      speakerEl.textContent = `🎙️ Hablando ahora (${activeIdx + 1}/${ep.dialogo.length}): ${turn.locutor}`;
+    }
+
+    document.querySelectorAll(".podcast-turn-card").forEach((el, idx) => {
+      if (idx === activeIdx && audio && !audio.paused) {
+        el.classList.add("ring-2", "ring-amber-400", "bg-amber-950/30");
+      } else {
+        el.classList.remove("ring-2", "ring-amber-400", "bg-amber-950/30");
+      }
+    });
   }
 
   speakCurrentFlashcard() {
     if (!("speechSynthesis" in window)) return;
     const card = this.fcList && this.fcList[this.fcIndex];
     if (!card) return;
-    this.audioTemaCodigo = card.bloque || "Flashcard";
-    this.audioMode = "flashcard";
-    this.audioTracks = [
-      {
-        label: `🃏 Tarjeta Anki ${this.fcIndex + 1}/${this.fcList.length} (${card.clave})`,
-        text: `Tarjeta de memoria: ${card.clave}. Pregunta: ${card.frente}. Respuesta oficial: ${card.dorso}`
-      }
-    ];
-    this.audioRate = this.audioRate || 1.05;
-    this.playAudioTrack(0);
+    window.speechSynthesis.cancel();
+    const utterance = new SpeechSynthesisUtterance(
+      `${card.clave}. ${card.frente}. Respuesta: ${card.reverso || card.dorso || ""}`
+    );
+    utterance.lang = "es-ES";
+    utterance.rate = 1.05;
+    window.speechSynthesis.speak(utterance);
   }
 
   renderTacticalAudioBar() {
     let bar = document.getElementById("tactical-audio-bar");
-    if (!this.isSpeaking || !Array.isArray(this.audioTracks) || this.audioTracks.length === 0) {
+    if (!this.isSpeaking || !this.podcastAudio || !this.audioTemaCodigo) {
       if (bar) bar.classList.add("hidden");
       return;
     }
     if (!bar) {
       bar = document.createElement("div");
       bar.id = "tactical-audio-bar";
-      bar.className = "fixed bottom-16 md:bottom-4 inset-x-3 max-w-3xl mx-auto z-50 rounded-2xl bg-slate-950/95 border-2 border-amber-500 shadow-2xl p-3 backdrop-blur-md";
+      bar.className = "fixed bottom-16 md:bottom-4 inset-x-3 max-w-4xl mx-auto z-40 rounded-2xl bg-slate-950/95 border-2 border-amber-500 shadow-2xl p-3 backdrop-blur-md";
       document.body.appendChild(bar);
     }
     bar.classList.remove("hidden");
-    const track = this.audioTracks[this.audioTrackIndex] || { label: "Reproduciendo..." };
-    const total = this.audioTracks.length;
-    const idx = (this.audioTrackIndex || 0) + 1;
-    const speedLabel = `${(this.audioRate || 1.0).toFixed(2).replace(/\.00$/, ".0").replace(/0$/, "")}x`;
+
+    const ep = this.getPodcastEpisode(this.audioTemaCodigo);
+    const audio = this.podcastAudio;
+    const curTime = this.formatAudioTime(audio.currentTime);
+    const durTime = (audio.duration && !isNaN(audio.duration))
+      ? this.formatAudioTime(audio.duration)
+      : (ep ? ep.duracionEstimada : "06:00");
+    const activeTurn = (ep && Array.isArray(ep.dialogo) && ep.dialogo[this.activePodcastTurnIndex || 0])
+      ? ep.dialogo[this.activePodcastTurnIndex || 0]
+      : null;
+    const speedLabel = `${(this.audioRate || 1.0)}x`;
 
     bar.innerHTML = `
       <div class="flex flex-wrap items-center justify-between gap-2 text-xs">
-        <div class="flex items-center space-x-2.5 min-w-0 flex-1">
-          <span class="w-8 h-8 rounded-xl bg-amber-500 text-slate-950 font-black flex items-center justify-center shrink-0 animate-pulse">
-            🎧
+        <div
+          onclick="window.appController.openPodcastStudioModal('${this.audioTemaCodigo}')"
+          class="flex items-center space-x-2.5 min-w-0 flex-1 cursor-pointer"
+          title="Haz clic para abrir el Estudio de Podcast con ejemplos y guion interactivo"
+        >
+          <span class="w-9 h-9 rounded-xl bg-amber-500 text-slate-950 font-black flex items-center justify-center shrink-0 ${audio.paused ? "" : "animate-pulse"}">
+            🎙️
           </span>
-          <div class="min-w-0">
-            <div class="flex items-center space-x-2">
+          <div class="min-w-0 flex-1">
+            <div class="flex flex-wrap items-center gap-2">
               <span class="font-mono font-black text-amber-400 uppercase text-[10px]">
-                MODO MANOS LIBRES OFFLINE • PISTA ${idx}/${total}
+                📻 RADIO PERMANENCIA ET • ${this.audioTemaCodigo} (${curTime} / ${durTime})
               </span>
-              ${this.audioTemaCodigo && this.audioMode !== "flashcard" ? `
-                <button
-                  onclick="window.appController.speakMasterSummary('${this.audioTemaCodigo}', '${this.audioMode === "video_only" ? "full" : "video_only"}')"
-                  class="px-1.5 py-0.5 rounded bg-sky-950 text-sky-300 border border-sky-600 text-[10px] font-bold"
-                >
-                  ${this.audioMode === "video_only" ? "📖 Cambiar a Tema Completo" : "🎬 Cambiar a Solo Vídeo"}
-                </button>
-              ` : ""}
+              <span class="px-1.5 py-0.5 rounded bg-emerald-950 text-emerald-300 border border-emerald-600 text-[10px] font-bold">
+                📖 Ver Guion y Ejemplos
+              </span>
             </div>
-            <div class="font-bold text-white truncate">${track.label}</div>
+            <div class="font-bold text-white truncate">
+              ${activeTurn ? `<span class="text-amber-300">${activeTurn.locutor}:</span> ${activeTurn.texto}` : (ep ? ep.titulo : this.audioTemaCodigo)}
+            </div>
           </div>
         </div>
 
         <div class="flex items-center space-x-1.5 shrink-0">
-          <button onclick="window.appController.prevAudioTrack()" class="px-2.5 py-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 border border-slate-700 text-slate-200 font-bold" title="Pista Anterior">
-            ⏮️
+          <button onclick="window.appController.seekPodcastRelative(-15)" class="px-2 py-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 border border-slate-700 text-slate-200 font-mono font-bold" title="Retroceder 15 segundos">
+            ⏪15s
           </button>
           <button onclick="window.appController.togglePauseAudio()" class="px-3 py-1.5 rounded-lg bg-amber-500 hover:bg-amber-400 text-slate-950 font-black">
-            ${this.isAudioPaused ? "▶️ Seguir" : "⏸️ Pausa"}
+            ${audio.paused ? "▶️ Play" : "⏸️ Pausa"}
           </button>
-          <button onclick="window.appController.nextAudioTrack()" class="px-2.5 py-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 border border-slate-700 text-slate-200 font-bold" title="Siguiente Pista">
-            ⏭️
+          <button onclick="window.appController.seekPodcastRelative(15)" class="px-2 py-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 border border-slate-700 text-slate-200 font-mono font-bold" title="Avanzar 15 segundos">
+            15s⏩
           </button>
-          <button onclick="window.appController.cycleAudioSpeed()" class="px-2.5 py-1.5 rounded-lg bg-emerald-950 hover:bg-emerald-900 text-emerald-300 border border-emerald-600 font-mono font-black" title="Cambiar velocidad de voz">
+          <button onclick="window.appController.cycleAudioSpeed()" class="px-2.5 py-1.5 rounded-lg bg-emerald-950 hover:bg-emerald-900 text-emerald-300 border border-emerald-600 font-mono font-black" title="Cambiar velocidad del podcast">
             ⚡ ${speedLabel}
           </button>
-          <button onclick="window.appController.stopAudio()" class="px-2.5 py-1.5 rounded-lg bg-red-950 hover:bg-red-900 text-red-300 border border-red-600 font-black" title="Detener Audio">
+          <button onclick="window.appController.stopAudio()" class="px-2.5 py-1.5 rounded-lg bg-red-950 hover:bg-red-900 text-red-300 border border-red-600 font-black" title="Cerrar Podcast">
             ⏹️
           </button>
         </div>
       </div>
     `;
   }
+
 
   // ==========================================
   // 📈 PLANIFICADOR DIARIO DE MISIÓN ("PLAN DE CHOQUE INTELIGENTE" + ENTRENADOR ADAPTATIVO IA)
@@ -1828,6 +2152,13 @@ class AppController {
             </p>
           </div>
           <div class="flex flex-wrap gap-1.5 shrink-0">
+            <button
+              onclick="window.appController.playTopicPodcast('B1-T01', true)"
+              class="px-3 py-1.5 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-slate-950 text-xs font-black transition shadow flex items-center space-x-1"
+              title="Abrir Radio Permanencia ET: 21 Podcasts Conversacionales con Brigada Carlos y Cabo 1º Marta explicando la ley con ejemplos"
+            >
+              <span>🎙️</span><span>Radio Permanencia (21 Podcasts)</span>
+            </button>
             <button
               onclick="window.appController.openWarNotebookModal()"
               class="px-3 py-1.5 rounded-lg bg-amber-500 hover:bg-amber-400 text-slate-950 text-xs font-black transition shadow"
@@ -1947,8 +2278,8 @@ class AppController {
                   <button onclick="window.appController.openStudyGuideModal('${item.tema.codigo}')" class="px-2.5 py-1.5 rounded-lg bg-amber-500 hover:bg-amber-400 text-slate-950 text-[11px] font-black transition">
                     📖 1. Resumen
                   </button>
-                  <button onclick="window.appController.speakMasterSummary('${item.tema.codigo}', 'video_only')" class="px-2.5 py-1.5 rounded-lg bg-sky-950 hover:bg-sky-900 text-sky-300 border border-sky-600 text-[11px] font-black transition" title="Escuchar Pizarra del Vídeo de YouTube en modo Manos Libres Offline">
-                    🎬🎧 Audio Vídeo
+                  <button onclick="window.appController.playTopicPodcast('${item.tema.codigo}', true)" class="px-2.5 py-1.5 rounded-lg bg-emerald-950 hover:bg-emerald-900 text-emerald-300 border border-emerald-500 text-[11px] font-black transition" title="Escuchar Podcast Conversacional (Brigada Carlos y Cabo 1º Marta explicando la ley con ejemplos de cuartel)">
+                    🎙️ Podcast (Ejemplos)
                   </button>
                   <button onclick="window.appController.openSchemaModal('${item.tema.codigo}')" class="px-2.5 py-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 text-sky-300 border border-slate-700 text-[11px] font-bold transition">
                     📊 2. Esquema
@@ -2120,10 +2451,10 @@ class AppController {
                       title="Paso 1: Leer Resumen Magistral desde Cero y Descargar PDF"
                     >📖</button>
                     <button
-                      onclick="window.appController.speakMasterSummary('${tema.codigo}', 'video_only')"
-                      class="p-1.5 rounded-lg bg-sky-950 hover:bg-sky-900 border border-sky-600/60 text-xs"
-                      title="Escuchar Pizarra del Vídeo de YouTube en Audio Manos Libres (Offline)"
-                    >🎧</button>
+                      onclick="window.appController.playTopicPodcast('${tema.codigo}', true)"
+                      class="p-1.5 rounded-lg bg-emerald-950 hover:bg-emerald-900 border border-emerald-500/70 text-xs"
+                      title="Escuchar Podcast Conversacional con Ejemplos de Cuartel (Brigada Carlos y Cabo 1º Marta)"
+                    >🎙️</button>
                     <button
                       onclick="window.appController.openSchemaModal('${tema.codigo}')"
                       class="p-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 border border-slate-700 text-xs"
@@ -2416,6 +2747,13 @@ class AppController {
         </div>
         <div class="flex flex-wrap items-center gap-2 shrink-0">
           <button
+            onclick="window.appController.playTopicPodcast('B1-T01', true)"
+            class="px-3 py-1.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 text-xs font-black transition shadow flex items-center space-x-1"
+            title="Abrir Radio Permanencia ET: 21 Podcasts Conversacionales con Brigada Carlos y Cabo 1º Marta explicando cada ley con ejemplos"
+          >
+            <span>🎙️</span><span>Radio Permanencia (21 Podcasts)</span>
+          </button>
+          <button
             onclick="window.appController.loadAllTeacherVideoPostIts()"
             class="px-3 py-1.5 rounded-xl bg-sky-600 hover:bg-sky-500 text-slate-950 text-xs font-black transition shadow flex items-center space-x-1"
             title="Pega automáticamente en tus 21 temas los 49 Post-its clave extraídos de los 28 vídeos de YouTube"
@@ -2555,19 +2893,11 @@ class AppController {
                       </button>
 
                       <button
-                        onclick="window.appController.speakMasterSummary('${tema.codigo}', 'video_only')"
-                        class="px-2.5 py-1.5 rounded-xl bg-sky-950 hover:bg-sky-900 border border-sky-600/60 text-xs font-black text-sky-300 transition flex items-center space-x-1"
-                        title="Escuchar Pizarra del Vídeo de YouTube + Post-its del Profesor en audio (Offline)"
+                        onclick="window.appController.playTopicPodcast('${tema.codigo}', true)"
+                        class="px-3 py-1.5 rounded-xl bg-emerald-950 hover:bg-emerald-900 border border-emerald-500 text-xs font-black text-emerald-300 transition flex items-center space-x-1 shadow"
+                        title="Escuchar Podcast Conversacional (Brigada Carlos y Cabo 1º Marta debatiendo y explicando la ley con ejemplos de cuartel)"
                       >
-                        <span>🎬🎧</span><span class="hidden sm:inline">Vídeo</span>
-                      </button>
-
-                      <button
-                        onclick="window.appController.speakMasterSummary('${tema.codigo}', 'full')"
-                        class="px-2.5 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-700 text-xs font-bold text-amber-400 transition"
-                        title="Escuchar Resumen Magistral completo en audio"
-                      >
-                        🔊
+                        <span>🎙️</span><span>Podcast (Ejemplos)</span>
                       </button>
                     </div>
                   </div>
@@ -2612,6 +2942,12 @@ class AppController {
                             <p class="text-[11px] text-slate-400">Haz clic sobre cualquier párrafo o punto <code>▸</code> para subrayarlo con el rotulador fluorescente activo.</p>
                           </div>
                           <div class="flex flex-wrap gap-1.5">
+                            <button
+                              onclick="window.appController.playTopicPodcast('${tema.codigo}', true)"
+                              class="px-3 py-1 rounded-lg bg-emerald-950 hover:bg-emerald-900 text-emerald-300 border border-emerald-500 font-black text-[11px] uppercase"
+                            >
+                              🎙️ Escuchar Podcast con Ejemplos
+                            </button>
                             <button
                               onclick="window.appController.openStudyGuideModal('${tema.codigo}')"
                               class="px-3 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-slate-950 font-black text-[11px] uppercase"
@@ -2752,19 +3088,27 @@ class AppController {
   }
 
   // ==========================================
-  // MODO AUDIO TÁCTICO (MANOS LIBRES)
+  // MODO AUDIO TÁCTICO / PODCAST CONVERSACIONAL (MANOS LIBRES)
   // ==========================================
   speakTopic(temaCodigo) {
-    this.speakMasterSummary(temaCodigo, "full");
+    this.playTopicPodcast(temaCodigo, true);
   }
 
   stopAudio() {
+    if (this.podcastAudio) {
+      try {
+        this.podcastAudio.pause();
+        this.podcastAudio.src = "";
+      } catch (_e) {}
+      this.podcastAudio = null;
+    }
     if ("speechSynthesis" in window) {
       window.speechSynthesis.cancel();
     }
     this.isSpeaking = false;
     this.isAudioPaused = false;
     this.renderTacticalAudioBar();
+    this.updatePodcastModalLiveState();
   }
 
   // ==========================================
@@ -3758,6 +4102,13 @@ class AppController {
   // IMPORTADOR NOTEBOOKLM (CON SUPER-PROMPTS PARA LOS 27 VÍDEOS DE YOUTUBE) & BACKUP
   // ==========================================
   getNotebookLMPromptByType(type = "video_questions") {
+    if (type === "podcast_debate") {
+      return `Genera un Podcast Conversacional ameno, carismático y muy didáctico (en Español de España) entre dos militares: un Brigada veterano instructor de academia y una Cabo 1º opositora a la Permanencia de Tropa y Marinería.
+Objetivo del episodio:
+1. Explicar la ley pura desde cero de forma entretenida y sin tecnicismos soporíferos, poniendo al menos 3 EJEMPLOS REALES Y COTIDIANOS DE VIDA EN EL CUARTEL, GUARDIAS, MANIOBRAS O PERMISOS para que cada artículo se entienda a la primera.
+2. Debatir y destacar todos los plazos numéricos exactos, mayorías, órganos competentes y edades clave que preguntan en el examen oficial.
+3. Desmontar con humor y claridad las trampas favoritas del Tribunal Militar para que el oyente no falle ni una sola pregunta mientras conduce o entrena.`;
+    }
     if (type === "video_notes") {
       return `Actúa como Jefe de Estudios de la oposición de Permanencia de Tropa y Marinería (Orden DEF/1341/2017 y Orden DEF/15/2026).
 Analiza las transcripciones de los 27 vídeos de YouTube de este cuaderno (que están divididos en 28 temas de academia) y extrae para cada tema:
