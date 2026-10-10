@@ -539,8 +539,17 @@ class CloudSyncManager {
   }
 
   // =========================================================================
-  // PROVEEDOR 0 (POR DEFECTO): PFAS CLOUD DB (INTERNET 24/7 AUTOMÁTICO SIN CONFIGURACIÓN)
+  // PROVEEDOR 0 (POR DEFECTO): PFAS CLOUD DB (INTERNET 24/7 AUTOMÁTICO SIN LÍMITE DE TAMAÑO)
+  // Combina Canal Cloud de Alta Capacidad (ntfy.sh JSON/File hasta 15 MB) + Índice Permanente (restful-api.dev)
   // =========================================================================
+  _getNtfyCloudTopic(pin) {
+    const cleanPin = (pin || DEFAULT_SYNC_PIN)
+      .trim()
+      .toLowerCase()
+      .replace(/[^a-z0-9_]/g, "_");
+    return `pfas_cloud_sync_v11_${cleanPin}`;
+  }
+
   async _resolveCloudObjectIdForPin(pin) {
     const cleanPin = (pin || DEFAULT_SYNC_PIN).trim().replace(/[^a-zA-Z0-9_-]/g, "_").toUpperCase();
     if (cleanPin === DEFAULT_SYNC_PIN && this.config.cloudObjectId) {
@@ -549,7 +558,6 @@ class CloudSyncManager {
     if (this.config.cloudObjectId) {
       return this.config.cloudObjectId;
     }
-    // Consultar directorio de PINs en la nube
     try {
       const res = await fetch(`https://keyvalue.immanuel.co/api/KeyVal/GetValue/${PIN_DIRECTORY_APP_KEY}/PFAS_PIN_${cleanPin}`);
       if (res.ok) {
@@ -566,74 +574,117 @@ class CloudSyncManager {
     return null;
   }
 
-  async _registerPinInDirectory(pin, objectId) {
-    const cleanPin = (pin || DEFAULT_SYNC_PIN).trim().replace(/[^a-zA-Z0-9_-]/g, "_").toUpperCase();
+  async _pullPFASCloud() {
+    const topic = this._getNtfyCloudTopic(this.config.syncKey);
+
+    // 1. Consultar canal principal de alta capacidad en Internet (ntfy.sh JSON / Attachment)
     try {
-      await fetch(`https://keyvalue.immanuel.co/api/KeyVal/UpdateValue/${PIN_DIRECTORY_APP_KEY}/PFAS_PIN_${cleanPin}/${objectId}`, {
-        method: "POST"
+      const pollRes = await fetch(`https://ntfy.sh/${topic}/json?poll=1`, {
+        method: "GET",
+        cache: "no-store"
       });
+      if (pollRes.ok) {
+        const rawText = await pollRes.text();
+        const lines = rawText.split(/\r?\n/).filter(l => l.trim().length > 0);
+        for (let i = lines.length - 1; i >= 0; i--) {
+          try {
+            const evt = JSON.parse(lines[i]);
+            if (evt.event !== "message") continue;
+            if (evt.attachment && evt.attachment.url) {
+              const attRes = await fetch(evt.attachment.url, { cache: "no-store" });
+              if (attRes.ok) {
+                const parsedAtt = await attRes.json();
+                if (parsedAtt && parsedAtt.payload) return parsedAtt;
+              }
+            } else if (evt.message && evt.message.trim().startsWith("{")) {
+              const parsedMsg = JSON.parse(evt.message);
+              if (parsedMsg && parsedMsg.payload) return parsedMsg;
+            }
+          } catch (innerErr) {
+            // continuar buscando el último snapshot válido
+          }
+        }
+      }
+    } catch (e) {
+      // Fallback al índice secundario
+    }
+
+    // 2. Fallback al índice compacto permanente (api.restful-api.dev)
+    try {
+      const objectId = await this._resolveCloudObjectIdForPin(this.config.syncKey);
+      if (objectId) {
+        const res = await fetch(`https://api.restful-api.dev/objects/${objectId}`, {
+          method: "GET",
+          headers: { "Accept": "application/json" }
+        });
+        if (res.ok) {
+          const doc = await res.json();
+          if (doc && doc.data && doc.data.payload) {
+            return doc.data;
+          }
+        }
+      }
     } catch (e) {
       // ignore
     }
-  }
 
-  async _pullPFASCloud() {
-    const objectId = await this._resolveCloudObjectIdForPin(this.config.syncKey);
-    if (!objectId) {
-      return null;
-    }
-    const res = await fetch(`https://api.restful-api.dev/objects/${objectId}`, {
-      method: "GET",
-      headers: { "Accept": "application/json" }
-    });
-    if (!res.ok) {
-      throw new Error(`PFAS Cloud GET (${res.status})`);
-    }
-    const doc = await res.json();
-    return doc && doc.data ? doc.data : null;
+    return null;
   }
 
   async _pushPFASCloud(envelope) {
-    let objectId = await this._resolveCloudObjectIdForPin(this.config.syncKey);
+    const topic = this._getNtfyCloudTopic(this.config.syncKey);
+    const bodyStr = JSON.stringify(envelope);
 
-    if (objectId) {
-      const res = await fetch(`https://api.restful-api.dev/objects/${objectId}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          name: `PFAS-CLOUD-DB-${this.config.syncKey || DEFAULT_SYNC_PIN}`,
-          data: envelope
-        })
-      });
-      if (res.ok) {
-        return {
-          ok: true,
-          message: `Sincronizado en Base de Datos Cloud (PIN: ${this.config.syncKey})`
-        };
-      }
+    // 1. Subir snapshot completo (sin límite de tamaño: Post-its, subrayados, Baremo, 16 simulacros, fallos)
+    const headers = {};
+    if (bodyStr.length > 3500) {
+      // Para backups grandes (>3.5 KB hasta 15 MB), ntfy.sh lo almacena automáticamente como archivo JSON adjunto
+      headers["Filename"] = "pfas-cloud-backup.json";
     }
 
-    // Si no existía un objeto para este nuevo PIN, aprovisionarlo automáticamente
-    const createRes = await fetch("https://api.restful-api.dev/objects", {
+    const ntfyRes = await fetch(`https://ntfy.sh/${topic}`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        name: `PFAS-CLOUD-DB-${this.config.syncKey || DEFAULT_SYNC_PIN}`,
-        data: envelope
-      })
+      headers,
+      body: bodyStr
     });
-    if (!createRes.ok) {
-      throw new Error(`No se pudo aprovisionar el nodo en la nube (${createRes.status})`);
+
+    if (!ntfyRes.ok) {
+      throw new Error(`Error al sincronizar con PFAS Cloud DB (${ntfyRes.status})`);
     }
-    const created = await createRes.json();
-    objectId = created.id;
-    this.config.cloudObjectId = objectId;
-    localStorage.setItem(CLOUD_CONFIG_KEY, JSON.stringify(this.config));
-    await this._registerPinInDirectory(this.config.syncKey, objectId);
+
+    // 2. Actualizar en segundo plano el índice compacto permanente (< 600 bytes para evitar límite de columna SQL)
+    try {
+      const objectId = await this._resolveCloudObjectIdForPin(this.config.syncKey);
+      if (objectId) {
+        const compactEnvelope = {
+          updatedAt: envelope.updatedAt,
+          syncKey: envelope.syncKey,
+          payload: {
+            stats: {
+              xp: envelope.payload?.stats?.xp || 150,
+              streakDays: envelope.payload?.stats?.streakDays || 1,
+              totalAnswered: envelope.payload?.stats?.totalAnswered || 0,
+              totalCorrect: envelope.payload?.stats?.totalCorrect || 0
+            },
+            readTopics: (envelope.payload?.readTopics || []).slice(0, 21)
+          }
+        };
+        fetch(`https://api.restful-api.dev/objects/${objectId}`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            name: `PFAS-CLOUD-DB-${this.config.syncKey || DEFAULT_SYNC_PIN}`,
+            data: compactEnvelope
+          })
+        }).catch(() => {});
+      }
+    } catch (e) {
+      // El canal principal ntfy.sh ya guardó el backup completo
+    }
 
     return {
       ok: true,
-      message: `Nuevo nodo Cloud aprovisionado y sincronizado (PIN: ${this.config.syncKey})`
+      message: `Sincronizado en Base de Datos Cloud (PIN: ${this.config.syncKey})`
     };
   }
 

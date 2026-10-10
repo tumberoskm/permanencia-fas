@@ -862,7 +862,7 @@
                 <span class="px-2 py-0.5 rounded bg-amber-500 text-slate-950 font-black text-[10px] shrink-0 mt-0.5">PASO 3</span>
                 <div>
                   <strong class="text-white">Vete de Maniobras sin miedo a perder nada:</strong><br/>
-                  El Service Worker (<code class="text-emerald-300">v10</code>) guarda los 21 temas, 425 preguntas, 86 flashcards y 16 simulacros dentro del teléfono. Todo lo que subrayes, anotes en Post-its o respondas sin cobertura se guarda en la <strong>Cola de Maniobras</strong> y sube solo a la nube en cuanto el móvil pille 1 raya de 4G/5G.
+                  El Service Worker (<code class="text-emerald-300">v11</code>) guarda los <strong>21 temas, 1.000 preguntas oficiales y de vídeo, 86 flashcards y 16 simulacros</strong> dentro del teléfono. Todo lo que subrayes, anotes en Post-its o respondas sin cobertura se guarda en la <strong>Cola de Maniobras</strong> y sube solo a la nube en cuanto el móvil pille 1 raya de 4G/5G.
                 </div>
               </div>
             </div>
@@ -959,25 +959,25 @@
     </button>
   </nav>
 
-  <!-- SCRIPTS DE LA APLICACIÓN (v10 Cloud Sync & Modo Maniobras) -->
-  <script src="./js/syllabus-data.js?v=10"></script>
-  <script src="./js/study-guides-data.js?v=10"></script>
-  <script src="./js/schemas-data.js?v=10"></script>
-  <script src="./js/questions-data.js?v=10"></script>
-  <script src="./js/questions-extra-data.js?v=10"></script>
-  <script src="./js/questions-wave2-data.js?v=10"></script>
-  <script src="./js/questions-wave3-data.js?v=10"></script>
-  <script src="./js/questions-wave4-data.js?v=10"></script>
-  <script src="./js/questions-wave5-data.js?v=10"></script>
-  <script src="./js/flashcards-data.js?v=10"></script>
-  <script src="./js/storage.js?v=10"></script>
-  <script src="./js/cloud-sync.js?v=10"></script>
-  <script src="./js/simulator.js?v=10"></script>
-  <script src="./js/app.js?v=10"></script>
+  <!-- SCRIPTS DE LA APLICACIÓN (v11 Cloud Sync & Modo Maniobras) -->
+  <script src="./js/syllabus-data.js?v=11"></script>
+  <script src="./js/study-guides-data.js?v=11"></script>
+  <script src="./js/schemas-data.js?v=11"></script>
+  <script src="./js/questions-data.js?v=11"></script>
+  <script src="./js/questions-extra-data.js?v=11"></script>
+  <script src="./js/questions-wave2-data.js?v=11"></script>
+  <script src="./js/questions-wave3-data.js?v=11"></script>
+  <script src="./js/questions-wave4-data.js?v=11"></script>
+  <script src="./js/questions-wave5-data.js?v=11"></script>
+  <script src="./js/flashcards-data.js?v=11"></script>
+  <script src="./js/storage.js?v=11"></script>
+  <script src="./js/cloud-sync.js?v=11"></script>
+  <script src="./js/simulator.js?v=11"></script>
+  <script src="./js/app.js?v=11"></script>
   <script>
     if ("serviceWorker" in navigator) {
       window.addEventListener("load", () => {
-        navigator.serviceWorker.register("./sw.js?v=10").catch(() => {});
+        navigator.serviceWorker.register("./sw.js?v=11").catch(() => {});
       });
     }
   </script>

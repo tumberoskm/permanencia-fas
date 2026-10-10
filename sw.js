@@ -1,4 +1,4 @@
-const CACHE_NAME = "permanencia-fas-v10";
+const CACHE_NAME = "permanencia-fas-v11";
 const ASSETS = [
   "./",
   "./index.html",
@@ -49,6 +49,7 @@ self.addEventListener("fetch", (event) => {
   if (
     event.request.method !== "GET" ||
     url.includes("/api/") ||
+    url.includes("ntfy.sh") ||
     url.includes("restful-api.dev") ||
     url.includes("keyvalue.immanuel.co") ||
     url.includes("firebaseio.com") ||
