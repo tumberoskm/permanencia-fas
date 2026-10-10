@@ -14,10 +14,12 @@ class SimulatorEngine {
     this.answers = {};
     this.revealed = new Set(); // Índices cuya respuesta ya se ha comprobado en Modo Estudio
     this.flagged = new Set();
-    this.mode = "official"; // "official" | "ponderado_100" | "trampas" | "examen_real" | "failed_bag" | "tema"
+    this.mode = "official"; // "official" | "ponderado_100" | "trampas" | "examen_real" | "failed_bag" | "tema" | "pack"
     this.studyMode = false; // Si true, corrige al instante tras seleccionar opción
     this.filterBloque = "ALL";
     this.filterTema = null;
+    this.packId = null;
+    this.packTitle = null;
     this.timerInterval = null;
     this.secondsRemaining = 0;
     this.secondsElapsed = 0;
@@ -33,12 +35,41 @@ class SimulatorEngine {
     return copy;
   }
 
-  startSession({ count = 20, bloque = "ALL", mode = "official", temaCodigo = null, studyMode = false, tagFilter = "ALL" }) {
+  buildWeighted100(pool, allFallback, targetCount = 100) {
+    const n1 = Math.round(targetCount * 0.34);
+    const n2 = Math.round(targetCount * 0.40);
+    const n3 = Math.max(0, targetCount - n1 - n2);
+    const b1 = this.shuffleArray(pool.filter(q => q.bloque === "Bloque 1: Organización")).slice(0, n1);
+    const b2 = this.shuffleArray(pool.filter(q => q.bloque === "Bloque 2: Jurídico-Social")).slice(0, n2);
+    const b3 = this.shuffleArray(pool.filter(q => q.bloque === "Bloque 3: Seguridad Nacional")).slice(0, n3);
+    const selected = [...b1, ...b2, ...b3];
+    if (selected.length < targetCount) {
+      const usedIds = new Set(selected.map(q => q.id));
+      const restPool = this.shuffleArray((allFallback || pool).filter(q => !usedIds.has(q.id)));
+      selected.push(...restPool.slice(0, targetCount - selected.length));
+    }
+    return selected.slice(0, targetCount);
+  }
+
+  startSession({
+    count = 20,
+    bloque = "ALL",
+    mode = "official",
+    temaCodigo = null,
+    studyMode = false,
+    tagFilter = "ALL",
+    packId = null,
+    packTitle = null,
+    packRule = null,
+    customMinutes = null
+  }) {
     this.mode = mode;
     this.studyMode = Boolean(studyMode);
     this.filterBloque = bloque;
     this.filterTema = temaCodigo;
     this.tagFilter = tagFilter || "ALL";
+    this.packId = packId || null;
+    this.packTitle = packTitle || null;
     this.currentIndex = 0;
     this.answers = {};
     this.revealed = new Set();
@@ -49,18 +80,59 @@ class SimulatorEngine {
     const allQuestions = window.storageManager.getQuestions();
     let selectedQuestions = [];
 
-    if (mode === "ponderado_100") {
-      // Reparto estadístico real del Examen Oficial de 100 preguntas: 34 B1 + 40 B2 + 26 B3
-      const b1 = this.shuffleArray(allQuestions.filter(q => q.bloque === "Bloque 1: Organización")).slice(0, 34);
-      const b2 = this.shuffleArray(allQuestions.filter(q => q.bloque === "Bloque 2: Jurídico-Social")).slice(0, 40);
-      const b3 = this.shuffleArray(allQuestions.filter(q => q.bloque === "Bloque 3: Seguridad Nacional")).slice(0, 26);
-      selectedQuestions = [...b1, ...b2, ...b3];
-      // Si el banco tuviera menos de 100 por algún motivo, rellenar con las restantes
-      if (selectedQuestions.length < 100) {
-        const usedIds = new Set(selectedQuestions.map(q => q.id));
-        const rest = this.shuffleArray(allQuestions.filter(q => !usedIds.has(q.id)));
-        selectedQuestions.push(...rest.slice(0, 100 - selectedQuestions.length));
+    if (packRule) {
+      let rulePool = [...allQuestions];
+      if (packRule === "ponderado_100") {
+        selectedQuestions = this.buildWeighted100(allQuestions, allQuestions, count || 100);
+      } else if (packRule === "convocatoria_2025") {
+        rulePool = allQuestions.filter(q => Number(q.anioConvocatoria) >= 2024 || q.esExamenOficial === true || (Array.isArray(q.etiquetas) && q.etiquetas.includes("Pregunta de Examen")));
+        selectedQuestions = this.buildWeighted100(rulePool, allQuestions, count || 60);
+      } else if (packRule === "convocatoria_2024") {
+        rulePool = allQuestions.filter(q => Number(q.anioConvocatoria) === 2024 || (Array.isArray(q.etiquetas) && (q.etiquetas.includes("Pregunta de Examen") || q.etiquetas.includes("Importante"))));
+        selectedQuestions = this.buildWeighted100(rulePool, allQuestions, count || 60);
+      } else if (packRule === "convocatoria_2023") {
+        rulePool = allQuestions.filter(q => Number(q.anioConvocatoria) <= 2023 || q.esExamenOficial === true || (Array.isArray(q.etiquetas) && q.etiquetas.includes("Pregunta de Examen")));
+        selectedQuestions = this.buildWeighted100(rulePool, allQuestions, count || 60);
+      } else if (packRule === "pareto_top6") {
+        const starTopics = new Set(["B1-T01", "B1-T04", "B1-T06", "B2-T01", "B2-T04", "B2-T08"]);
+        rulePool = allQuestions.filter(q => starTopics.has(q.temaCodigo));
+        selectedQuestions = this.shuffleArray(rulePool).slice(0, Math.min(count, rulePool.length));
+      } else if (packRule === "solo_plazos") {
+        const plazoRegex = /\b(días|día|mes|meses|años|año|horas|plazo|mayoría|tercios|quintos|por ciento|%|\d+\s*(años|meses|días|horas))\b/i;
+        rulePool = allQuestions.filter(q =>
+          plazoRegex.test(q.pregunta || q.enunciado || "") ||
+          plazoRegex.test(q.justificacion || "") ||
+          (Array.isArray(q.opciones) && q.opciones.some(opt => plazoRegex.test(opt)))
+        );
+        selectedQuestions = this.shuffleArray(rulePool).slice(0, Math.min(count, rulePool.length));
+      } else if (packRule === "novedades_2024_2026") {
+        const novRegex = /(2024|2025|2026|DIGEID|205\/2024|247\/2024|Eslovaquia|Suecia|Finlandia|MCANA|Art\.?\s*49|PDC-01|2\/2024|6\/2024)/i;
+        rulePool = allQuestions.filter(q =>
+          novRegex.test(q.pregunta || q.enunciado || "") ||
+          novRegex.test(q.justificacion || "") ||
+          novRegex.test(q.referencia || "")
+        );
+        if (rulePool.length < count) {
+          const used = new Set(rulePool.map(q => q.id));
+          const extra = this.shuffleArray(allQuestions.filter(q => !used.has(q.id) && Array.isArray(q.etiquetas) && q.etiquetas.includes("Importante")));
+          rulePool.push(...extra.slice(0, count - rulePool.length));
+        }
+        selectedQuestions = this.shuffleArray(rulePool).slice(0, Math.min(count, rulePool.length));
+      } else if (packRule === "elite_corte") {
+        rulePool = allQuestions.filter(q => Array.isArray(q.etiquetas) && (q.etiquetas.includes("Rebuscada") || q.etiquetas.includes("Trampa")));
+        selectedQuestions = this.shuffleArray(rulePool).slice(0, Math.min(count, rulePool.length));
+      } else if (packRule === "iniciacion_facil") {
+        rulePool = allQuestions.filter(q => Array.isArray(q.etiquetas) && q.etiquetas.includes("Fácil"));
+        selectedQuestions = this.shuffleArray(rulePool).slice(0, Math.min(count, rulePool.length));
+      } else {
+        if (bloque !== "ALL") {
+          rulePool = allQuestions.filter(q => q.bloque === bloque);
+        }
+        selectedQuestions = this.shuffleArray(rulePool).slice(0, Math.min(count, rulePool.length));
       }
+    } else if (mode === "ponderado_100") {
+      // Reparto estadístico real del Examen Oficial de 100 preguntas: 34 B1 + 40 B2 + 26 B3
+      selectedQuestions = this.buildWeighted100(allQuestions, allQuestions);
     } else {
       let pool = [];
       if (mode === "failed_bag") {
@@ -104,10 +176,12 @@ class SimulatorEngine {
       this.answers[i] = null;
     }
 
-    // Examen oficial de 100 preguntas = 120 minutos (7200s); resto = 1.2 min por pregunta
-    this.secondsRemaining = mode === "ponderado_100"
-      ? 120 * 60
-      : Math.round(this.questions.length * 72);
+    // Examen oficial de 100 preguntas = 120 minutos (7200s); resto = customMinutes o 1.2 min por pregunta
+    this.secondsRemaining = customMinutes
+      ? customMinutes * 60
+      : (mode === "ponderado_100" || this.questions.length === 100)
+        ? 120 * 60
+        : Math.round(this.questions.length * 72);
     this.startTimer();
 
     return {
@@ -271,6 +345,8 @@ class SimulatorEngine {
       passed,
       bloqueFilter: this.filterBloque,
       mode: this.mode,
+      packId: this.packId,
+      packTitle: this.packTitle,
       timeSpentSeconds: this.secondsElapsed,
       timeFormatted: this.formatTime(this.secondsElapsed),
       byBloque,
@@ -287,6 +363,8 @@ class SimulatorEngine {
       passed: summary.passed,
       bloque: summary.bloqueFilter,
       mode: summary.mode,
+      packId: summary.packId,
+      packTitle: summary.packTitle,
       timeFormatted: summary.timeFormatted
     });
 

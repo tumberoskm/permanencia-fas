@@ -4,14 +4,17 @@
  */
 
 const STORAGE_KEYS = {
-  QUESTIONS: "permanencia_questions_v5",
+  QUESTIONS: "permanencia_questions_v6",
   FAILED_QUESTIONS: "permanencia_failed_v1",
   STATS: "permanencia_stats_v1",
   TOPIC_STATS: "permanencia_topic_stats_v1",
   HISTORY: "permanencia_sim_history_v1",
   FLASHCARDS: "permanencia_flashcards_v1",
   LEARNED_FLASHCARDS: "permanencia_fc_learned_v1",
-  READ_TOPICS: "permanencia_read_topics_v1"
+  READ_TOPICS: "permanencia_read_topics_v1",
+  TOPIC_NOTES: "permanencia_topic_notes_v1",
+  TOPIC_HIGHLIGHTS: "permanencia_topic_highlights_v1",
+  PACK_SCORES: "permanencia_pack_scores_v1"
 };
 
 const RANKS = [
@@ -54,6 +57,7 @@ class StorageManager {
     try {
       const storedRaw =
         localStorage.getItem(STORAGE_KEYS.QUESTIONS) ||
+        localStorage.getItem("permanencia_questions_v5") ||
         localStorage.getItem("permanencia_questions_v4") ||
         localStorage.getItem("permanencia_questions_v3") ||
         localStorage.getItem("permanencia_questions_v2");
@@ -276,6 +280,24 @@ class StorageManager {
     if (history.length > 30) history.pop();
     localStorage.setItem(STORAGE_KEYS.HISTORY, JSON.stringify(history));
 
+    // Si pertenece a un Simulacro Oficial Cerrado (packId), guardar mejor récord
+    if (result.packId) {
+      const packScores = this.getPackScores();
+      const prev = packScores[result.packId];
+      const attempts = (prev ? prev.attempts || 0 : 0) + 1;
+      const isBetter = !prev || Number(result.scoreOutOf10) >= Number(prev.bestScoreOutOf10 || 0);
+      packScores[result.packId] = {
+        bestScoreOutOf10: isBetter ? result.scoreOutOf10 : prev.bestScoreOutOf10,
+        bestRawScore: isBetter ? result.rawScore : prev.bestRawScore,
+        passed: Boolean((prev && prev.passed) || result.passed),
+        attempts,
+        lastScoreOutOf10: result.scoreOutOf10,
+        lastDate: new Date().toISOString(),
+        timeFormatted: isBetter ? result.timeFormatted : (prev.timeFormatted || result.timeFormatted)
+      };
+      localStorage.setItem(STORAGE_KEYS.PACK_SCORES, JSON.stringify(packScores));
+    }
+
     const stats = this.getStats();
     stats.simulatorsCompleted = (stats.simulatorsCompleted || 0) + 1;
     stats.totalAnswered = (stats.totalAnswered || 0) + result.total;
@@ -288,6 +310,15 @@ class StorageManager {
 
     this.saveStats(stats);
     return earnedXP;
+  }
+
+  getPackScores() {
+    try {
+      const data = localStorage.getItem(STORAGE_KEYS.PACK_SCORES);
+      return data ? JSON.parse(data) : {};
+    } catch (e) {
+      return {};
+    }
   }
 
   // FLASHCARDS
@@ -338,19 +369,140 @@ class StorageManager {
     return list.includes(temaCodigo);
   }
 
+  // NOTAS DE ESTUDIO TIPO "POST-IT" POR TEMA
+  getAllTopicNotes() {
+    try {
+      const data = localStorage.getItem(STORAGE_KEYS.TOPIC_NOTES);
+      return data ? JSON.parse(data) : {};
+    } catch (e) {
+      return {};
+    }
+  }
+
+  getTopicNotes(temaCodigo) {
+    const all = this.getAllTopicNotes();
+    return Array.isArray(all[temaCodigo]) ? all[temaCodigo] : [];
+  }
+
+  addTopicNote(temaCodigo, { color = "yellow", tag = "📌 Nota Clave", titulo = "", texto = "" }) {
+    if (!temaCodigo || !texto || !texto.trim()) return null;
+    const all = this.getAllTopicNotes();
+    if (!Array.isArray(all[temaCodigo])) {
+      all[temaCodigo] = [];
+    }
+    const newNote = {
+      id: `NOTE-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
+      temaCodigo,
+      color,
+      tag,
+      titulo: (titulo || "").trim(),
+      texto: texto.trim(),
+      fecha: new Date().toISOString()
+    };
+    all[temaCodigo].unshift(newNote);
+    localStorage.setItem(STORAGE_KEYS.TOPIC_NOTES, JSON.stringify(all));
+    this.addXP(10);
+    return newNote;
+  }
+
+  deleteTopicNote(temaCodigo, noteId) {
+    const all = this.getAllTopicNotes();
+    if (!Array.isArray(all[temaCodigo])) return false;
+    all[temaCodigo] = all[temaCodigo].filter(n => n.id !== noteId);
+    localStorage.setItem(STORAGE_KEYS.TOPIC_NOTES, JSON.stringify(all));
+    return true;
+  }
+
+  // SUBRAYADO FLUORESCENTE PERSONAL POR TEMA
+  getAllTopicHighlights() {
+    try {
+      const data = localStorage.getItem(STORAGE_KEYS.TOPIC_HIGHLIGHTS);
+      return data ? JSON.parse(data) : {};
+    } catch (e) {
+      return {};
+    }
+  }
+
+  getTopicHighlights(temaCodigo) {
+    const all = this.getAllTopicHighlights();
+    const current = all[temaCodigo];
+    if (!current || typeof current !== "object") {
+      return { items: {}, phrases: [] };
+    }
+    return {
+      items: current.items && typeof current.items === "object" ? current.items : {},
+      phrases: Array.isArray(current.phrases) ? current.phrases : []
+    };
+  }
+
+  setPointHighlight(temaCodigo, itemKey, color) {
+    if (!temaCodigo || !itemKey) return;
+    const all = this.getAllTopicHighlights();
+    const current = this.getTopicHighlights(temaCodigo);
+    if (!color || current.items[itemKey] === color) {
+      delete current.items[itemKey];
+    } else {
+      current.items[itemKey] = color;
+    }
+    all[temaCodigo] = current;
+    localStorage.setItem(STORAGE_KEYS.TOPIC_HIGHLIGHTS, JSON.stringify(all));
+    return current;
+  }
+
+  addPhraseHighlight(temaCodigo, text, color = "yellow") {
+    const clean = (text || "").trim();
+    if (!temaCodigo || clean.length < 3) return null;
+    const all = this.getAllTopicHighlights();
+    const current = this.getTopicHighlights(temaCodigo);
+    const existingIdx = current.phrases.findIndex(p => p.text.toLowerCase() === clean.toLowerCase());
+    if (existingIdx >= 0) {
+      current.phrases[existingIdx].color = color;
+    } else {
+      current.phrases.push({ text: clean, color, fecha: new Date().toISOString() });
+      this.addXP(5);
+    }
+    all[temaCodigo] = current;
+    localStorage.setItem(STORAGE_KEYS.TOPIC_HIGHLIGHTS, JSON.stringify(all));
+    return current;
+  }
+
+  removePhraseHighlight(temaCodigo, text) {
+    const all = this.getAllTopicHighlights();
+    const current = this.getTopicHighlights(temaCodigo);
+    current.phrases = current.phrases.filter(p => p.text !== text);
+    all[temaCodigo] = current;
+    localStorage.setItem(STORAGE_KEYS.TOPIC_HIGHLIGHTS, JSON.stringify(all));
+    return current;
+  }
+
+  clearTopicHighlights(temaCodigo) {
+    const all = this.getAllTopicHighlights();
+    delete all[temaCodigo];
+    localStorage.setItem(STORAGE_KEYS.TOPIC_HIGHLIGHTS, JSON.stringify(all));
+  }
+
+  hasTopicAnnotations(temaCodigo) {
+    const notes = this.getTopicNotes(temaCodigo);
+    const hl = this.getTopicHighlights(temaCodigo);
+    return notes.length > 0 || Object.keys(hl.items).length > 0 || hl.phrases.length > 0;
+  }
+
   // BACKUP COMPLETO
   exportFullBackup() {
     return {
       appName: "Permanencia FAS - WebApp",
       exportDate: new Date().toISOString(),
-      version: "3.0",
+      version: "4.0",
       stats: this.getStats(),
       topicStats: this.getTopicStats(),
       questions: this.getQuestions(),
       failedQuestions: this.getFailedQuestions(),
       simulatorHistory: this.getSimulatorHistory(),
       learnedFlashcards: this.getLearnedFlashcards(),
-      readTopics: this.getReadTopics()
+      readTopics: this.getReadTopics(),
+      topicNotes: this.getAllTopicNotes(),
+      topicHighlights: this.getAllTopicHighlights(),
+      packScores: this.getPackScores()
     };
   }
 
@@ -378,6 +530,15 @@ class StorageManager {
     }
     if (backupData.readTopics && Array.isArray(backupData.readTopics)) {
       localStorage.setItem(STORAGE_KEYS.READ_TOPICS, JSON.stringify(backupData.readTopics));
+    }
+    if (backupData.topicNotes && typeof backupData.topicNotes === "object") {
+      localStorage.setItem(STORAGE_KEYS.TOPIC_NOTES, JSON.stringify(backupData.topicNotes));
+    }
+    if (backupData.topicHighlights && typeof backupData.topicHighlights === "object") {
+      localStorage.setItem(STORAGE_KEYS.TOPIC_HIGHLIGHTS, JSON.stringify(backupData.topicHighlights));
+    }
+    if (backupData.packScores && typeof backupData.packScores === "object") {
+      localStorage.setItem(STORAGE_KEYS.PACK_SCORES, JSON.stringify(backupData.packScores));
     }
     return true;
   }

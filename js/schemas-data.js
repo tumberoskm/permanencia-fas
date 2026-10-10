@@ -1293,6 +1293,51 @@ window.pdfGenerator = {
     `;
   },
 
+  buildPersonalAnnotationsHTML(temaCodigo) {
+    if (!window.storageManager) return "";
+    const notes = window.storageManager.getTopicNotes ? window.storageManager.getTopicNotes(temaCodigo) : [];
+    const hl = window.storageManager.getTopicHighlights ? window.storageManager.getTopicHighlights(temaCodigo) : { items: {}, phrases: [] };
+    const phrases = Array.isArray(hl.phrases) ? hl.phrases : [];
+
+    if (notes.length === 0 && phrases.length === 0) return "";
+
+    const colorBgMap = {
+      yellow: { bg: "#fef08a", border: "#eab308", text: "#713f12" },
+      green: { bg: "#bbf7d0", border: "#10b981", text: "#064e3b" },
+      pink: { bg: "#fecdd3", border: "#f43f5e", text: "#881337" },
+      cyan: { bg: "#bae6fd", border: "#0284c7", text: "#0c4a6e" }
+    };
+
+    return `
+      <div style="margin-top:14px; margin-bottom:14px; padding:12px 16px; background:#fffbeb; border:2px dashed #d97706; border-radius:10px; page-break-inside:avoid;">
+        <div style="font-weight:900; font-size:13px; color:#92400e; text-transform:uppercase; margin-bottom:8px;">
+          📌 MIS NOTAS DE ESTUDIO (POST-ITS) Y SUBRAYADOS PERSONALES (${temaCodigo})
+        </div>
+        ${notes.length > 0 ? `
+          <div style="display:grid; grid-template-columns:repeat(2, 1fr); gap:10px; margin-bottom:${phrases.length > 0 ? "10px" : "0"};">
+            ${notes.map(n => {
+              const st = colorBgMap[n.color] || colorBgMap.yellow;
+              return `
+                <div style="background:${st.bg}; border:2px solid ${st.border}; color:${st.text}; padding:8px 10px; border-radius:8px; font-size:11.5px;">
+                  <div style="font-weight:900; font-size:10px; text-transform:uppercase; margin-bottom:3px;">${n.tag || "📌 POST-IT"} ${n.titulo ? `• ${n.titulo}` : ""}</div>
+                  <div style="line-height:1.45; white-space:pre-line;">${n.texto}</div>
+                </div>
+              `;
+            }).join("")}
+          </div>
+        ` : ""}
+        ${phrases.length > 0 ? `
+          <div style="font-size:11.5px; color:#1e293b;">
+            <strong>🖍️ Frases Subrayadas por el Opositor:</strong>
+            <div style="margin-top:4px; display:flex; flex-wrap:wrap; gap:6px;">
+              ${phrases.map(p => `<span class="hl-${p.color || "yellow"}">“${p.text}”</span>`).join(" ")}
+            </div>
+          </div>
+        ` : ""}
+      </div>
+    `;
+  },
+
   downloadVisualSchemaPDF(temaCodigo) {
     const tema = (typeof OFFICIAL_SYLLABUS !== "undefined")
       ? OFFICIAL_SYLLABUS.find(t => t.codigo === temaCodigo)
@@ -1300,6 +1345,7 @@ window.pdfGenerator = {
     if (!tema) return;
 
     const schema = VISUAL_SCHEMAS[temaCodigo];
+    const personalHTML = this.buildPersonalAnnotationsHTML(temaCodigo);
     const legendHTML = schema && schema.leyenda
       ? schema.leyenda.map(l => `
           <div class="legend-item">
@@ -1343,6 +1389,8 @@ window.pdfGenerator = {
             </div>
           </div>
 
+          ${personalHTML}
+
           ${schema ? schema.htmlDiagrama : ""}
 
           <div class="trap-box">
@@ -1374,6 +1422,10 @@ window.pdfGenerator = {
 
     const guide = (typeof MASTER_STUDY_GUIDES !== "undefined") ? MASTER_STUDY_GUIDES[temaCodigo] : null;
     const schema = VISUAL_SCHEMAS[temaCodigo];
+    const personalHTML = this.buildPersonalAnnotationsHTML(temaCodigo);
+    const hl = window.storageManager && window.storageManager.getTopicHighlights
+      ? window.storageManager.getTopicHighlights(temaCodigo)
+      : { items: {}, phrases: [] };
 
     const html = `
       <!DOCTYPE html>
@@ -1387,7 +1439,7 @@ window.pdfGenerator = {
         <div class="no-print-bar">
           <div>
             <strong>📖 MANUAL MAGISTRAL DESDE CERO • ${tema.codigo}: ${tema.titulo}</strong>
-            <div style="font-size:11px; color:#cbd5e1;">Lectura guiada paso a paso para comprender todo el tema antes de hacer esquemas y tests</div>
+            <div style="font-size:11px; color:#cbd5e1;">Incluye tus subrayados fluorescentes y Post-its personales</div>
           </div>
           <div>
             <button class="btn-print" onclick="window.print()">🖨️ Descargar Tema en PDF</button>
@@ -1405,6 +1457,8 @@ window.pdfGenerator = {
             </div>
           </div>
 
+          ${personalHTML}
+
           ${guide ? `
             <div style="background:#fffbeb; border:2px solid #f59e0b; padding:12px 16px; border-radius:10px; font-size:12.5px; line-height:1.55; margin-bottom:14px;">
               <strong>🎓 CONSEJO DEL JEFE DE ESTUDIOS (CÓMO EMPEZAR ESTE TEMA DESDE CERO):</strong><br/>
@@ -1412,18 +1466,22 @@ window.pdfGenerator = {
               ${guide.actualizaciones ? `<div style="margin-top:8px; padding-top:8px; border-top:1px dashed #d97706;"><strong>🚨 ACTUALIZACIÓN NORMATIVA RECIENTE DE EXAMEN:</strong> <span class="hl-pink">${guide.actualizaciones}</span></div>` : ""}
             </div>
 
-            ${(guide.epigrafes || []).map((ep) => `
+            ${(guide.epigrafes || []).map((ep, epIdx) => `
               <div style="border:2px solid #1e293b; border-radius:10px; margin-bottom:14px; overflow:hidden; page-break-inside:avoid;">
                 <div style="background:#0f172a; color:#fbbf24; font-weight:900; font-size:13px; padding:9px 14px; text-transform:uppercase;">
                   📌 ${ep.titulo}
                 </div>
                 <div style="padding:12px 16px; background:#ffffff; font-size:12.5px; line-height:1.6; color:#0f172a;">
                   <div style="margin-bottom:10px; background:#f8fafc; padding:8px 12px; border-left:4px solid #0284c7; border-radius:4px;">
-                    <strong>💡 Explicación Didáctica:</strong> ${ep.explicacionSencilla}
+                    <strong>💡 Explicación Didáctica:</strong> ${ep.explicacion || ep.explicacionSencilla || ""}
                   </div>
                   <div style="font-weight:800; font-size:11.5px; color:#334155; text-transform:uppercase; margin-bottom:6px;">🎯 Lo que debes memorizar sí o sí para el examen:</div>
                   <ul style="margin:0; padding-left:18px;">
-                    ${(ep.clavesExamen || []).map(cl => `<li style="margin-bottom:6px;">${cl}</li>`).join("")}
+                    ${(ep.puntos || ep.clavesExamen || []).map((cl, cIdx) => {
+                      const itemColor = hl.items[`ep-${epIdx}-${cIdx}`];
+                      const cls = itemColor ? `class="hl-${itemColor}"` : "";
+                      return `<li style="margin-bottom:6px;"><span ${cls}>${cl}</span></li>`;
+                    }).join("")}
                   </ul>
                 </div>
               </div>
@@ -1438,14 +1496,22 @@ window.pdfGenerator = {
           <div class="normativa-footer-box">
             <strong>🔥 SÍNTESIS DE PUNTOS CALIENTES DEL TRIBUNAL (${tema.codigo}):</strong>
             <ul style="margin:6px 0 0 0; padding-left:18px; font-size:12px; line-height:1.5;">
-              ${(tema.puntosCalientes || []).map(p => `<li style="margin-bottom:4px;">${p}</li>`).join("")}
+              ${(tema.puntosCalientes || []).map((p, pIdx) => {
+                const itemColor = hl.items[`hot-${pIdx}`];
+                const cls = itemColor ? `class="hl-${itemColor}"` : "";
+                return `<li style="margin-bottom:4px;"><span ${cls}>${p}</span></li>`;
+              }).join("")}
             </ul>
           </div>
 
           <div class="trap-box">
             <strong>🪤 TRAMPAS MORTALES QUE PONE EL TRIBUNAL EN ESTE TEMA:</strong>
             <ul style="margin:6px 0 0 0; padding-left:18px; font-size:12px; line-height:1.5;">
-              ${(tema.trampas || []).map(t => `<li style="margin-bottom:4px;">${t}</li>`).join("")}
+              ${(tema.trampas || []).map((t, tIdx) => {
+                const itemColor = hl.items[`trap-${tIdx}`];
+                const cls = itemColor ? `class="hl-${itemColor}"` : "";
+                return `<li style="margin-bottom:4px;"><span ${cls}>${t}</span></li>`;
+              }).join("")}
             </ul>
           </div>
 
@@ -1469,6 +1535,7 @@ window.pdfGenerator = {
 
     const guide = (typeof MASTER_STUDY_GUIDES !== "undefined") ? MASTER_STUDY_GUIDES[temaCodigo] : null;
     const schema = VISUAL_SCHEMAS[temaCodigo];
+    const personalHTML = this.buildPersonalAnnotationsHTML(temaCodigo);
     const allQuestions = window.storageManager ? window.storageManager.getQuestions() : [];
     const topicQuestions = allQuestions.filter(q => q.temaCodigo === temaCodigo);
     const letters = ["A", "B", "C", "D"];
@@ -1484,7 +1551,7 @@ window.pdfGenerator = {
       <body>
         <div class="no-print-bar">
           <div>
-            <strong>📄 CHULETA TÁCTICA COMPLETA (RESUMEN MAGISTRAL + ESQUEMA + ${topicQuestions.length} PREGUNTAS) • ${tema.codigo}</strong>
+            <strong>📄 CHULETA TÁCTICA COMPLETA (RESUMEN MAGISTRAL + POST-ITS + ESQUEMA + ${topicQuestions.length} PREGUNTAS) • ${tema.codigo}</strong>
             <div style="font-size:11px; color:#cbd5e1;">Lista para guardar en PDF en tu móvil o imprimir en A4 a todo color</div>
           </div>
           <div>
@@ -1503,6 +1570,8 @@ window.pdfGenerator = {
             </div>
           </div>
 
+          ${personalHTML}
+
           <div style="background:#f1f5f9; border-left:5px solid #0f172a; padding:10px 14px; border-radius:6px; font-size:12.5px; line-height:1.5; margin-bottom:14px;">
             <strong>📖 RESUMEN EJECUTIVO DEL TEMA:</strong><br/>
             ${tema.resumen}
@@ -1513,9 +1582,9 @@ window.pdfGenerator = {
             ${(guide.epigrafes || []).map(ep => `
               <div style="border:1px solid #cbd5e1; border-left:5px solid #0284c7; border-radius:8px; padding:10px 12px; margin-bottom:10px; background:#ffffff;">
                 <div style="font-weight:900; font-size:12.5px; color:#0f172a; margin-bottom:4px;">📌 ${ep.titulo}</div>
-                <div style="font-size:12px; color:#334155; margin-bottom:6px;"><em>${ep.explicacionSencilla}</em></div>
+                <div style="font-size:12px; color:#334155; margin-bottom:6px;"><em>${ep.explicacion || ep.explicacionSencilla || ""}</em></div>
                 <ul style="margin:0; padding-left:18px; font-size:12px; line-height:1.5;">
-                  ${(ep.clavesExamen || []).map(cl => `<li style="margin-bottom:3px;">${cl}</li>`).join("")}
+                  ${(ep.puntos || ep.clavesExamen || []).map(cl => `<li style="margin-bottom:3px;">${cl}</li>`).join("")}
                 </ul>
               </div>
             `).join("")}
@@ -1547,7 +1616,7 @@ window.pdfGenerator = {
                 <span>PREGUNTA ${idx + 1} (${q.id}) • ${(q.etiquetas || []).join(" · ")}</span>
                 <span class="hl-cyan">${q.referencia || ""}</span>
               </div>
-              <div style="font-size:13px; font-weight:800; color:#0f172a; margin-bottom:6px;">${q.pregunta}</div>
+              <div style="font-size:13px; font-weight:800; color:#0f172a; margin-bottom:6px;">${q.enunciado || q.pregunta || ""}</div>
               <div style="font-size:12px; margin-bottom:6px;">
                 ${q.opciones.map((opt, oIdx) => `
                   <div style="padding:3px 6px; border-radius:4px; ${oIdx === q.correcta ? "background:#dcfce7; color:#065f46; font-weight:800; border:1px solid #10b981;" : "color:#475569;"}">

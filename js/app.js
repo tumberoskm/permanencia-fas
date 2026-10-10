@@ -14,6 +14,7 @@ class AppController {
     this.expandedTopics = new Set(["B1-T01", "B1-T04", "B2-T04"]);
     this.dailyPairOffset = 0;
     this.isSpeaking = false;
+    this.activeHighlighterColor = "yellow";
     this.init();
   }
 
@@ -108,6 +109,8 @@ class AppController {
 
     if (tabName === "dashboard") {
       this.renderDashboard();
+    } else if (tabName === "simulator-config") {
+      this.renderOfficialExamPacks();
     } else if (tabName === "temario") {
       this.renderTemario();
     } else if (tabName === "trampas") {
@@ -250,6 +253,314 @@ class AppController {
   }
 
   // ==========================================
+  // 🖍️ SUBRAYADOR FLUORESCENTE PERSONAL + 📌 NOTAS DE ESTUDIO TIPO "POST-IT"
+  // ==========================================
+  escapeRegExp(str) {
+    return String(str || "").replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  }
+
+  applyPhraseHighlightsToHTML(html, phrases) {
+    if (!html || !Array.isArray(phrases) || phrases.length === 0) return html;
+    let output = String(html);
+    const sorted = [...phrases].sort((a, b) => (b.text || "").length - (a.text || "").length);
+
+    sorted.forEach(p => {
+      const clean = (p.text || "").trim();
+      if (clean.length < 3) return;
+      const escaped = this.escapeRegExp(clean);
+      const regex = new RegExp(`(${escaped})(?![^<]*>)`, "gi");
+      output = output.replace(regex, `<span class="hl-${p.color || "yellow"}" title="Subrayado personal del opositor">$1</span>`);
+    });
+    return output;
+  }
+
+  setHighlighterColor(color, temaCodigo, inModal = false) {
+    this.activeHighlighterColor = color;
+    if (inModal) {
+      this.openStudyGuideModal(temaCodigo);
+    } else {
+      this.renderTemario();
+    }
+  }
+
+  togglePointHighlight(temaCodigo, itemKey, inModal = false) {
+    window.storageManager.setPointHighlight(temaCodigo, itemKey, this.activeHighlighterColor || "yellow");
+    this.updateHeaderStats();
+    if (inModal) {
+      this.openStudyGuideModal(temaCodigo);
+    }
+    if (this.currentTab === "temario") {
+      this.renderTemario();
+    } else if (this.currentTab === "dashboard") {
+      this.renderDashboard();
+    }
+  }
+
+  highlightSelectedText(temaCodigo, inModal = false) {
+    let selected = "";
+    if (window.getSelection) {
+      selected = window.getSelection().toString().trim();
+    }
+    if (!selected || selected.length < 3) {
+      const manual = prompt(
+        "🖍️ SUBRAYADOR FLUORESCENTE:\nSelecciona antes una frase con el ratón/dedo o escribe aquí la palabra, plazo o frase exacta que quieres subrayar en este tema:"
+      );
+      if (!manual || manual.trim().length < 3) return;
+      selected = manual.trim();
+    }
+    window.storageManager.addPhraseHighlight(temaCodigo, selected, this.activeHighlighterColor || "yellow");
+    if (window.getSelection) {
+      window.getSelection().removeAllRanges();
+    }
+    this.updateHeaderStats();
+    if (inModal) {
+      this.openStudyGuideModal(temaCodigo);
+    }
+    if (this.currentTab === "temario") {
+      this.renderTemario();
+    } else if (this.currentTab === "dashboard") {
+      this.renderDashboard();
+    }
+  }
+
+  removePhraseHighlight(temaCodigo, encodedText, inModal = false) {
+    const text = decodeURIComponent(encodedText || "");
+    window.storageManager.removePhraseHighlight(temaCodigo, text);
+    if (inModal) {
+      this.openStudyGuideModal(temaCodigo);
+    }
+    if (this.currentTab === "temario") {
+      this.renderTemario();
+    }
+  }
+
+  clearTopicHighlights(temaCodigo, inModal = false) {
+    if (!confirm(`¿Deseas borrar todos tus subrayados fluorescentes del tema ${temaCodigo}? (Tus Post-its se mantendrán intactos)`)) return;
+    window.storageManager.clearTopicHighlights(temaCodigo);
+    if (inModal) {
+      this.openStudyGuideModal(temaCodigo);
+    }
+    if (this.currentTab === "temario") {
+      this.renderTemario();
+    } else if (this.currentTab === "dashboard") {
+      this.renderDashboard();
+    }
+  }
+
+  submitTopicPostIt(temaCodigo, inModal = false) {
+    const prefix = inModal ? "modal" : "card";
+    const colorEl = document.getElementById(`postit-color-${prefix}-${temaCodigo}`);
+    const tagEl = document.getElementById(`postit-tag-${prefix}-${temaCodigo}`);
+    const titleEl = document.getElementById(`postit-title-${prefix}-${temaCodigo}`);
+    const textEl = document.getElementById(`postit-text-${prefix}-${temaCodigo}`);
+
+    if (!textEl || !textEl.value.trim()) {
+      alert("📌 Escribe el contenido de tu nota Post-it antes de pegarla en el tema.");
+      return;
+    }
+
+    window.storageManager.addTopicNote(temaCodigo, {
+      color: colorEl ? colorEl.value : "yellow",
+      tag: tagEl ? tagEl.value : "📌 Idea Clave",
+      titulo: titleEl ? titleEl.value : "",
+      texto: textEl.value
+    });
+
+    this.updateHeaderStats();
+    if (inModal) {
+      this.openStudyGuideModal(temaCodigo);
+    }
+    if (this.currentTab === "temario") {
+      this.renderTemario();
+    } else if (this.currentTab === "dashboard") {
+      this.renderDashboard();
+    }
+  }
+
+  deleteTopicPostIt(temaCodigo, noteId, inModal = false) {
+    window.storageManager.deleteTopicNote(temaCodigo, noteId);
+    if (inModal) {
+      this.openStudyGuideModal(temaCodigo);
+    }
+    if (this.currentTab === "temario") {
+      this.renderTemario();
+    } else if (this.currentTab === "dashboard") {
+      this.renderDashboard();
+    }
+  }
+
+  renderAnnotationsWorkspaceHTML(temaCodigo, inModal = false) {
+    const prefix = inModal ? "modal" : "card";
+    const notes = window.storageManager.getTopicNotes(temaCodigo);
+    const hl = window.storageManager.getTopicHighlights(temaCodigo);
+    const itemCount = Object.keys(hl.items || {}).length;
+    const phraseCount = (hl.phrases || []).length;
+    const activeColor = this.activeHighlighterColor || "yellow";
+
+    const colors = [
+      { id: "yellow", label: "🟨 Amarillo Examen", btnCls: "bg-yellow-400/20 text-yellow-200 border-yellow-400" },
+      { id: "green",  label: "🟩 Verde Concepto",  btnCls: "bg-emerald-400/20 text-emerald-200 border-emerald-400" },
+      { id: "pink",   label: "🟥 Rosa Trampa/Plazo", btnCls: "bg-rose-400/20 text-rose-200 border-rose-400" },
+      { id: "cyan",   label: "🟦 Azul Artículo",   btnCls: "bg-sky-400/20 text-sky-200 border-sky-400" }
+    ];
+
+    return `
+      <div class="p-4 rounded-2xl bg-slate-950/95 border-2 border-amber-500/40 space-y-4">
+        <!-- BARRA DEL SUBRAYADOR FLUORESCENTE PERSONAL -->
+        <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-3 pb-3 border-b border-slate-800">
+          <div class="space-y-1">
+            <div class="flex flex-wrap items-center gap-2">
+              <span class="px-2.5 py-0.5 rounded bg-amber-500 text-slate-950 font-black text-[11px] uppercase">
+                🖍️ Subrayador Fluorescente + 📌 Post-its (${temaCodigo})
+              </span>
+              <span class="text-xs font-mono text-emerald-400">
+                📌 ${notes.length} Post-its • 🖍️ ${itemCount + phraseCount} Subrayados (Se incluyen al descargar PDF)
+              </span>
+            </div>
+            <p class="text-[11px] text-slate-300">
+              Elige color de rotulador y <strong>haz clic sobre cualquier punto <code>▸</code> del tema</strong> para subrayarlo/quitarlo, o selecciona cualquier palabra/frase y pulsa <strong>"Subrayar selección"</strong>.
+            </p>
+          </div>
+
+          <div class="flex flex-wrap items-center gap-1.5">
+            ${colors.map(c => `
+              <button
+                type="button"
+                onclick="window.appController.setHighlighterColor('${c.id}', '${temaCodigo}', ${inModal})"
+                class="px-2.5 py-1.5 rounded-lg text-[11px] font-black border transition ${c.btnCls} ${activeColor === c.id ? "ring-2 ring-white scale-105 shadow-lg" : "opacity-75 hover:opacity-100"}"
+              >
+                ${c.label}
+              </button>
+            `).join("")}
+
+            <button
+              type="button"
+              onclick="window.appController.highlightSelectedText('${temaCodigo}', ${inModal})"
+              class="px-3 py-1.5 rounded-lg bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-[11px] uppercase transition shadow"
+              title="Subraya en fluorescente el texto que tengas seleccionado con el ratón o escribe una palabra clave"
+            >
+              🖍️ Subrayar Selección (+5 XP)
+            </button>
+
+            ${(itemCount + phraseCount) > 0 ? `
+              <button
+                type="button"
+                onclick="window.appController.clearTopicHighlights('${temaCodigo}', ${inModal})"
+                class="px-2.5 py-1.5 rounded-lg bg-slate-900 hover:bg-red-950 text-slate-400 hover:text-red-300 border border-slate-700 text-[11px] font-bold transition"
+                title="Limpiar todos los subrayados de este tema"
+              >
+                🧹 Limpiar (${itemCount + phraseCount})
+              </button>
+            ` : ""}
+          </div>
+        </div>
+
+        ${phraseCount > 0 ? `
+          <div class="flex flex-wrap items-center gap-1.5 text-xs">
+            <span class="font-bold text-slate-400 text-[11px]">🖍️ Tus frases subrayadas:</span>
+            ${hl.phrases.map(p => `
+              <span class="inline-flex items-center space-x-1.5 px-2 py-0.5 rounded bg-slate-900 border border-slate-700">
+                <span class="hl-${p.color || "yellow"} text-[11px]">“${p.text}”</span>
+                <button
+                  type="button"
+                  onclick="window.appController.removePhraseHighlight('${temaCodigo}', '${encodeURIComponent(p.text)}', ${inModal})"
+                  class="text-slate-400 hover:text-red-400 font-bold text-[11px]"
+                  title="Quitar este subrayado"
+                >✕</button>
+              </span>
+            `).join("")}
+          </div>
+        ` : ""}
+
+        <!-- TABLERO DE NOTAS DE ESTUDIO TIPO "POST-IT" -->
+        <div class="space-y-3">
+          <div class="flex flex-wrap items-center justify-between gap-2">
+            <h5 class="text-xs font-black uppercase text-amber-300 flex items-center space-x-1.5">
+              <span>📌</span><span>Mis Notas de Estudio tipo "Post-it" en ${temaCodigo} (${notes.length})</span>
+            </h5>
+            <span class="text-[11px] text-slate-400">Tus Post-its quedan pegados en este tema y se imprimen en tu Resumen PDF y Chuleta PDF</span>
+          </div>
+
+          ${notes.length > 0 ? `
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+              ${notes.map(n => {
+                const dateShort = n.fecha ? new Date(n.fecha).toLocaleDateString("es-ES", { day: "2-digit", month: "short" }) : "";
+                return `
+                  <div class="postit-card postit-${n.color || "yellow"} flex flex-col justify-between space-y-2">
+                    <div>
+                      <div class="flex items-center justify-between gap-1 border-b border-black/15 pb-1 mb-1.5">
+                        <span class="text-[10px] font-black uppercase tracking-wider">${n.tag || "📌 POST-IT"}</span>
+                        <div class="flex items-center space-x-1.5">
+                          <span class="text-[10px] font-mono opacity-75">${dateShort}</span>
+                          <button
+                            type="button"
+                            onclick="window.appController.deleteTopicPostIt('${temaCodigo}', '${n.id}', ${inModal})"
+                            class="text-xs font-black opacity-70 hover:opacity-100"
+                            title="Despegar / Borrar Post-it"
+                          >🗑️</button>
+                        </div>
+                      </div>
+                      ${n.titulo ? `<div class="text-xs font-black mb-1 leading-snug">${n.titulo}</div>` : ""}
+                      <p class="text-xs font-medium leading-relaxed whitespace-pre-line">${n.texto}</p>
+                    </div>
+                  </div>
+                `;
+              }).join("")}
+            </div>
+          ` : `
+            <div class="p-3 rounded-xl bg-slate-900/60 border border-dashed border-slate-700 text-xs text-slate-400">
+              📌 Aún no has pegado ningún Post-it en <strong>${temaCodigo}</strong>. Añade abajo tus reglas mnemotécnicas, plazos que te cuesten o recordatorios personales.
+            </div>
+          `}
+
+          <!-- Formulario Rápido para Pegar un Nuevo Post-it -->
+          <div class="p-3 rounded-xl bg-slate-900/90 border border-slate-800 space-y-2.5">
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+              <select id="postit-color-${prefix}-${temaCodigo}" class="p-2 rounded-lg bg-slate-950 border border-slate-700 text-xs font-bold text-amber-300">
+                <option value="yellow">🟨 Post-it Amarillo (Idea Clave)</option>
+                <option value="pink">🟥 Post-it Rosa/Rojo (¡Ojo Trampa / Plazo!)</option>
+                <option value="green">🟩 Post-it Verde (Truco / Regla)</option>
+                <option value="cyan">🟦 Post-it Azul (Artículo / Duda)</option>
+              </select>
+
+              <select id="postit-tag-${prefix}-${temaCodigo}" class="p-2 rounded-lg bg-slate-950 border border-slate-700 text-xs font-bold text-slate-200">
+                <option value="📌 Idea Clave">📌 Idea Clave de Examen</option>
+                <option value="⚠️ ¡Cuidado Trampa!">⚠️ ¡Cuidado Trampa del Tribunal!</option>
+                <option value="⏱️ Plazo / Mayoría">⏱️ Plazo / Fecha / Mayoría</option>
+                <option value="🧠 Regla Mnemotécnica">🧠 Regla Mnemotécnica</option>
+                <option value="❓ Repasar Antes del Examen">❓ Repasar Antes del Examen</option>
+              </select>
+
+              <input
+                type="text"
+                id="postit-title-${prefix}-${temaCodigo}"
+                placeholder="Título corto (ej: Prescripción Leves LO 8/2014)..."
+                class="p-2 rounded-lg bg-slate-950 border border-slate-700 text-xs text-white placeholder-slate-500"
+              />
+            </div>
+
+            <div class="flex flex-col sm:flex-row gap-2">
+              <textarea
+                id="postit-text-${prefix}-${temaCodigo}"
+                rows="2"
+                placeholder="Escribe aquí tu nota Post-it para este tema (ej: 'No confundir: Falta leve prescribe a los 2 meses, pero la sanción leve prescribe a los 3 meses')..."
+                class="flex-1 p-2.5 rounded-lg bg-slate-950 border border-slate-700 text-xs text-white placeholder-slate-500 focus:border-amber-400 focus:outline-none"
+              ></textarea>
+              <button
+                type="button"
+                onclick="window.appController.submitTopicPostIt('${temaCodigo}', ${inModal})"
+                class="px-4 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs uppercase tracking-wider transition shrink-0 shadow-lg"
+              >
+                📌 Pegar Post-it (+10 XP)
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+  // ==========================================
   // 📖 PASO 1: MODAL DEL RESUMEN MAGISTRAL DESDE CERO + CONTROL DE TEMAS LEÍDOS
   // ==========================================
   toggleTopicReadStatus(temaCodigo, fromModal = false) {
@@ -277,9 +588,9 @@ class AppController {
     if (!modal || !content) return;
 
     const isRead = window.storageManager.isTopicRead(temaCodigo);
+    const hl = window.storageManager.getTopicHighlights(temaCodigo);
     const allQuestions = window.storageManager.getQuestions().filter(q => q.temaCodigo === temaCodigo);
     const easyCount = allQuestions.filter(q => Array.isArray(q.etiquetas) && q.etiquetas.includes("Fácil")).length;
-    const examCount = allQuestions.filter(q => Array.isArray(q.etiquetas) && q.etiquetas.includes("Pregunta de Examen")).length;
     const pal = (typeof TOPIC_COLOR_PALETTE !== "undefined" && TOPIC_COLOR_PALETTE[tema.codigo]) || { accent: "#10b981", titleColor: "#34d399" };
 
     content.innerHTML = `
@@ -318,7 +629,7 @@ class AppController {
               onclick="window.pdfGenerator.downloadMasterSummaryPDF('${tema.codigo}')"
               class="px-3.5 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs uppercase tracking-wider transition flex items-center space-x-1.5 shadow-lg"
             >
-              <span>🖨️</span><span>Descargar Resumen en PDF</span>
+              <span>🖨️</span><span>Descargar Resumen + Post-its PDF</span>
             </button>
 
             <button
@@ -356,6 +667,9 @@ class AppController {
           </div>
         </div>
 
+        <!-- 🖍️ SUBRAYADOR FLUORESCENTE PERSONAL + 📌 TABLERO DE POST-ITS -->
+        ${this.renderAnnotationsWorkspaceHTML(tema.codigo, true)}
+
         ${guide ? `
           <!-- Consejo del Jefe de Estudios -->
           <div class="p-4 rounded-2xl bg-amber-950/30 border-2 border-amber-500/50 space-y-1.5">
@@ -363,7 +677,7 @@ class AppController {
               <span>👨‍🏫</span><span>Directriz de tu Jefe de Estudios (Cómo abordar este tema desde cero):</span>
             </div>
             <p class="text-xs sm:text-sm text-amber-100 leading-relaxed font-medium">
-              ${guide.consejoJefeEstudios}
+              ${this.applyPhraseHighlightsToHTML(guide.consejoJefeEstudios, hl.phrases)}
             </p>
           </div>
 
@@ -373,52 +687,91 @@ class AppController {
               <span>🆕</span><span>Actualizaciones Normativas y Novedades de Examen (2024–2026) — ¡Lo que más preguntan!:</span>
             </div>
             <p class="text-xs sm:text-sm text-emerald-100 leading-relaxed font-medium">
-              ${guide.actualizaciones}
+              ${this.applyPhraseHighlightsToHTML(guide.actualizaciones, hl.phrases)}
             </p>
           </div>
 
-          <!-- Epígrafes Desarrollados Paso a Paso -->
+          <!-- Epígrafes Desarrollados Paso a Paso (Con Subrayado Fluorescente al hacer clic) -->
           <div class="space-y-4">
-            <h4 class="text-sm font-black uppercase tracking-wider text-white border-b border-slate-800 pb-2">
-              📚 Desarrollo Completo del Tema Explicado Paso a Paso (Todo lo que sale en el Examen)
-            </h4>
-            ${(guide.epigrafes || []).map(ep => `
+            <div class="flex flex-wrap items-center justify-between gap-2 border-b border-slate-800 pb-2">
+              <h4 class="text-sm font-black uppercase tracking-wider text-white">
+                📚 Desarrollo Completo del Tema Explicado Paso a Paso (Haz clic en cualquier punto ▸ para subrayarlo)
+              </h4>
+              <span class="text-[11px] font-mono text-amber-400">🖍️ Rotulador activo: ${this.activeHighlighterColor.toUpperCase()}</span>
+            </div>
+            ${(guide.epigrafes || []).map((ep, epIdx) => `
               <div class="p-4 sm:p-5 rounded-2xl bg-slate-950/95 border border-slate-800 space-y-3 shadow-inner" style="border-left: 5px solid ${pal.accent};">
                 <h5 class="text-sm sm:text-base font-black text-amber-300 uppercase tracking-wide">
                   ${ep.titulo}
                 </h5>
                 <p class="text-xs sm:text-sm text-slate-200 leading-relaxed">
-                  ${ep.explicacion}
+                  ${this.applyPhraseHighlightsToHTML(ep.explicacion, hl.phrases)}
                 </p>
                 <div class="space-y-2 pt-1">
-                  ${(ep.puntos || []).map(pt => `
-                    <div class="p-2.5 sm:p-3 rounded-xl bg-slate-900/90 border border-slate-800/90 text-xs sm:text-sm text-slate-100 leading-relaxed flex items-start space-x-2.5">
-                      <span class="text-amber-400 font-black shrink-0 mt-0.5">▸</span>
-                      <div>${pt}</div>
-                    </div>
-                  `).join("")}
+                  ${(ep.puntos || []).map((pt, ptIdx) => {
+                    const itemKey = `ep-${epIdx}-${ptIdx}`;
+                    const itemColor = hl.items[itemKey];
+                    const hlBlockCls = itemColor ? `hl-block-${itemColor}` : "";
+                    return `
+                      <div
+                        onclick="window.appController.togglePointHighlight('${tema.codigo}', '${itemKey}', true)"
+                        title="Haz clic para subrayar / quitar subrayado con tu rotulador fluorescente"
+                        class="cursor-pointer p-2.5 sm:p-3 rounded-xl bg-slate-900/90 hover:bg-slate-900 border border-slate-800/90 text-xs sm:text-sm text-slate-100 leading-relaxed flex items-start justify-between gap-2 transition ${hlBlockCls}"
+                      >
+                        <div class="flex items-start space-x-2.5">
+                          <span class="text-amber-400 font-black shrink-0 mt-0.5">${itemColor ? "🖍️" : "▸"}</span>
+                          <div>${this.applyPhraseHighlightsToHTML(pt, hl.phrases)}</div>
+                        </div>
+                        <span class="text-[10px] font-mono text-slate-500 shrink-0">${itemColor ? "Subrayado" : "🖍️"}</span>
+                      </div>
+                    `;
+                  }).join("")}
                 </div>
               </div>
             `).join("")}
           </div>
         ` : `
           <div class="p-4 rounded-xl bg-slate-900 border border-slate-800 text-sm text-slate-200 leading-relaxed">
-            ${tema.resumen}
+            ${this.applyPhraseHighlightsToHTML(tema.resumen, hl.phrases)}
           </div>
         `}
 
-        <!-- Puntos Calientes + Trampas -->
+        <!-- Puntos Calientes + Trampas (También subrayables al hacer clic) -->
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div class="p-4 rounded-2xl bg-emerald-950/25 border border-emerald-700/50 space-y-2">
-            <h5 class="text-xs font-black uppercase text-emerald-400">🔥 Puntos Calientes Indispensables (BOD):</h5>
+            <h5 class="text-xs font-black uppercase text-emerald-400">🔥 Puntos Calientes Indispensables (Haz clic para subrayar):</h5>
             <ul class="space-y-1.5 text-xs text-slate-200">
-              ${(tema.puntosCalientes || []).map(p => `<li class="leading-relaxed">• ${p}</li>`).join("")}
+              ${(tema.puntosCalientes || []).map((p, pIdx) => {
+                const itemKey = `hot-${pIdx}`;
+                const itemColor = hl.items[itemKey];
+                const hlBlockCls = itemColor ? `hl-block-${itemColor}` : "";
+                return `
+                  <li
+                    onclick="window.appController.togglePointHighlight('${tema.codigo}', '${itemKey}', true)"
+                    class="cursor-pointer p-2 rounded-lg hover:bg-slate-900/50 transition leading-relaxed ${hlBlockCls}"
+                  >
+                    ${itemColor ? "🖍️" : "•"} ${this.applyPhraseHighlightsToHTML(p, hl.phrases)}
+                  </li>
+                `;
+              }).join("")}
             </ul>
           </div>
           <div class="p-4 rounded-2xl bg-red-950/25 border border-red-700/50 space-y-2">
-            <h5 class="text-xs font-black uppercase text-red-400">🪤 Trampas Frecuentes del Tribunal en este Tema:</h5>
+            <h5 class="text-xs font-black uppercase text-red-400">🪤 Trampas Frecuentes del Tribunal (Haz clic para subrayar):</h5>
             <ul class="space-y-1.5 text-xs text-red-200">
-              ${(tema.trampas || []).map(tr => `<li class="leading-relaxed">${tr}</li>`).join("")}
+              ${(tema.trampas || []).map((tr, tIdx) => {
+                const itemKey = `trap-${tIdx}`;
+                const itemColor = hl.items[itemKey];
+                const hlBlockCls = itemColor ? `hl-block-${itemColor}` : "";
+                return `
+                  <li
+                    onclick="window.appController.togglePointHighlight('${tema.codigo}', '${itemKey}', true)"
+                    class="cursor-pointer p-2 rounded-lg hover:bg-slate-900/50 transition leading-relaxed ${hlBlockCls}"
+                  >
+                    ${itemColor ? "🖍️" : ""} ${this.applyPhraseHighlightsToHTML(tr, hl.phrases)}
+                  </li>
+                `;
+              }).join("")}
             </ul>
           </div>
         </div>
@@ -426,8 +779,8 @@ class AppController {
         <!-- Botonera Final de Transición al Paso 2 y Paso 3 -->
         <div class="p-4 rounded-2xl bg-gradient-to-r from-slate-900 to-emerald-950/40 border border-amber-500/40 flex flex-wrap items-center justify-between gap-3">
           <div>
-            <div class="text-xs font-black uppercase text-amber-400">🎯 ¿Ya has leído el Resumen Magistral?</div>
-            <p class="text-xs text-slate-300">Marca el tema como leído (+25 XP), mira ahora el Esquema Visual (lo entenderás a la primera) y haz el Test Gradual.</p>
+            <div class="text-xs font-black uppercase text-amber-400">🎯 ¿Ya has leído y subrayado el Resumen Magistral?</div>
+            <p class="text-xs text-slate-300">Marca el tema como leído (+25 XP), mira ahora el Esquema Visual y haz el Test Gradual.</p>
           </div>
           <div class="flex flex-wrap items-center gap-2">
             <button
@@ -909,13 +1262,17 @@ class AppController {
     const readSet = new Set(window.storageManager.getReadTopics());
     const rawQuery = (this.temarioSearchQuery || "").toLowerCase();
 
-    let filtered = this.selectedSyllabusFilter === "ALL"
-      ? OFFICIAL_SYLLABUS
-      : OFFICIAL_SYLLABUS.filter(t => t.bloque === this.selectedSyllabusFilter);
+    let filtered = OFFICIAL_SYLLABUS;
+    if (this.selectedSyllabusFilter === "ANNOTATED") {
+      filtered = OFFICIAL_SYLLABUS.filter(t => window.storageManager.hasTopicAnnotations(t.codigo));
+    } else if (this.selectedSyllabusFilter !== "ALL") {
+      filtered = OFFICIAL_SYLLABUS.filter(t => t.bloque === this.selectedSyllabusFilter);
+    }
 
     if (rawQuery) {
       filtered = filtered.filter(t => {
         const guide = (typeof MASTER_STUDY_GUIDES !== "undefined") ? MASTER_STUDY_GUIDES[t.codigo] : null;
+        const notesText = window.storageManager.getTopicNotes(t.codigo).map(n => `${n.titulo} ${n.texto}`).join(" ");
         const guideText = guide
           ? [guide.consejoJefeEstudios, guide.actualizaciones, ...(guide.epigrafes || []).map(e => `${e.titulo} ${e.explicacion} ${(e.puntos || []).join(" ")}`)].join(" ")
           : "";
@@ -926,6 +1283,7 @@ class AppController {
           t.normativa,
           t.resumen,
           guideText,
+          notesText,
           ...(t.puntosCalientes || []),
           ...(t.trampas || [])
         ].join(" ").toLowerCase();
@@ -995,8 +1353,10 @@ class AppController {
 
     if (filtered.length === 0) {
       container.innerHTML = `
-        <div class="tactical-card rounded-2xl p-8 text-center text-slate-400">
-          No hay temas que coincidan con el filtro actual.
+        <div class="tactical-card rounded-2xl p-8 text-center text-slate-400 space-y-2">
+          <div class="text-2xl">📌</div>
+          <p class="text-sm font-bold text-slate-200">No hay temas que coincidan con el filtro seleccionado.</p>
+          ${this.selectedSyllabusFilter === "ANNOTATED" ? `<p class="text-xs text-slate-400">Abre cualquier tema con el botón <strong>📖 1. Resumen Cero</strong> o despliégalo para pegar tus primeros Post-its y subrayar en fluorescente.</p>` : ""}
         </div>
       `;
       return;
@@ -1020,20 +1380,22 @@ class AppController {
       }
     ];
 
+    const totalNotesCount = Object.values(window.storageManager.getAllTopicNotes()).reduce((acc, arr) => acc + (Array.isArray(arr) ? arr.length : 0), 0);
+
     container.innerHTML = `
-      <!-- Banner de Ruta de Estudio en 4 Pasos -->
+      <!-- Banner de Ruta de Estudio en 4 Pasos + Contador de Post-its y Subrayados -->
       <div class="p-4 rounded-2xl bg-gradient-to-r from-slate-950 via-emerald-950/30 to-slate-950 border border-amber-500/40 flex flex-wrap items-center justify-between gap-3 mb-2">
         <div class="space-y-1">
           <div class="flex flex-wrap items-center gap-2">
             <span class="px-2.5 py-0.5 rounded bg-amber-500 text-slate-950 font-black text-[11px] uppercase">
-              🧭 Ruta de Estudio Recomendada por tu Jefe de Estudios
+              🧭 Ruta de Estudio + Subrayador Fluorescente y Post-its
             </span>
             <span class="text-xs font-mono font-bold text-emerald-400">
-              ✅ ${readSet.size} / 21 Resúmenes Magistrales Leídos • 🗄️ ${allQuestions.length} Preguntas Etiquetadas
+              ✅ ${readSet.size} / 21 Resúmenes Leídos • 📌 ${totalNotesCount} Post-its • 🗄️ ${allQuestions.length} Preguntas
             </span>
           </div>
           <p class="text-xs text-slate-300">
-            Para cada tema: Pulsa <strong>📖 1. Resumen desde Cero</strong> (léelo o descárgalo en PDF) ➔ Pulsa <strong>📊 2. Esquema PDF</strong> ➔ Haz <strong>🟢 3. Test Fácil</strong> y <strong>💡 4. Estudio Completo</strong>.
+            Para cada tema: Pulsa <strong>📖 1. Resumen Cero</strong> (subraya en fluorescente y pega tus <strong>📌 Post-its</strong>) ➔ <strong>📊 2. Esquema PDF</strong> ➔ <strong>🟢 3. Test Fácil</strong> y <strong>💡 4. Estudio Completo</strong>.
           </p>
         </div>
         <button
@@ -1060,6 +1422,10 @@ class AppController {
               const easyCount = topicQuestions.filter(q => Array.isArray(q.etiquetas) && q.etiquetas.includes("Fácil")).length;
               const examCount = topicQuestions.filter(q => Array.isArray(q.etiquetas) && q.etiquetas.includes("Pregunta de Examen")).length;
               const trapCount = topicQuestions.filter(q => Array.isArray(q.etiquetas) && q.etiquetas.includes("Trampa")).length;
+
+              const notes = window.storageManager.getTopicNotes(tema.codigo);
+              const hl = window.storageManager.getTopicHighlights(tema.codigo);
+              const hlCount = Object.keys(hl.items || {}).length + (hl.phrases || []).length;
 
               const pal = (typeof TOPIC_COLOR_PALETTE !== "undefined" && TOPIC_COLOR_PALETTE[tema.codigo]) || {
                 accent: "#10b981",
@@ -1096,6 +1462,11 @@ class AppController {
                           ? `<span class="px-2 py-0.5 rounded text-[11px] font-black bg-emerald-950 text-emerald-300 border border-emerald-500/60">✅ Paso 1 Leído</span>`
                           : `<span class="px-2 py-0.5 rounded text-[11px] font-bold bg-amber-950 text-amber-300 border border-amber-500/50">📖 Paso 1: Empieza por el Resumen</span>`
                         }
+                        ${(notes.length > 0 || hlCount > 0) ? `
+                          <span class="px-2 py-0.5 rounded text-[11px] font-black bg-yellow-400/20 text-yellow-200 border border-yellow-400/60">
+                            📌 ${notes.length} Post-its • 🖍️ ${hlCount}
+                          </span>
+                        ` : ""}
                         <span class="px-2 py-0.5 rounded text-[11px] font-bold bg-slate-950/90 text-amber-300 border border-amber-500/30">
                           📊 ${tema.frecuenciaExamen || "Alta frecuencia"}
                         </span>
@@ -1103,7 +1474,7 @@ class AppController {
                           🎯 ${masteryPct} • ${qCount} preg. (🏛️${examCount} 🟢${easyCount} 🔴${trapCount})
                         </span>
                         <span class="text-xs font-bold text-slate-400 ml-auto lg:ml-2">
-                          ${isExpanded ? "🔼 Ocultar" : "🔽 Desplegar todo"}
+                          ${isExpanded ? "🔼 Ocultar" : "🔽 Desplegar (Post-its / Subrayar)"}
                         </span>
                       </div>
 
@@ -1118,9 +1489,9 @@ class AppController {
                       <button
                         onclick="window.appController.openStudyGuideModal('${tema.codigo}')"
                         class="px-3 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 text-xs font-black transition flex items-center space-x-1 shadow"
-                        title="Paso 1: Leer el Resumen Magistral desde Cero y descargarlo en PDF"
+                        title="Paso 1: Leer el Resumen Magistral desde Cero, subrayar en fluorescente, pegar Post-its y descargar PDF"
                       >
-                        <span>📖</span><span>1. Resumen Cero</span>
+                        <span>📖</span><span>1. Resumen + Post-its</span>
                       </button>
 
                       <button
@@ -1142,7 +1513,7 @@ class AppController {
                       <button
                         onclick="window.pdfGenerator.downloadTopicCheatSheetPDF('${tema.codigo}')"
                         class="px-2.5 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-amber-300 border border-amber-500/40 text-xs font-bold transition flex items-center space-x-1"
-                        title="Paso 4: Descargar Chuleta Táctica en PDF (Resumen + Trampas + Preguntas del Tema)"
+                        title="Paso 4: Descargar Chuleta Táctica en PDF (Resumen + Post-its + Trampas + Preguntas del Tema)"
                       >
                         <span>📄</span><span>Chuleta</span>
                       </button>
@@ -1157,7 +1528,7 @@ class AppController {
                     </div>
                   </div>
 
-                  <!-- PANEL DESPLEGABLE DEL TEMA (RESUMEN DESDE CERO + ESQUEMA VISUAL + ENTRENAMIENTO POR NIVELES) -->
+                  <!-- PANEL DESPLEGABLE DEL TEMA (POST-ITS + SUBRAYADOR FLUORESCENTE + RESUMEN DESDE CERO + ESQUEMA VISUAL) -->
                   <div class="${isExpanded ? "block" : "hidden"} p-4 pt-3 border-t border-slate-800/80 bg-slate-950/90 space-y-4">
                     <!-- Barra de Entrenamiento por Niveles y Etiquetas de este Tema -->
                     <div class="p-3 rounded-xl bg-slate-900/90 border border-slate-800 flex flex-wrap items-center justify-between gap-2">
@@ -1183,15 +1554,18 @@ class AppController {
                       </div>
                     </div>
 
+                    <!-- 🖍️ SUBRAYADOR FLUORESCENTE + 📌 TABLERO DE POST-ITS INTEGRADO EN LA FILA -->
+                    ${this.renderAnnotationsWorkspaceHTML(tema.codigo, false)}
+
                     ${guide ? `
-                      <!-- Resumen Magistral desde Cero Integrado en la Ficha -->
+                      <!-- Resumen Magistral desde Cero Integrado en la Ficha (Con Subrayado Fluorescente al hacer clic) -->
                       <div class="p-4 rounded-2xl bg-slate-950 border-2 border-amber-500/40 space-y-3">
                         <div class="flex flex-wrap items-center justify-between gap-2 border-b border-slate-800 pb-2.5">
                           <div>
                             <span class="text-xs font-black uppercase text-amber-400">
                               📖 PASO 1: ${guide.subtituloDidactico} (${guide.tiempoLectura})
                             </span>
-                            <p class="text-[11px] text-slate-400">Lee este resumen paso a paso antes de ver el esquema o hacer test si aún no conoces el tema.</p>
+                            <p class="text-[11px] text-slate-400">Haz clic sobre cualquier punto <code>▸</code> para subrayarlo con el rotulador fluorescente activo.</p>
                           </div>
                           <div class="flex flex-wrap gap-1.5">
                             <button
@@ -1204,28 +1578,42 @@ class AppController {
                               onclick="window.pdfGenerator.downloadMasterSummaryPDF('${tema.codigo}')"
                               class="px-3 py-1 rounded-lg bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-[11px] uppercase"
                             >
-                              🖨️ PDF Resumen desde Cero
+                              🖨️ PDF Resumen + Post-its
                             </button>
                           </div>
                         </div>
 
                         <div class="p-3 rounded-xl bg-amber-950/25 border border-amber-500/40 text-xs text-amber-100 leading-relaxed">
                           <strong class="text-amber-400 uppercase block mb-0.5">👨‍🏫 Consejo del Jefe de Estudios:</strong>
-                          ${guide.consejoJefeEstudios}
+                          ${this.applyPhraseHighlightsToHTML(guide.consejoJefeEstudios, hl.phrases)}
                         </div>
 
                         <div class="p-3 rounded-xl bg-emerald-950/25 border border-emerald-500/40 text-xs text-emerald-100 leading-relaxed">
                           <strong class="text-emerald-400 uppercase block mb-0.5">🆕 Actualizaciones 2024 / 2025 / 2026:</strong>
-                          ${guide.actualizaciones}
+                          ${this.applyPhraseHighlightsToHTML(guide.actualizaciones, hl.phrases)}
                         </div>
 
                         <div class="grid grid-cols-1 gap-3">
-                          ${(guide.epigrafes || []).map(ep => `
+                          ${(guide.epigrafes || []).map((ep, epIdx) => `
                             <div class="p-3.5 rounded-xl bg-slate-900/90 border border-slate-800 space-y-2" style="border-left: 4px solid ${pal.accent};">
                               <div class="text-xs sm:text-sm font-black text-amber-300 uppercase">${ep.titulo}</div>
-                              <p class="text-xs text-slate-200 leading-relaxed">${ep.explicacion}</p>
+                              <p class="text-xs text-slate-200 leading-relaxed">${this.applyPhraseHighlightsToHTML(ep.explicacion, hl.phrases)}</p>
                               <ul class="space-y-1.5 text-xs text-slate-100">
-                                ${(ep.puntos || []).map(pt => `<li class="p-2 rounded bg-slate-950/80 border border-slate-800/80 leading-relaxed">▸ ${pt}</li>`).join("")}
+                                ${(ep.puntos || []).map((pt, ptIdx) => {
+                                  const itemKey = `ep-${epIdx}-${ptIdx}`;
+                                  const itemColor = hl.items[itemKey];
+                                  const hlBlockCls = itemColor ? `hl-block-${itemColor}` : "";
+                                  return `
+                                    <li
+                                      onclick="window.appController.togglePointHighlight('${tema.codigo}', '${itemKey}', false)"
+                                      title="Haz clic para subrayar / quitar subrayado fluorescente"
+                                      class="cursor-pointer p-2 rounded bg-slate-950/80 hover:bg-slate-950 border border-slate-800/80 leading-relaxed flex items-start justify-between gap-2 transition ${hlBlockCls}"
+                                    >
+                                      <span>${itemColor ? "🖍️" : "▸"} ${this.applyPhraseHighlightsToHTML(pt, hl.phrases)}</span>
+                                      <span class="text-[10px] font-mono text-slate-500 shrink-0">${itemColor ? "Subrayado" : "🖍️"}</span>
+                                    </li>
+                                  `;
+                                }).join("")}
                               </ul>
                             </div>
                           `).join("")}
@@ -1234,7 +1622,7 @@ class AppController {
                     ` : `
                       <div class="p-3.5 rounded-xl bg-slate-900/90 border border-slate-800 text-xs sm:text-sm text-slate-200 leading-relaxed">
                         <strong class="text-amber-400 uppercase text-xs block mb-1">📌 Resumen Ejecutivo:</strong>
-                        ${tema.resumen}
+                        ${this.applyPhraseHighlightsToHTML(tema.resumen, hl.phrases)}
                       </div>
                     `}
 
@@ -1257,16 +1645,40 @@ class AppController {
 
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
                       <div class="p-3.5 rounded-xl bg-emerald-950/25 border border-emerald-800/60 space-y-1.5">
-                        <strong class="text-emerald-400 uppercase text-xs block">🔥 Puntos Calientes de Examen (BOD):</strong>
+                        <strong class="text-emerald-400 uppercase text-xs block">🔥 Puntos Calientes de Examen (Haz clic para subrayar):</strong>
                         <ul class="space-y-1 text-xs text-slate-200">
-                          ${tema.puntosCalientes.map(p => `<li class="leading-relaxed">• ${p}</li>`).join("")}
+                          ${tema.puntosCalientes.map((p, pIdx) => {
+                            const itemKey = `hot-${pIdx}`;
+                            const itemColor = hl.items[itemKey];
+                            const hlBlockCls = itemColor ? `hl-block-${itemColor}` : "";
+                            return `
+                              <li
+                                onclick="window.appController.togglePointHighlight('${tema.codigo}', '${itemKey}', false)"
+                                class="cursor-pointer p-1.5 rounded hover:bg-slate-900/50 transition leading-relaxed ${hlBlockCls}"
+                              >
+                                ${itemColor ? "🖍️" : "•"} ${this.applyPhraseHighlightsToHTML(p, hl.phrases)}
+                              </li>
+                            `;
+                          }).join("")}
                         </ul>
                       </div>
 
                       <div class="p-3.5 rounded-xl bg-red-950/25 border border-red-800/60 space-y-1.5">
-                        <strong class="text-red-400 uppercase text-xs block">🪤 Trampas Frecuentes del Tribunal:</strong>
+                        <strong class="text-red-400 uppercase text-xs block">🪤 Trampas Frecuentes del Tribunal (Haz clic para subrayar):</strong>
                         <ul class="space-y-1 text-xs text-red-200">
-                          ${tema.trampas.map(t => `<li class="leading-relaxed">${t}</li>`).join("")}
+                          ${tema.trampas.map((t, tIdx) => {
+                            const itemKey = `trap-${tIdx}`;
+                            const itemColor = hl.items[itemKey];
+                            const hlBlockCls = itemColor ? `hl-block-${itemColor}` : "";
+                            return `
+                              <li
+                                onclick="window.appController.togglePointHighlight('${tema.codigo}', '${itemKey}', false)"
+                                class="cursor-pointer p-1.5 rounded hover:bg-slate-900/50 transition leading-relaxed ${hlBlockCls}"
+                              >
+                                ${itemColor ? "🖍️" : ""} ${this.applyPhraseHighlightsToHTML(t, hl.phrases)}
+                              </li>
+                            `;
+                          }).join("")}
                         </ul>
                       </div>
                     </div>
@@ -1332,8 +1744,8 @@ class AppController {
     if (!tablesContainer || typeof COMPARATIVE_TABLES === "undefined") return;
 
     const allQuestions = window.storageManager.getQuestions();
-    const trapCount = allQuestions.filter(q => q.dificultad === "trampa").length;
-    const officialCount = allQuestions.filter(q => q.esExamenOficial === true).length;
+    const trapCount = allQuestions.filter(q => q.dificultad === "trampa" || (Array.isArray(q.etiquetas) && q.etiquetas.includes("Trampa"))).length;
+    const officialCount = allQuestions.filter(q => q.esExamenOficial === true || (Array.isArray(q.etiquetas) && q.etiquetas.includes("Pregunta de Examen"))).length;
 
     const trapCountEl = document.getElementById("trap-questions-count");
     const officialCountEl = document.getElementById("official-questions-count");
@@ -1423,10 +1835,160 @@ class AppController {
   }
 
   // ==========================================
-  // SIMULADOR: CONFIGURACIÓN E INICIO
+  // 🏆 CUARTEL GENERAL DE 12 SIMULACROS OFICIALES CERRADOS + MOTOR DE SIMULACRO
   // ==========================================
-  startSimulatorWithParams({ count = 20, bloque = "ALL", mode = "official", temaCodigo = null, studyMode = false, tagFilter = "ALL" }) {
-    const res = window.simulatorEngine.startSession({ count, bloque, mode, temaCodigo, studyMode, tagFilter });
+  renderOfficialExamPacks() {
+    const container = document.getElementById("official-packs-container");
+    if (!container || typeof OFFICIAL_EXAM_PACKS === "undefined") return;
+
+    const packScores = window.storageManager.getPackScores();
+    const totalPacks = OFFICIAL_EXAM_PACKS.length;
+    const passedPacks = OFFICIAL_EXAM_PACKS.filter(p => packScores[p.id] && packScores[p.id].passed).length;
+    const allQCount = window.storageManager.getQuestions().length;
+
+    const colorStyles = {
+      amber:   { border: "border-amber-500/60",   bg: "bg-amber-950/15",   badge: "bg-amber-500 text-slate-950" },
+      emerald: { border: "border-emerald-500/60", bg: "bg-emerald-950/15", badge: "bg-emerald-500 text-slate-950" },
+      sky:     { border: "border-sky-500/60",     bg: "bg-sky-950/15",     badge: "bg-sky-400 text-slate-950" },
+      indigo:  { border: "border-indigo-500/60",  bg: "bg-indigo-950/15",  badge: "bg-indigo-400 text-slate-950" },
+      rose:    { border: "border-rose-500/60",    bg: "bg-rose-950/15",    badge: "bg-rose-500 text-white" },
+      red:     { border: "border-red-500/60",     bg: "bg-red-950/15",     badge: "bg-red-500 text-white" },
+      purple:  { border: "border-purple-500/60",  bg: "bg-purple-950/15",  badge: "bg-purple-400 text-slate-950" },
+      teal:    { border: "border-teal-500/60",    bg: "bg-teal-950/15",    badge: "bg-teal-400 text-slate-950" },
+      yellow:  { border: "border-yellow-500/60",  bg: "bg-yellow-950/15",  badge: "bg-yellow-400 text-slate-950" },
+      blue:    { border: "border-blue-500/60",    bg: "bg-blue-950/15",    badge: "bg-blue-400 text-slate-950" },
+      fuchsia: { border: "border-fuchsia-500/60", bg: "bg-fuchsia-950/15", badge: "bg-fuchsia-400 text-slate-950" },
+      green:   { border: "border-green-500/60",   bg: "bg-green-950/15",   badge: "bg-green-400 text-slate-950" }
+    };
+
+    container.innerHTML = `
+      <div class="space-y-4 mb-6">
+        <div class="p-4 rounded-2xl bg-slate-950/95 border-2 border-amber-500/50 flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <div class="flex flex-wrap items-center gap-2">
+              <span class="px-2.5 py-0.5 rounded bg-amber-500 text-slate-950 font-black text-[11px] uppercase">
+                🏆 Cuartel General de Simulacros Oficiales (${totalPacks} Exámenes)
+              </span>
+              <span class="text-xs font-mono font-bold text-emerald-400">
+                ✅ ${passedPacks} / ${totalPacks} Simulacros Superados (APTO ≥ 5.0) • 🗄️ ${allQCount} Preguntas Activas
+              </span>
+            </div>
+            <p class="text-xs text-slate-300 mt-1">
+              Cada Simulacro Oficial guarda tu <strong>mejor nota sobre 10</strong>, tu tiempo y tus intentos. Puedes lanzarlo en <strong>⚔️ Modo Examen Oficial Cronometrado</strong> o en <strong>💡 Modo Academia (Corrección Instantánea)</strong>.
+            </p>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          ${OFFICIAL_EXAM_PACKS.map(pack => {
+            const st = colorStyles[pack.color] || colorStyles.amber;
+            const borderCls = pack.borderClass || `${st.border} ${st.bg}`;
+            const badgeCls = pack.badgeColor || st.badge;
+            const qCount = pack.count || pack.preguntas || 100;
+            const mins = pack.durationMinutes || pack.tiempoMinutos || 120;
+            const repartoStr = pack.reparto || (pack.bloque && pack.bloque !== "ALL" ? pack.bloque : "3 Bloques Oficiales");
+            const rec = packScores[pack.id];
+            const recordBadge = rec
+              ? `<span class="px-2 py-0.5 rounded text-[10px] font-mono font-black border ${rec.passed ? "bg-emerald-950 text-emerald-300 border-emerald-500" : "bg-red-950 text-red-300 border-red-500"}">
+                   🏆 Mejor: ${rec.bestScoreOutOf10}/10 (${rec.passed ? "APTO" : "NO APTO"}) • ${rec.attempts} int.
+                 </span>`
+              : `<span class="px-2 py-0.5 rounded text-[10px] font-mono bg-slate-900 text-slate-400 border border-slate-700">
+                   ⏳ Pendiente de realizar
+                 </span>`;
+
+            return `
+              <div class="tactical-card rounded-2xl p-4 border-2 ${borderCls} flex flex-col justify-between space-y-3">
+                <div class="space-y-2">
+                  <div class="flex flex-wrap items-center justify-between gap-1.5">
+                    <span class="px-2 py-0.5 rounded text-[10px] font-black uppercase ${badgeCls}">
+                      ${pack.badge}
+                    </span>
+                    ${recordBadge}
+                  </div>
+
+                  <div>
+                    <h4 class="text-sm sm:text-base font-black text-white leading-snug">${pack.titulo}</h4>
+                    <div class="text-[11px] font-mono text-amber-300 font-bold mt-0.5">${pack.subtitulo}</div>
+                  </div>
+
+                  <p class="text-xs text-slate-300 leading-relaxed">
+                    ${pack.descripcion}
+                  </p>
+
+                  <div class="flex flex-wrap items-center gap-1.5 text-[11px] font-mono text-slate-300 pt-1">
+                    <span class="px-2 py-0.5 rounded bg-slate-950/90 border border-slate-800">📋 ${qCount} preg.</span>
+                    <span class="px-2 py-0.5 rounded bg-slate-950/90 border border-slate-800">⏱️ ${mins} min</span>
+                    <span class="px-2 py-0.5 rounded bg-slate-950/90 border border-slate-800 text-emerald-300">${repartoStr}</span>
+                  </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-2 pt-2 border-t border-slate-800/80">
+                  <button
+                    type="button"
+                    onclick="window.appController.startExamPack('${pack.id}', false)"
+                    class="py-2 px-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-[11px] uppercase tracking-wide transition shadow text-center"
+                  >
+                    ⚔️ Examen Oficial
+                  </button>
+                  <button
+                    type="button"
+                    onclick="window.appController.startExamPack('${pack.id}', true)"
+                    class="py-2 px-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-emerald-300 border border-emerald-600/60 font-black text-[11px] uppercase tracking-wide transition text-center"
+                  >
+                    💡 Modo Academia
+                  </button>
+                </div>
+              </div>
+            `;
+          }).join("")}
+        </div>
+      </div>
+    `;
+  }
+
+  startExamPack(packId, studyModeOverride = null) {
+    if (typeof OFFICIAL_EXAM_PACKS === "undefined") return;
+    const pack = OFFICIAL_EXAM_PACKS.find(p => p.id === packId);
+    if (!pack) return;
+
+    const useStudy = studyModeOverride !== null ? Boolean(studyModeOverride) : Boolean(pack.studyMode);
+    this.startSimulatorWithParams({
+      count: pack.count || pack.preguntas || 100,
+      bloque: pack.bloque || "ALL",
+      mode: pack.mode || "official",
+      studyMode: useStudy,
+      tagFilter: pack.tagFilter || "ALL",
+      packId: pack.id,
+      packTitle: pack.titulo,
+      packRule: pack.packRule || pack.regla || null,
+      customMinutes: pack.durationMinutes || pack.tiempoMinutos || null
+    });
+  }
+
+  startSimulatorWithParams({
+    count = 20,
+    bloque = "ALL",
+    mode = "official",
+    temaCodigo = null,
+    studyMode = false,
+    tagFilter = "ALL",
+    packId = null,
+    packTitle = null,
+    packRule = null,
+    customMinutes = null
+  }) {
+    const res = window.simulatorEngine.startSession({
+      count,
+      bloque,
+      mode,
+      temaCodigo,
+      studyMode,
+      tagFilter,
+      packId,
+      packTitle,
+      packRule,
+      customMinutes
+    });
     if (!res.ok) {
       alert(res.message);
       return;

@@ -169,7 +169,7 @@
         </div>
         <div class="tactical-card p-4 rounded-xl col-span-2 sm:col-span-1">
           <span class="text-xs text-slate-400 block">🗄️ Banco Etiquetado</span>
-          <span class="text-xl font-black text-amber-400 mt-1 block" id="dash-total-questions">313</span>
+          <span class="text-xl font-black text-amber-400 mt-1 block" id="dash-total-questions">500</span>
         </div>
       </div>
 
@@ -247,14 +247,14 @@
       </div>
     </section>
 
-    <!-- 2. SECCIÓN: VISOR DE TEMARIO TÁCTICO (21 TEMAS / 3 BLOQUES + BUSCADOR INSTANTÁNEO + AUDIO) -->
+    <!-- 2. SECCIÓN: VISOR DE TEMARIO TÁCTICO (21 TEMAS / 3 BLOQUES + POST-ITS + SUBRAYADOR FLUORESCENTE + BUSCADOR + AUDIO) -->
     <section id="tab-temario" class="hidden space-y-6">
       <div class="tactical-card rounded-2xl p-5 sm:p-6 border border-emerald-500/30 space-y-4">
         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
             <h2 class="text-xl font-black text-white uppercase">📖 Temario Oficial Estructurado (21 Temas BOD — Orden DEF/1341/2017)</h2>
             <p class="text-xs text-slate-400 mt-1">
-              Resúmenes ejecutivos de tu cuaderno NotebookLM, porcentaje de preguntas que caen por tema cada año, trampas del tribunal, <strong>🔊 Audio Táctico</strong>, <strong>💡 Modo Estudio</strong> y <strong>🔍 Buscador Instantáneo</strong>.
+              Resúmenes Magistrales desde Cero, <strong>🖍️ Subrayador Fluorescente Personal</strong>, <strong>📌 Notas tipo Post-it</strong>, Esquemas en PDF, <strong>🔊 Audio Táctico</strong> y <strong>🔍 Buscador Instantáneo</strong>.
             </p>
           </div>
 
@@ -271,6 +271,9 @@
             <button onclick="window.appController.filterTemario('Bloque 3: Seguridad Nacional')" class="px-3 py-1.5 rounded-lg bg-sky-950 text-sky-300 border border-sky-700 font-bold text-xs">
               Bloque 3 (7)
             </button>
+            <button onclick="window.appController.filterTemario('ANNOTATED')" class="px-3 py-1.5 rounded-lg bg-yellow-400/20 hover:bg-yellow-400/30 text-yellow-200 border border-yellow-400 font-black text-xs">
+              📌 Con Post-its / Subrayados
+            </button>
           </div>
         </div>
 
@@ -281,7 +284,7 @@
               type="text"
               id="temario-search-input"
               oninput="window.appController.searchTemario(this.value)"
-              placeholder="🔍 Busca cualquier plazo ('2 meses', '15 días'), órgano ('DIGEID', 'COPERFAS', 'MCANA', 'Jefe de Compañía'), ley o artículo..."
+              placeholder="🔍 Busca cualquier plazo ('2 meses', '15 días'), órgano ('DIGEID', 'COPERFAS', 'MCANA', 'Jefe de Compañía'), ley o tus propios Post-its..."
               class="w-full pl-4 pr-24 py-3 rounded-xl bg-slate-950/90 border border-amber-500/40 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-amber-400"
             />
             <button
@@ -323,7 +326,7 @@
             <p class="text-xs text-slate-300 mt-1">
               Entrena exclusivamente las preguntas donde el tribunal cruza plazos (2 meses vs 3 meses en LO 8/2014), novedades del RD 205/2024 (DIGEID), MCANA vs FUTER o artículos parecidos.
             </p>
-            <span id="trap-questions-count" class="text-xs font-mono text-amber-400 block mt-2">95+ preguntas trampa listas</span>
+            <span id="trap-questions-count" class="text-xs font-mono text-amber-400 block mt-2">165+ preguntas trampa listas</span>
           </div>
           <button onclick="window.appController.startTrapHunterTest()" class="mt-4 w-full py-3 rounded-xl bg-red-600 hover:bg-red-500 text-white font-black text-xs uppercase tracking-wider transition">
             🪤 Iniciar Test Caza-Trampas Ahora ➔
@@ -339,7 +342,7 @@
             <p class="text-xs text-slate-300 mt-1">
               Simulacro con preguntas de convocatorias oficiales anteriores y actualizaciones 2024/2025 con ubicación exacta en el temario y truco de academia.
             </p>
-            <span id="official-questions-count" class="text-xs font-mono text-emerald-400 block mt-2">156 preguntas oficiales listas</span>
+            <span id="official-questions-count" class="text-xs font-mono text-emerald-400 block mt-2">310+ preguntas oficiales listas</span>
           </div>
           <button onclick="window.appController.startOfficialExamTest()" class="mt-4 w-full py-3 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs uppercase tracking-wider transition">
             🏛️ Iniciar Simulacro de Preguntas Oficiales ➔
@@ -358,44 +361,26 @@
       </div>
     </section>
 
-    <!-- 4. SECCIÓN: CONFIGURADOR DE SIMULACRO OFICIAL -->
+    <!-- 4. SECCIÓN: CONFIGURADOR DE SIMULACRO OFICIAL + CUARTEL GENERAL DE 12 SIMULACROS -->
     <section id="tab-simulator-config" class="hidden space-y-6">
       <div class="tactical-card rounded-2xl p-6 border border-amber-500/30">
         <div class="flex items-center space-x-3 mb-4">
           <span class="text-3xl">🎯</span>
           <div>
-            <h2 class="text-xl font-black text-white uppercase">Motor de Simulacro Oficial Militar & Modo Estudio</h2>
-            <p class="text-xs text-slate-400">Calificación con penalización reglamentaria: <strong class="text-amber-400">Nota = Aciertos - (Errores / 3)</strong></p>
+            <h2 class="text-xl font-black text-white uppercase">Cuartel General de Simulacros Oficiales & Entrenamiento por Niveles</h2>
+            <p class="text-xs text-slate-400">Calificación con penalización reglamentaria: <strong class="text-amber-400">Nota = Aciertos - (Errores / 3)</strong> • Banco Activo: <strong class="text-emerald-400">500 Preguntas Etiquetadas</strong></p>
           </div>
         </div>
 
         <div class="p-4 rounded-xl bg-slate-900/80 border border-slate-800 mb-6 text-xs text-slate-300 space-y-1.5">
           <div class="font-bold text-amber-400 uppercase">📌 Normas de la Prueba Oficial y Modos de Entrenamiento:</div>
           <p>• Cada respuesta acertada suma <strong>+1,00 punto</strong>; cada errónea resta <strong>-0,33 puntos (1/3 de acierto)</strong>; en blanco <strong>0 puntos</strong>.</p>
-          <p>• <strong>🏆 Simulacro Oficial Ponderado BOD (100 preg. / 120 min):</strong> Replica exactamente el reparto estadístico real de la oposición (<strong>34 Bloque 1 + 40 Bloque 2 + 26 Bloque 3</strong>).</p>
-          <p>• <strong>💡 Modo Estudio Guiado (Corrección Instantánea):</strong> Al marcar una opción ves al instante la explicación jurídica, la ubicación exacta en el temario y el truco de academia.</p>
+          <p>• <strong>🏆 12 Simulacros Oficiales y Especializados:</strong> Guarda tu mejor nota e intentos en cada examen oficial (Convocatorias 2023, 2024, 2025, Previsión 2026, Pareto Top 6, Solo Plazos, Novedades y Monográficos).</p>
+          <p>• <strong>💡 Modo Academia (Corrección Instantánea):</strong> Al marcar una opción ves al instante la explicación jurídica, la ubicación exacta en el temario y el truco de academia.</p>
         </div>
 
-        <h3 class="text-xs font-bold uppercase tracking-wider text-amber-400 mb-3">🔥 Modalidades Destacadas (Convocatoria Oficial):</h3>
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-          <button onclick="window.appController.startSimulatorWithParams({ count: 100, bloque: 'ALL', mode: 'ponderado_100', studyMode: false })" class="tactical-card tactical-card-hover p-5 rounded-xl text-left border-2 border-amber-500/60 bg-amber-950/15">
-            <div class="flex items-center justify-between">
-              <span class="text-xs font-mono text-amber-400 font-black uppercase">🏆 EXAMEN OFICIAL PONDERADO • 120 MINUTOS</span>
-              <span class="px-2 py-0.5 rounded bg-amber-500 text-slate-950 font-black text-[10px]">100 PREGUNTAS</span>
-            </div>
-            <h4 class="text-lg font-black text-white mt-1.5">Simulacro Oficial BOD (34 B1 + 40 B2 + 26 B3)</h4>
-            <p class="text-xs text-slate-300 mt-1">Exactamente con la proporción real del examen oficial de Permanencia y cronómetro reglamentario de 2 horas.</p>
-          </button>
-
-          <button onclick="window.appController.startSimulatorWithParams({ count: 25, bloque: 'ALL', mode: 'official', studyMode: true })" class="tactical-card tactical-card-hover p-5 rounded-xl text-left border-2 border-emerald-500/60 bg-emerald-950/15">
-            <div class="flex items-center justify-between">
-              <span class="text-xs font-mono text-emerald-400 font-black uppercase">💡 CORRECCIÓN INSTANTÁNEA PREGUNTA A PREGUNTA</span>
-              <span class="px-2 py-0.5 rounded bg-emerald-500 text-slate-950 font-black text-[10px]">MODO ESTUDIO</span>
-            </div>
-            <h4 class="text-lg font-black text-white mt-1.5">Entrenamiento Guiado con Truco de Academia (25 preg.)</h4>
-            <p class="text-xs text-slate-300 mt-1">Corrige cada pregunta en el acto al responder y lee la referencia exacta del artículo y el aviso caza-trampas.</p>
-          </button>
-        </div>
+        <!-- 🏆 CUARTEL GENERAL DE LOS 12 SIMULACROS OFICIALES CERRADOS -->
+        <div id="official-packs-container"></div>
 
         <h3 class="text-xs font-bold uppercase tracking-wider text-emerald-400 mb-3">
           🏷️ Entrenamiento Gradual por Etiquetas y Niveles (Ideal para Empezar desde Cero):
@@ -456,7 +441,7 @@
           </button>
         </div>
 
-        <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400 mb-3">Otras modalidades de entrenamiento por tiempo:</h3>
+        <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400 mb-3">Otras modalidades rápidas por tiempo:</h3>
         <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <button onclick="window.appController.startSimulatorWithParams({ count: 15, bloque: 'ALL', mode: 'official', studyMode: false })" class="tactical-card tactical-card-hover p-5 rounded-xl text-left border border-slate-800">
             <span class="text-xs font-mono text-amber-400 font-bold">15 MINUTOS</span>
@@ -470,10 +455,10 @@
             <p class="text-xs text-slate-400 mt-1">Mezcla equilibrada de los 3 Bloques Oficiales.</p>
           </button>
 
-          <button onclick="window.appController.startSimulatorWithParams({ count: 313, bloque: 'ALL', mode: 'official', studyMode: true })" class="tactical-card tactical-card-hover p-5 rounded-xl text-left border border-slate-800">
-            <span class="text-xs font-mono text-sky-400 font-bold">MARATÓN COMPLETA (313 PREG.)</span>
+          <button onclick="window.appController.startSimulatorWithParams({ count: 500, bloque: 'ALL', mode: 'official', studyMode: true })" class="tactical-card tactical-card-hover p-5 rounded-xl text-left border border-slate-800">
+            <span class="text-xs font-mono text-sky-400 font-bold">MARATÓN COMPLETA (500 PREG.)</span>
             <h4 class="text-lg font-black text-white mt-1">Banco Completo en Modo Estudio</h4>
-            <p class="text-xs text-slate-400 mt-1">Las 313 preguntas de los 21 temas con corrección instantánea.</p>
+            <p class="text-xs text-slate-400 mt-1">Las 500 preguntas de los 21 temas con corrección instantánea.</p>
           </button>
         </div>
       </div>
@@ -908,6 +893,7 @@
   <script src="./js/schemas-data.js"></script>
   <script src="./js/questions-data.js"></script>
   <script src="./js/questions-extra-data.js"></script>
+  <script src="./js/questions-wave2-data.js"></script>
   <script src="./js/flashcards-data.js"></script>
   <script src="./js/storage.js"></script>
   <script src="./js/simulator.js"></script>

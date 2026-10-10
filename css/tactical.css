@@ -269,6 +269,61 @@ body {
   border-bottom: 2px solid #38bdf8;
 }
 
+/* Bloques completos subrayados con rotulador fluorescente por el opositor */
+.hl-block-yellow {
+  background: rgba(250, 204, 21, 0.16) !important;
+  border-color: rgba(234, 179, 8, 0.7) !important;
+  border-left: 4px solid #eab308 !important;
+}
+.hl-block-green {
+  background: rgba(16, 185, 129, 0.16) !important;
+  border-color: rgba(16, 185, 129, 0.7) !important;
+  border-left: 4px solid #10b981 !important;
+}
+.hl-block-pink {
+  background: rgba(244, 63, 94, 0.18) !important;
+  border-color: rgba(244, 63, 94, 0.7) !important;
+  border-left: 4px solid #f43f5e !important;
+}
+.hl-block-cyan {
+  background: rgba(14, 165, 233, 0.16) !important;
+  border-color: rgba(56, 189, 248, 0.7) !important;
+  border-left: 4px solid #38bdf8 !important;
+}
+
+/* Notas de Estudio tipo Post-it */
+.postit-card {
+  position: relative;
+  border-radius: 12px;
+  padding: 12px 14px;
+  box-shadow: 0 8px 18px -4px rgba(0, 0, 0, 0.45);
+  transition: transform 0.18s ease, box-shadow 0.18s ease;
+}
+.postit-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 22px -4px rgba(0, 0, 0, 0.6);
+}
+.postit-yellow {
+  background: linear-gradient(145deg, rgba(254, 240, 138, 0.96), rgba(253, 224, 71, 0.92));
+  color: #422006;
+  border: 2px solid #eab308;
+}
+.postit-pink {
+  background: linear-gradient(145deg, rgba(254, 205, 211, 0.96), rgba(253, 164, 175, 0.92));
+  color: #4c0519;
+  border: 2px solid #f43f5e;
+}
+.postit-green {
+  background: linear-gradient(145deg, rgba(187, 247, 208, 0.96), rgba(134, 239, 172, 0.92));
+  color: #064e3b;
+  border: 2px solid #10b981;
+}
+.postit-cyan {
+  background: linear-gradient(145deg, rgba(186, 230, 253, 0.96), rgba(125, 211, 252, 0.92));
+  color: #0c4a6e;
+  border: 2px solid #0284c7;
+}
+
 /* Scrollbar personalizada */
 ::-webkit-scrollbar {
   width: 6px;
