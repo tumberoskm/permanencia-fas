@@ -80,19 +80,19 @@
           <span>📊</span><span>Mando</span>
         </button>
         <button data-tab="temario" class="nav-item px-3.5 py-2.5 text-xs font-bold uppercase tracking-wider border-b-2 border-transparent text-slate-400 hover:text-slate-200 flex items-center space-x-1.5 transition shrink-0">
-          <span>📖</span><span>Temario (18 Temas)</span>
+          <span>📖</span><span>Temario (21 Temas)</span>
         </button>
         <button data-tab="simulator-config" class="nav-item px-3.5 py-2.5 text-xs font-bold uppercase tracking-wider border-b-2 border-transparent text-slate-400 hover:text-slate-200 flex items-center space-x-1.5 transition shrink-0">
           <span>🎯</span><span>Simulacro</span>
         </button>
         <button data-tab="trampas" class="nav-item px-3.5 py-2.5 text-xs font-bold uppercase tracking-wider border-b-2 border-transparent text-slate-400 hover:text-slate-200 flex items-center space-x-1.5 transition shrink-0">
-          <span>🪤</span><span>Caza-Trampas & Tablas</span>
+          <span>🪤</span><span>Caza-Trampas & Academias</span>
         </button>
         <button data-tab="failed-bag" class="nav-item px-3.5 py-2.5 text-xs font-bold uppercase tracking-wider border-b-2 border-transparent text-slate-400 hover:text-slate-200 flex items-center space-x-1.5 transition shrink-0">
           <span>⚠️</span><span>Bolsa Fallos</span>
         </button>
         <button data-tab="flashcards" class="nav-item px-3.5 py-2.5 text-xs font-bold uppercase tracking-wider border-b-2 border-transparent text-slate-400 hover:text-slate-200 flex items-center space-x-1.5 transition shrink-0">
-          <span>🃏</span><span>Flashcards</span>
+          <span>🃏</span><span>Flashcards (24)</span>
         </button>
         <button data-tab="importer" class="nav-item px-3.5 py-2.5 text-xs font-bold uppercase tracking-wider border-b-2 border-transparent text-slate-400 hover:text-slate-200 flex items-center space-x-1.5 transition shrink-0">
           <span>🔄</span><span>NotebookLM & Backup</span>
@@ -163,7 +163,7 @@
         </div>
         <div class="tactical-card p-4 rounded-xl col-span-2 sm:col-span-1">
           <span class="text-xs text-slate-400 block">🗄️ Banco Activo</span>
-          <span class="text-xl font-black text-amber-400 mt-1 block" id="dash-total-questions">40</span>
+          <span class="text-xl font-black text-amber-400 mt-1 block" id="dash-total-questions">53</span>
         </div>
       </div>
 
@@ -171,51 +171,51 @@
       <div>
         <div class="flex items-center justify-between mb-3">
           <h3 class="text-sm font-black uppercase tracking-wider text-slate-200 flex items-center space-x-2">
-            <span>🛡️</span><span>Entrenamiento por los 3 Bloques Oficiales de la Oposición</span>
+            <span>🛡️</span><span>Entrenamiento por los 3 Bloques Oficiales (Orden DEF/1341/2017 + Actualización 2025)</span>
           </h3>
           <button onclick="window.appController.showTab('temario')" class="text-xs text-amber-400 hover:underline font-semibold">
-            Abrir Temario Completo (18 Temas) ➔
+            Abrir Temario Completo (21 Temas) ➔
           </button>
         </div>
 
         <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div onclick="window.appController.startBlockTest('Bloque 1: Organización')" class="tactical-card tactical-card-hover p-4 rounded-xl cursor-pointer">
             <div class="flex items-center justify-between mb-2">
-              <span class="px-2.5 py-0.5 rounded text-[11px] font-black bg-emerald-950 text-emerald-400 border border-emerald-700">BLOQUE 1 • 6 TEMAS</span>
+              <span class="px-2.5 py-0.5 rounded text-[11px] font-black bg-emerald-950 text-emerald-400 border border-emerald-700">BLOQUE 1 • 6 TEMAS (~34% Examen)</span>
               <span class="text-lg">🏛️</span>
             </div>
             <h4 class="font-bold text-white text-base">Organización</h4>
-            <p class="text-xs text-slate-400 mt-1">Constitución, LODN 5/2005, Ley 39 y 40/2015, MINISDEF, ET y Reales Ordenanzas.</p>
+            <p class="text-xs text-slate-400 mt-1">Constitución, LO 5/2005, Ley 40/2015, MINISDEF (RD 205/2024), RD 521/2020, EMAD, ET (Inst. 14/2021), Armada y EA.</p>
           </div>
 
           <div onclick="window.appController.startBlockTest('Bloque 2: Jurídico-Social')" class="tactical-card tactical-card-hover p-4 rounded-xl cursor-pointer">
             <div class="flex items-center justify-between mb-2">
-              <span class="px-2.5 py-0.5 rounded text-[11px] font-black bg-amber-950 text-amber-400 border border-amber-700">BLOQUE 2 • 6 TEMAS</span>
+              <span class="px-2.5 py-0.5 rounded text-[11px] font-black bg-amber-950 text-amber-400 border border-amber-700">BLOQUE 2 • 8 TEMAS (~40% Examen)</span>
               <span class="text-lg">⚖️</span>
             </div>
             <h4 class="font-bold text-white text-base">Jurídico - Social</h4>
-            <p class="text-xs text-slate-400 mt-1">Tropa y Marinería (8/2006), Carrera Militar (39/2007), Disciplinario (8/2014), Derechos, Quejas e Igualdad.</p>
+            <p class="text-xs text-slate-400 mt-1">Ley 8/2006 y 39/2007, RROO, Derechos (LO 9/2011), Disciplinario (LO 8/2014), Quejas, Igualdad, UPA y Ley 39/2015 LPACAP.</p>
           </div>
 
           <div onclick="window.appController.startBlockTest('Bloque 3: Seguridad Nacional')" class="tactical-card tactical-card-hover p-4 rounded-xl cursor-pointer">
             <div class="flex items-center justify-between mb-2">
-              <span class="px-2.5 py-0.5 rounded text-[11px] font-black bg-sky-950 text-sky-400 border border-sky-700">BLOQUE 3 • 6 TEMAS</span>
+              <span class="px-2.5 py-0.5 rounded text-[11px] font-black bg-sky-950 text-sky-400 border border-sky-700">BLOQUE 3 • 7 TEMAS (~26% Examen)</span>
               <span class="text-lg">🌍</span>
             </div>
-            <h4 class="font-bold text-white text-base">Seguridad Nacional</h4>
-            <p class="text-xs text-slate-400 mt-1">Ley 36/2015, Estrategia Seg. Nacional, Doctrina PDC-01, ONU, OTAN y Unión Europea.</p>
+            <h4 class="font-bold text-white text-base">Seguridad Nacional y OO.II.</h4>
+            <p class="text-xs text-slate-400 mt-1">Ley 36/2015, ESN 2021, Doctrina PDC-01, ONU, OTAN (32 aliados), OSCE, Unión Europea y Misiones Internacionales.</p>
           </div>
         </div>
       </div>
 
-      <!-- Mapa de Calor de Dominio de los 18 Temas Oficiales -->
+      <!-- Mapa de Calor de Dominio de los 21 Temas Oficiales -->
       <div class="tactical-card rounded-2xl p-5">
         <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
           <div>
             <h3 class="text-sm font-black uppercase tracking-wider text-slate-200">
-              📡 Radar y Mapa de Calor de los 18 Temas Oficiales
+              📡 Radar y Mapa de Calor de los 21 Temas Oficiales (6 + 8 + 7)
             </h3>
-            <p class="text-xs text-slate-400">Pulsa en cualquier tema para abrir su resumen táctico, escuchar el audio o lanzar su test.</p>
+            <p class="text-xs text-slate-400">Pulsa en cualquier tema para abrir su resumen táctico, ver su peso estadístico en el examen o lanzar su test.</p>
           </div>
           <div class="flex items-center space-x-3 text-[11px]">
             <span class="text-emerald-400">🟢 ≥70% Dominado</span>
@@ -223,7 +223,7 @@
             <span class="text-red-400">🔴 &lt;50% Reforzar</span>
           </div>
         </div>
-        <div id="dash-heatmap-grid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-2.5"></div>
+        <div id="dash-heatmap-grid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-7 gap-2.5"></div>
       </div>
 
       <!-- Historial de Simulacros -->
@@ -238,29 +238,29 @@
       </div>
     </section>
 
-    <!-- 2. SECCIÓN: VISOR DE TEMARIO TÁCTICO (18 TEMAS / 3 BLOQUES + AUDIO) -->
+    <!-- 2. SECCIÓN: VISOR DE TEMARIO TÁCTICO (21 TEMAS / 3 BLOQUES + AUDIO) -->
     <section id="tab-temario" class="hidden space-y-6">
       <div class="tactical-card rounded-2xl p-5 sm:p-6 border border-emerald-500/30">
         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
-            <h2 class="text-xl font-black text-white uppercase">📖 Temario Oficial Estructurado (18 Temas BOD)</h2>
+            <h2 class="text-xl font-black text-white uppercase">📖 Temario Oficial Estructurado (21 Temas BOD — Orden DEF/1341/2017)</h2>
             <p class="text-xs text-slate-400 mt-1">
-              Resúmenes ejecutivos, artículos más preguntados, trampas del tribunal, modo <strong>🔊 Audio Táctico</strong> y test directo por tema.
+              Resúmenes ejecutivos de tu cuaderno NotebookLM, porcentaje de preguntas que caen por tema cada año, trampas del tribunal, <strong>🔊 Audio Táctico</strong> y test directo.
             </p>
           </div>
 
           <div class="flex flex-wrap gap-1.5">
             <button onclick="window.appController.filterTemario('ALL')" class="px-3 py-1.5 rounded-lg bg-amber-500 text-slate-950 font-black text-xs uppercase">
-              Todos (18)
+              Todos (21)
             </button>
             <button onclick="window.appController.filterTemario('Bloque 1: Organización')" class="px-3 py-1.5 rounded-lg bg-emerald-950 text-emerald-300 border border-emerald-700 font-bold text-xs">
               Bloque 1 (6)
             </button>
             <button onclick="window.appController.filterTemario('Bloque 2: Jurídico-Social')" class="px-3 py-1.5 rounded-lg bg-amber-950 text-amber-300 border border-amber-700 font-bold text-xs">
-              Bloque 2 (6)
+              Bloque 2 (8)
             </button>
             <button onclick="window.appController.filterTemario('Bloque 3: Seguridad Nacional')" class="px-3 py-1.5 rounded-lg bg-sky-950 text-sky-300 border border-sky-700 font-bold text-xs">
-              Bloque 3 (6)
+              Bloque 3 (7)
             </button>
           </div>
         </div>
@@ -269,7 +269,7 @@
       <div id="temario-topics-container" class="space-y-4"></div>
     </section>
 
-    <!-- 3. SECCIÓN: LABORATORIO CAZA-TRAMPAS Y TABLAS COMPARATIVAS -->
+    <!-- 3. SECCIÓN: LABORATORIO CAZA-TRAMPAS, INTELIGENCIA DE ACADEMIAS Y TABLAS COMPARATIVAS -->
     <section id="tab-trampas" class="hidden space-y-6">
       <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div class="tactical-card rounded-2xl p-5 border border-red-500/40 flex flex-col justify-between">
@@ -279,9 +279,9 @@
             </span>
             <h2 class="text-lg font-black text-white mt-2">🪤 Modo Caza-Trampas del Tribunal</h2>
             <p class="text-xs text-slate-300 mt-1">
-              Entrena exclusivamente las preguntas donde el tribunal cruza plazos (2 meses vs 3 meses en LO 8/2014), autoridades sancionadoras o artículos parecidos.
+              Entrena exclusivamente las preguntas donde el tribunal cruza plazos (2 meses vs 3 meses en LO 8/2014), novedades del RD 205/2024 (DIGEID), MCANA vs FUTER o artículos parecidos.
             </p>
-            <span id="trap-questions-count" class="text-xs font-mono text-amber-400 block mt-2">15 preguntas trampa listas</span>
+            <span id="trap-questions-count" class="text-xs font-mono text-amber-400 block mt-2">45 preguntas trampa listas</span>
           </div>
           <button onclick="window.appController.startTrapHunterTest()" class="mt-4 w-full py-3 rounded-xl bg-red-600 hover:bg-red-500 text-white font-black text-xs uppercase tracking-wider transition">
             🪤 Iniciar Test Caza-Trampas Ahora ➔
@@ -291,19 +291,22 @@
         <div class="tactical-card rounded-2xl p-5 border border-amber-500/40 flex flex-col justify-between">
           <div>
             <span class="px-2.5 py-0.5 rounded text-xs font-black bg-amber-950 text-amber-400 border border-amber-700 uppercase">
-              Histórico de Convocatorias
+              Histórico de Convocatorias (2021–2025)
             </span>
             <h2 class="text-lg font-black text-white mt-2">🏛️ Modo Preguntas de Examen Oficial (BOD)</h2>
             <p class="text-xs text-slate-300 mt-1">
-              Simulacro con preguntas seleccionadas de convocatorias oficiales anteriores (2021–2024) con cálculo de nota de corte oficial.
+              Simulacro con preguntas de convocatorias oficiales anteriores y actualizaciones 2024/2025 con ubicación exacta en el temario y truco de academia.
             </p>
-            <span id="official-questions-count" class="text-xs font-mono text-emerald-400 block mt-2">30 preguntas oficiales listas</span>
+            <span id="official-questions-count" class="text-xs font-mono text-emerald-400 block mt-2">53 preguntas oficiales listas</span>
           </div>
           <button onclick="window.appController.startOfficialExamTest()" class="mt-4 w-full py-3 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs uppercase tracking-wider transition">
             🏛️ Iniciar Simulacro de Preguntas Oficiales ➔
           </button>
         </div>
       </div>
+
+      <!-- Panel de Inteligencia Estadística de Academias -->
+      <div id="academy-intel-container"></div>
 
       <div class="space-y-4">
         <h3 class="text-sm font-black uppercase tracking-wider text-slate-200">
@@ -592,17 +595,27 @@
     <section id="tab-importer" class="hidden space-y-6">
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <div class="tactical-card rounded-2xl p-6 space-y-4 border border-amber-500/30">
-          <div class="flex items-center space-x-2.5">
-            <span class="text-2xl">🤖</span>
-            <div>
-              <h2 class="text-base font-black text-white uppercase">Sincronizador JSON con NotebookLM</h2>
-              <p class="text-xs text-slate-400">Genera preguntas ilimitadas desde tu cuaderno de NotebookLM.</p>
+          <div class="flex flex-wrap items-center justify-between gap-2">
+            <div class="flex items-center space-x-2.5">
+              <span class="text-2xl">🤖</span>
+              <div>
+                <h2 class="text-base font-black text-white uppercase">Conector con tu Cuaderno NotebookLM</h2>
+                <p class="text-xs text-slate-400">Cuaderno vinculado: <span class="text-emerald-400 font-mono">aa45f522-eb9d...</span> (21 Temas Oficiales)</p>
+              </div>
             </div>
+            <a 
+              href="https://notebooklm.google.com/notebook/aa45f522-eb9d-435a-b674-8d7a614081d3" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              class="px-3 py-1.5 rounded-lg bg-emerald-950 hover:bg-emerald-900 text-emerald-300 border border-emerald-700 text-xs font-bold transition"
+            >
+              🔗 Abrir mi NotebookLM ↗
+            </a>
           </div>
 
           <div>
             <div class="flex items-center justify-between mb-1.5">
-              <label class="text-xs font-bold text-amber-400">Paso 1: Copia este Prompt para tu NotebookLM</label>
+              <label class="text-xs font-bold text-amber-400">Paso 1: Copia este Prompt Oficial v3 (con Ubicación y Trucos de Academia)</label>
               <button onclick="window.appController.copyNotebookLMPrompt()" class="px-2.5 py-1 rounded bg-amber-500 text-slate-950 font-black text-xs hover:bg-amber-400 transition">
                 📋 Copiar Prompt
               </button>

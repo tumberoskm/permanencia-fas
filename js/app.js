@@ -258,7 +258,7 @@ class AppController {
   }
 
   // ==========================================
-  // VISOR DE TEMARIO TÁCTICO (18 TEMAS / 3 BLOQUES)
+  // VISOR DE TEMARIO TÁCTICO (21 TEMAS / 3 BLOQUES)
   // ==========================================
   filterTemario(bloque) {
     this.selectedSyllabusFilter = bloque;
@@ -282,14 +282,19 @@ class AppController {
           ? "bg-amber-950 text-amber-400 border-amber-700"
           : "bg-sky-950 text-sky-400 border-sky-700";
 
+      const freqBadge = tema.frecuenciaExamen
+        ? `<span class="px-2.5 py-0.5 rounded text-[11px] font-bold bg-red-950/70 text-amber-300 border border-amber-600/40">📊 Peso Examen: ${tema.frecuenciaExamen}</span>`
+        : "";
+
       return `
         <div id="topic-card-${tema.codigo}" class="tactical-card rounded-2xl p-5 border border-slate-800 space-y-4">
           <div class="flex flex-wrap items-center justify-between gap-2">
-            <div class="flex items-center space-x-2">
+            <div class="flex flex-wrap items-center gap-2">
               <span class="px-2.5 py-0.5 rounded text-xs font-mono font-black border ${badgeColor}">
                 ${tema.codigo}
               </span>
               <span class="text-xs font-bold text-slate-400">${tema.bloque}</span>
+              ${freqBadge}
             </div>
 
             <div class="flex items-center space-x-2">
@@ -374,7 +379,7 @@ class AppController {
     const tema = OFFICIAL_SYLLABUS.find(t => t.codigo === temaCodigo);
     if (!tema) return;
 
-    const textToRead = `Tema ${tema.codigo}: ${tema.titulo}. Resumen ejecutivo: ${tema.resumen}. Puntos calientes de examen: ${tema.puntosCalientes.join(". ")}. Atención a las trampas del tribunal: ${tema.trampas.join(". ")}`;
+    const textToRead = `Tema ${tema.codigo}: ${tema.titulo}. Frecuencia en examen: ${tema.frecuenciaExamen || "Alta"}. Resumen ejecutivo: ${tema.resumen}. Puntos calientes de examen: ${tema.puntosCalientes.join(". ")}. Atención a las trampas del tribunal: ${tema.trampas.join(". ")}`;
 
     window.speechSynthesis.cancel();
     const utterance = new SpeechSynthesisUtterance(textToRead);
@@ -395,7 +400,7 @@ class AppController {
   }
 
   // ==========================================
-  // LABORATORIO CAZA-TRAMPAS Y TABLAS COMPARATIVAS
+  // LABORATORIO CAZA-TRAMPAS, INTELIGENCIA DE ACADEMIAS Y TABLAS
   // ==========================================
   renderTrampas() {
     const tablesContainer = document.getElementById("comparative-tables-container");
@@ -408,7 +413,52 @@ class AppController {
     const trapCountEl = document.getElementById("trap-questions-count");
     const officialCountEl = document.getElementById("official-questions-count");
     if (trapCountEl) trapCountEl.textContent = `${trapCount} preguntas trampa listas`;
-    if (officialCountEl) officialCountEl.textContent = `${officialCount} preguntas oficiales BOD`;
+    if (officialCountEl) officialCountEl.textContent = `${officialCount} preguntas oficiales BOD (2021-2025)`;
+
+    const intelContainer = document.getElementById("academy-intel-container");
+    if (intelContainer && typeof ACADEMY_INTELLIGENCE !== "undefined") {
+      intelContainer.innerHTML = `
+        <div class="tactical-card rounded-2xl p-5 border border-emerald-500/40 space-y-4">
+          <div class="flex flex-wrap items-center justify-between gap-2">
+            <div>
+              <span class="px-2.5 py-0.5 rounded text-[11px] font-black bg-emerald-950 text-emerald-400 border border-emerald-700 uppercase">
+                Inteligencia Táctica de Academias (Convocatorias 2019–2025)
+              </span>
+              <h3 class="text-base sm:text-lg font-black text-white mt-1">
+                🎯 Radiografía Estadística del Examen Oficial (100 Preguntas / 120 Minutos)
+              </h3>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+            ${ACADEMY_INTELLIGENCE.repartoPorBloques.map(b => `
+              <div class="p-3.5 rounded-xl bg-slate-950/80 border border-slate-800 space-y-1.5">
+                <div class="flex items-center justify-between">
+                  <span class="text-xs font-black text-amber-400">${b.bloque}</span>
+                  <span class="px-2 py-0.5 rounded bg-emerald-950 text-emerald-300 text-xs font-mono font-bold border border-emerald-800">${b.pesoMedio}</span>
+                </div>
+                <div class="text-[11px] text-slate-400 font-mono">${b.temas} Temas Oficiales</div>
+                <p class="text-xs text-slate-200 leading-relaxed">
+                  <strong class="text-emerald-400">Temas estrella:</strong> ${b.temasEstrella}
+                </p>
+                <p class="text-[11px] text-amber-200/90 leading-relaxed border-t border-slate-800/80 pt-1.5">
+                  💡 ${b.consejoTactico}
+                </p>
+              </div>
+            `).join("")}
+          </div>
+
+          <div class="p-3.5 rounded-xl bg-amber-950/20 border border-amber-700/40">
+            <strong class="text-xs font-black text-amber-400 uppercase block mb-2">
+              🏆 Regla de Pareto 80/20: Los 6 Temas que concentran más del 50% de las preguntas todos los años:
+            </strong>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-1.5 text-xs text-slate-200">
+              ${ACADEMY_INTELLIGENCE.top6TemasMasPreguntados.map(t => `<div class="p-2 rounded bg-slate-950/60 border border-slate-800/80">• ${t}</div>`).join("")}
+            </div>
+          </div>
+        </div>
+      `;
+    }
 
     tablesContainer.innerHTML = COMPARATIVE_TABLES.map(tab => `
       <div class="tactical-card rounded-2xl p-5 border border-amber-500/30 overflow-hidden">
@@ -705,12 +755,27 @@ class AppController {
             ? `<span class="px-2 py-0.5 rounded text-xs font-bold bg-emerald-950 text-emerald-400 border border-emerald-700">✅ Acierto (+1 pt)</span>`
             : `<span class="px-2 py-0.5 rounded text-xs font-bold bg-red-950 text-red-400 border border-red-700">❌ Fallo (-0.33 pts)</span>`;
 
+        const ubicacionHTML = q.ubicacionTemario
+          ? `<div class="mb-2 px-2.5 py-1.5 rounded-lg bg-slate-900/90 border border-slate-800 text-[11px] font-mono text-emerald-300 flex flex-wrap items-center justify-between gap-2">
+               <span>📍 <strong>Ubicación en Temario:</strong> ${q.ubicacionTemario}</span>
+               ${q.temaCodigo ? `<button onclick="window.appController.openTopicDetail('${q.temaCodigo}')" class="text-amber-400 hover:underline font-bold">📖 Abrir Tema ${q.temaCodigo} ➔</button>` : ""}
+             </div>`
+          : "";
+
+        const consejoHTML = q.consejoAcademia
+          ? `<div class="mt-2 p-2.5 rounded-lg bg-amber-950/30 border border-amber-700/50 text-xs text-amber-200 leading-relaxed">
+               <strong class="text-amber-400 uppercase block mb-0.5">💡 Sugerencia / Truco de Academia:</strong>
+               ${q.consejoAcademia}
+             </div>`
+          : "";
+
         return `
           <div class="p-4 rounded-xl border ${item.isCorrect ? "bg-emerald-950/10 border-emerald-900/40" : item.isBlank ? "bg-slate-900/30 border-slate-800" : "bg-red-950/15 border-red-900/50"}">
             <div class="flex items-center justify-between mb-2">
               <span class="text-xs font-bold text-slate-400">Pregunta ${idx + 1} • ${q.temaCodigo || ""} ${q.bloque}</span>
               ${statusBadge}
             </div>
+            ${ubicacionHTML}
             <p class="text-sm font-semibold text-slate-100 mb-3">${q.pregunta}</p>
             
             <div class="space-y-1.5 mb-3 text-xs">
@@ -731,9 +796,10 @@ class AppController {
             </div>
 
             <div class="p-3 bg-slate-950/60 rounded-lg border border-slate-800/80 text-xs">
-              <div class="font-bold text-amber-400 mb-0.5">Fundamentación Legal (${q.referencia || "Temario Oficial"}):</div>
+              <div class="font-bold text-amber-400 mb-0.5">⚖️ Fundamentación Normativa (${q.referencia || "Temario Oficial"}):</div>
               <p class="text-slate-300 leading-relaxed">${q.justificacion}</p>
             </div>
+            ${consejoHTML}
           </div>
         `;
       }).join("");
@@ -745,7 +811,7 @@ class AppController {
   }
 
   // ==========================================
-  // BOLSA DE PREGUNTAS FALLADAS
+  // BOLSA DE PREGUNTAS FALLADAS (CON REFERENCIA EXACTA Y SUGERENCIA DE ACADEMIA)
   // ==========================================
   renderFailedBag() {
     const failed = window.storageManager.getFailedQuestions();
@@ -764,7 +830,7 @@ class AppController {
           <span class="text-4xl block mb-2">🎯</span>
           <h4 class="text-base font-bold text-slate-200">¡Bolsa de falladas vacía!</h4>
           <p class="text-xs text-slate-400 max-w-md mx-auto mt-1">
-            Cada vez que cometas un error en los simulacros, se guardará aquí automáticamente para que puedas entrenarlo hasta dominarlo.
+            Cada vez que cometas un error en los simulacros, se guardará aquí automáticamente con su ubicación exacta en el temario, artículo legal y truco de academia para que no vuelvas a fallarla.
           </p>
         </div>
       `;
@@ -776,13 +842,24 @@ class AppController {
       if (!q) return "";
 
       return `
-        <div class="p-4 tactical-card rounded-xl border border-red-900/30">
-          <div class="flex items-center justify-between mb-2">
-            <span class="text-xs font-bold text-amber-400">${q.temaCodigo || ""} • ${q.bloque}</span>
+        <div class="p-5 tactical-card rounded-2xl border border-red-900/40 space-y-3">
+          <div class="flex flex-wrap items-center justify-between gap-2">
             <div class="flex items-center space-x-2">
-              <span class="text-xs bg-red-950/80 text-red-300 px-2 py-0.5 rounded border border-red-800">
-                Fallada ${item.attempts || 1} veces
+              <span class="px-2 py-0.5 rounded bg-amber-950 text-amber-400 border border-amber-700 text-xs font-mono font-bold">${q.temaCodigo || "B1-T01"}</span>
+              <span class="text-xs font-bold text-slate-300">${q.bloque}</span>
+            </div>
+            <div class="flex items-center space-x-2">
+              <span class="text-xs bg-red-950/80 text-red-300 px-2.5 py-0.5 rounded border border-red-800 font-bold">
+                ❌ Fallada ${item.attempts || 1} ${(item.attempts || 1) === 1 ? "vez" : "veces"}
               </span>
+              ${q.temaCodigo ? `
+                <button 
+                  onclick="window.appController.openTopicDetail('${q.temaCodigo}')"
+                  class="px-2.5 py-1 rounded bg-slate-900 hover:bg-slate-800 text-amber-400 border border-slate-700 text-xs font-bold transition"
+                >
+                  📖 Ir al Tema ${q.temaCodigo}
+                </button>
+              ` : ""}
               <button 
                 onclick="window.appController.removeFailedItem('${item.id}')"
                 class="text-xs text-slate-400 hover:text-red-400 p-1"
@@ -792,11 +869,31 @@ class AppController {
               </button>
             </div>
           </div>
-          <p class="text-sm font-semibold text-slate-200 mb-2">${q.pregunta}</p>
-          <div class="text-xs text-emerald-400 bg-emerald-950/20 p-2 rounded border border-emerald-900/40 mb-2">
-            <span class="font-bold">Correcta:</span> ${q.opciones[q.correcta]}
+
+          ${q.ubicacionTemario ? `
+            <div class="px-3 py-1.5 rounded-lg bg-slate-950/80 border border-slate-800 text-xs font-mono text-emerald-300">
+              📍 <strong>Dónde estudiarlo en el Temario:</strong> ${q.ubicacionTemario}
+            </div>
+          ` : ""}
+
+          <p class="text-sm sm:text-base font-bold text-white leading-snug">${q.pregunta}</p>
+
+          <div class="text-xs text-emerald-300 bg-emerald-950/30 p-3 rounded-xl border border-emerald-700/50">
+            <span class="font-black uppercase text-emerald-400 block mb-0.5">✅ Respuesta Oficial Correcta:</span>
+            ${q.opciones[q.correcta]}
           </div>
-          <p class="text-xs text-slate-400">${q.justificacion}</p>
+
+          <div class="p-3 rounded-xl bg-slate-950/70 border border-slate-800 text-xs space-y-1">
+            <div class="font-bold text-amber-400">⚖️ Referencia Exacta: <span class="font-mono text-white">${q.referencia || "Normativa Oficial BOD"}</span></div>
+            <p class="text-slate-300 leading-relaxed">${q.justificacion}</p>
+          </div>
+
+          ${q.consejoAcademia ? `
+            <div class="p-3 rounded-xl bg-amber-950/25 border border-amber-700/40 text-xs text-amber-200 leading-relaxed">
+              <strong class="text-amber-400 uppercase block mb-0.5">💡 Sugerencia / Regla Mnemotécnica de Academia:</strong>
+              ${q.consejoAcademia}
+            </div>
+          ` : ""}
         </div>
       `;
     }).join("");
@@ -896,17 +993,18 @@ class AppController {
   // IMPORTADOR NOTEBOOKLM & BACKUP
   // ==========================================
   renderImporter() {
-    const promptTemplate = `Actúa como Tribunal Militar de la oposición de Permanencia de Tropa (Ejército de Tierra).
-A partir del temario de este cuaderno, genera un array JSON con 15 preguntas tipo test (incluyendo preguntas trampa de plazos y competencias) estrictamente en este formato:
+    const promptTemplate = `Actúa como Tribunal Militar y preparador de academia de la oposición de Permanencia de Tropa y Marinería (Orden DEF/1341/2017 actualizada a 2025/2026).
+A partir del temario oficial de este cuaderno, genera un array JSON con 15 preguntas tipo test de nivel examen oficial (incluyendo preguntas trampa de plazos, órganos y competencias) estrictamente con esta estructura:
 
 [
   {
-    "temaCodigo": "B2-T03",
+    "temaCodigo": "B2-T04",
     "bloque": "Bloque 2: Jurídico-Social",
-    "materia": "Régimen Disciplinario LO 8/2014",
+    "materia": "Régimen Disciplinario de las FAS (LO 8/2014)",
     "dificultad": "trampa",
     "esExamenOficial": true,
-    "pregunta": "¿Texto claro y riguroso de la pregunta?",
+    "anioConvocatoria": 2025,
+    "pregunta": "¿Texto claro y riguroso de la pregunta oficial?",
     "opciones": [
       "Opción A",
       "Opción B",
@@ -914,15 +1012,17 @@ A partir del temario de este cuaderno, genera un array JSON con 15 preguntas tip
       "Opción D"
     ],
     "correcta": 1,
-    "justificacion": "Explicación detallada citando el artículo exacto.",
-    "referencia": "LO 8/2014, Art. 24"
+    "ubicacionTemario": "Bloque 2 (Jurídico-Social) ➔ Tema 4 (Régimen Disciplinario LO 8/2014) ➔ Epígrafe o Capítulo exacto",
+    "referencia": "Ley Orgánica 8/2014, Art. 24.1",
+    "consejoAcademia": "Regla mnemotécnica o truco de academia para no caer en la trampa del tribunal.",
+    "justificacion": "Explicación jurídica detallada citando el artículo exacto del temario."
   }
 ]
 
 IMPORTANTE:
-1. "bloque" debe ser: "Bloque 1: Organización", "Bloque 2: Jurídico-Social" o "Bloque 3: Seguridad Nacional".
-2. "temaCodigo" va de "B1-T01" a "B1-T06", "B2-T01" a "B2-T06" o "B3-T01" a "B3-T06".
-3. "correcta" es 0 (A), 1 (B), 2 (C) o 3 (D). Devuelve SOLO el bloque JSON.`;
+1. "bloque" debe ser exactamente: "Bloque 1: Organización", "Bloque 2: Jurídico-Social" o "Bloque 3: Seguridad Nacional".
+2. "temaCodigo" usa los 21 temas oficiales: "B1-T01" a "B1-T06" (Bloque 1), "B2-T01" a "B2-T08" (Bloque 2) o "B3-T01" a "B3-T07" (Bloque 3).
+3. "correcta" es el índice numérico: 0 (A), 1 (B), 2 (C) o 3 (D). Devuelve ÚNICAMENTE el bloque JSON válido.`;
 
     const promptEl = document.getElementById("notebooklm-prompt-text");
     if (promptEl) promptEl.value = promptTemplate;
