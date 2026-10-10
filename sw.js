@@ -1,4 +1,4 @@
-const CACHE_NAME = "permanencia-fas-v14";
+const CACHE_NAME = "permanencia-fas-v14.1";
 const ASSETS = [
   "./",
   "./index.html",

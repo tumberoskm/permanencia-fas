@@ -2133,50 +2133,68 @@ class AppController {
     container.innerHTML = `
       <div class="tactical-card rounded-2xl p-5 border-2 border-amber-500/40 bg-gradient-to-br from-slate-950/95 to-emerald-950/20 space-y-4">
         <!-- Guía del Jefe de Estudios: ¿Por dónde empiezo si no he leído el temario? -->
-        <div class="p-3.5 rounded-xl bg-slate-950/95 border border-emerald-500/40 flex flex-col lg:flex-row lg:items-center justify-between gap-3">
-          <div class="space-y-1">
-            <div class="flex flex-wrap items-center gap-2">
-              <span class="px-2 py-0.5 rounded bg-emerald-500 text-slate-950 font-black text-[10px] uppercase">
+        <div class="p-4 rounded-2xl bg-slate-950/95 border-2 border-emerald-500/40 space-y-3">
+          <div class="flex flex-wrap items-center justify-between gap-2">
+            <div class="flex flex-wrap items-center gap-2.5">
+              <span class="px-2.5 py-0.5 rounded bg-emerald-500 text-slate-950 font-black text-[11px] uppercase tracking-wider">
                 👨‍🏫 Método del Jefe de Estudios (Empezar desde Cero)
               </span>
               <span class="text-xs font-mono font-bold text-amber-400">
                 📖 ${readTopics.length} de 21 Temas Leídos (Equivalen a los 28 Temas en Vídeo)
               </span>
             </div>
-            <p class="text-xs text-slate-200 leading-relaxed">
-              <strong>¿No sabes por dónde empezar? Sigue siempre estos 4 pasos en orden:</strong>
-              <span class="text-amber-300 font-bold">1️⃣ Lee/Escucha el Resumen + Pizarra Vídeo</span> ➔
-              <span class="text-sky-300 font-bold">2️⃣ Mira el Esquema Visual</span> ➔
-              <span class="text-emerald-300 font-bold">3️⃣ Haz el Test Gradual / Adaptativo IA</span> ➔
-              <span class="text-purple-300 font-bold">4️⃣ Simulacro y Chuleta PDF</span>.
-            </p>
+            <span class="text-[11px] text-slate-400 font-semibold">
+              ¿No sabes por dónde empezar? Sigue siempre estos 4 pasos en orden:
+            </span>
           </div>
-          <div class="flex flex-wrap gap-1.5 shrink-0">
+
+          <!-- Ruta Visual de los 4 Pasos en 4 Columnas Alineadas -->
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2 text-xs">
+            <div class="p-2.5 rounded-xl bg-amber-950/30 border border-amber-500/40 flex items-center space-x-2">
+              <span class="px-2 py-0.5 rounded bg-amber-500 text-slate-950 font-black text-[10px] shrink-0">PASO 1</span>
+              <span class="font-bold text-amber-200 truncate">📖 Resumen + 🎙️ Podcast</span>
+            </div>
+            <div class="p-2.5 rounded-xl bg-sky-950/30 border border-sky-500/40 flex items-center space-x-2">
+              <span class="px-2 py-0.5 rounded bg-sky-400 text-slate-950 font-black text-[10px] shrink-0">PASO 2</span>
+              <span class="font-bold text-sky-200 truncate">📊 Esquema Visual Color</span>
+            </div>
+            <div class="p-2.5 rounded-xl bg-emerald-950/30 border border-emerald-500/40 flex items-center space-x-2">
+              <span class="px-2 py-0.5 rounded bg-emerald-500 text-slate-950 font-black text-[10px] shrink-0">PASO 3</span>
+              <span class="font-bold text-emerald-200 truncate">🧠 Test Gradual / IA</span>
+            </div>
+            <div class="p-2.5 rounded-xl bg-purple-950/30 border border-purple-500/40 flex items-center space-x-2">
+              <span class="px-2 py-0.5 rounded bg-purple-400 text-slate-950 font-black text-[10px] shrink-0">PASO 4</span>
+              <span class="font-bold text-purple-200 truncate">🏆 Simulacro + Chuleta PDF</span>
+            </div>
+          </div>
+
+          <!-- Botonera de Acción Rápida en 4 Columnas Simétricas -->
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5 pt-2.5 border-t border-slate-800/80">
             <button
               onclick="window.appController.playTopicPodcast('B1-T01', true)"
-              class="px-3 py-1.5 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-slate-950 text-xs font-black transition shadow flex items-center space-x-1"
+              class="py-2.5 px-3 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 text-xs font-black transition shadow flex items-center justify-center space-x-1.5"
               title="Abrir Radio Permanencia ET: 21 Podcasts Conversacionales con Brigada Carlos y Cabo 1º Marta explicando la ley con ejemplos"
             >
               <span>🎙️</span><span>Radio Permanencia (21 Podcasts)</span>
             </button>
             <button
               onclick="window.appController.openWarNotebookModal()"
-              class="px-3 py-1.5 rounded-lg bg-amber-500 hover:bg-amber-400 text-slate-950 text-xs font-black transition shadow"
+              class="py-2.5 px-3 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 text-xs font-black transition shadow flex items-center justify-center space-x-1.5"
             >
-              📓 Mi Cuaderno de Guerra (PDF)
+              <span>📓</span><span>Mi Cuaderno de Guerra (PDF)</span>
             </button>
             <button
               onclick="window.appController.startSurvivalMode()"
-              class="px-3 py-1.5 rounded-lg bg-red-950 hover:bg-red-900 text-red-200 border border-red-500 text-xs font-black transition"
+              class="py-2.5 px-3 rounded-xl bg-red-950 hover:bg-red-900 text-red-200 border border-red-500 text-xs font-black transition flex items-center justify-center space-x-1.5"
               title="Modo Supervivencia: 3 Vidas ❤️❤️❤️. Récord actual: ${survivalRec.bestStreak || 0} seguidas"
             >
-              💀 Supervivencia 3 Vidas (🏆 ${survivalRec.bestStreak || 0})
+              <span>💀</span><span>Supervivencia 3 Vidas (🏆 ${survivalRec.bestStreak || 0})</span>
             </button>
             <button
               onclick="window.appController.startTagFilteredTest('Fácil', true, 20)"
-              class="px-3 py-1.5 rounded-lg bg-green-950 hover:bg-green-900 text-green-300 border border-green-600 text-xs font-black transition"
+              class="py-2.5 px-3 rounded-xl bg-green-950 hover:bg-green-900 text-green-300 border border-green-600 text-xs font-black transition flex items-center justify-center space-x-1.5"
             >
-              🟢 Test Nivel Fácil (20p)
+              <span>🟢</span><span>Test Nivel Fácil (20p)</span>
             </button>
           </div>
         </div>
@@ -2731,7 +2749,7 @@ class AppController {
 
     container.innerHTML = `
       <!-- Banner de Ruta de Estudio en 4 Pasos + Contador de Post-its y Subrayados -->
-      <div class="p-4 rounded-2xl bg-gradient-to-r from-slate-950 via-emerald-950/30 to-slate-950 border border-amber-500/40 flex flex-wrap items-center justify-between gap-3 mb-2">
+      <div class="p-4 rounded-2xl bg-gradient-to-r from-slate-950 via-emerald-950/30 to-slate-950 border-2 border-amber-500/40 space-y-3 mb-2">
         <div class="space-y-1">
           <div class="flex flex-wrap items-center gap-2">
             <span class="px-2.5 py-0.5 rounded bg-amber-500 text-slate-950 font-black text-[11px] uppercase">
@@ -2741,36 +2759,36 @@ class AppController {
               ✅ ${readSet.size} / 21 Resúmenes Leídos • 📌 ${totalNotesCount} Post-its • 🗄️ ${allQuestions.length} Preguntas
             </span>
           </div>
-          <p class="text-xs text-slate-300">
+          <p class="text-xs text-slate-300 leading-relaxed">
             Cada fila incluye la etiqueta <strong>🎬 Vídeos 28T</strong> para que sepas a qué vídeo(s) de tu NotebookLM corresponde cada tema oficial del BOE (Orden DEF/1341/2017 y Orden DEF/15/2026).
           </p>
         </div>
-        <div class="flex flex-wrap items-center gap-2 shrink-0">
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5 pt-2.5 border-t border-slate-800/80">
           <button
             onclick="window.appController.playTopicPodcast('B1-T01', true)"
-            class="px-3 py-1.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 text-xs font-black transition shadow flex items-center space-x-1"
+            class="py-2 px-3 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 text-xs font-black transition shadow flex items-center justify-center space-x-1.5"
             title="Abrir Radio Permanencia ET: 21 Podcasts Conversacionales con Brigada Carlos y Cabo 1º Marta explicando cada ley con ejemplos"
           >
             <span>🎙️</span><span>Radio Permanencia (21 Podcasts)</span>
           </button>
           <button
             onclick="window.appController.loadAllTeacherVideoPostIts()"
-            class="px-3 py-1.5 rounded-xl bg-sky-600 hover:bg-sky-500 text-slate-950 text-xs font-black transition shadow flex items-center space-x-1"
+            class="py-2 px-3 rounded-xl bg-sky-500 hover:bg-sky-400 text-slate-950 text-xs font-black transition shadow flex items-center justify-center space-x-1.5"
             title="Pega automáticamente en tus 21 temas los 49 Post-its clave extraídos de los 28 vídeos de YouTube"
           >
             <span>🎬</span><span>Pegar 49 Post-its de los Vídeos</span>
           </button>
           <button
             onclick="window.appController.openWarNotebookModal()"
-            class="px-3 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 text-xs font-black transition shadow"
+            class="py-2 px-3 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 text-xs font-black transition shadow flex items-center justify-center space-x-1.5"
           >
-            📓 Mi Cuaderno de Guerra (PDF)
+            <span>📓</span><span>Mi Cuaderno de Guerra (PDF)</span>
           </button>
           <button
             onclick="window.appController.toggleExpandAllTopics()"
-            class="px-3 py-1.5 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-700 text-xs font-bold text-amber-400 transition"
+            class="py-2 px-3 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-700 text-xs font-bold text-amber-400 transition flex items-center justify-center space-x-1.5"
           >
-            📂 Expandir / Contraer Todos
+            <span>📂</span><span>Expandir / Contraer Todos</span>
           </button>
         </div>
       </div>
