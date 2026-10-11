@@ -1674,6 +1674,27 @@ class AppController {
     });
   }
 
+  getPodcastTurnSpeakerInfo(ep, turn) {
+    if (!turn) {
+      return {
+        isCarlos: false,
+        shortCode: "🪖CM",
+        name: "Cabo 1º Marta (Opositora)",
+        etiqueta: ""
+      };
+    }
+    const rawKey = String(turn.speaker || turn.locutor || "").toLowerCase();
+    const isCarlos = rawKey.includes("carlos") || rawKey.includes("brigada");
+    const nameFromMap = ep && ep.personajes && turn.speaker ? ep.personajes[turn.speaker] : null;
+    const name = nameFromMap || turn.locutor || (isCarlos ? "Brigada Carlos (Instructor)" : "Cabo 1º Marta (Opositora)");
+    return {
+      isCarlos,
+      shortCode: isCarlos ? "🎖️BC" : "🪖CM",
+      name,
+      etiqueta: turn.etiqueta || ""
+    };
+  }
+
   openPodcastStudioModal(temaCodigo) {
     const code = temaCodigo || this.audioTemaCodigo || "B1-T01";
     const ep = this.getPodcastEpisode(code);
@@ -1701,7 +1722,7 @@ class AppController {
     modal.innerHTML = `
       <div class="w-full max-w-5xl rounded-2xl bg-slate-950 border-2 border-amber-500/60 shadow-2xl overflow-hidden my-auto max-h-[92vh] flex flex-col">
         <!-- Cabecera de Radio Permanencia ET -->
-        <div class="p-4 sm:p-5 bg-gradient-to-r from-slate-950 via-amber-950/40 to-emerald-950/40 border-b border-slate-800 flex flex-wrap items-center justify-between gap-3">
+        <div class="shrink-0 p-4 sm:p-5 bg-gradient-to-r from-slate-950 via-amber-950/40 to-emerald-950/40 border-b border-slate-800 flex flex-wrap items-center justify-between gap-3">
           <div class="flex items-center space-x-3">
             <div class="w-12 h-12 rounded-2xl bg-amber-500 text-slate-950 font-black text-2xl flex items-center justify-center shadow-lg shrink-0">
               🎙️
@@ -1755,7 +1776,7 @@ class AppController {
         </div>
 
         <!-- Cuerpo scrollable: Reproductor + 3 Ejemplos Cotidianos + Guion Interactivo -->
-        <div class="p-4 sm:p-5 overflow-y-auto space-y-4 flex-1">
+        <div class="p-4 sm:p-5 overflow-y-auto min-h-0 space-y-4 flex-1">
           <!-- Controles Principales Tipo Spotify -->
           <div class="p-4 rounded-2xl bg-slate-900/95 border border-amber-500/40 space-y-3">
             <div class="flex flex-wrap items-center justify-between gap-3">
@@ -1869,7 +1890,8 @@ class AppController {
 
             <div class="space-y-2.5">
               ${(ep.dialogo || []).map((turn, idx) => {
-                const isCarlos = String(turn.locutor || "").toLowerCase().includes("carlos");
+                const spInfo = this.getPodcastTurnSpeakerInfo(ep, turn);
+                const isCarlos = spInfo.isCarlos;
                 return `
                   <div
                     id="podcast-turn-${idx}"
@@ -1883,13 +1905,16 @@ class AppController {
                     <div class="w-9 h-9 rounded-xl ${
                       isCarlos ? "bg-emerald-600 text-white" : "bg-amber-500 text-slate-950"
                     } font-black text-xs flex items-center justify-center shrink-0 mt-0.5">
-                      ${isCarlos ? "🎖️BC" : "🪖CM"}
+                      ${spInfo.shortCode}
                     </div>
                     <div class="flex-1 space-y-1">
-                      <div class="flex items-center justify-between">
-                        <span class="text-xs font-black ${isCarlos ? "text-emerald-400" : "text-amber-400"}">
-                          ${turn.locutor}
-                        </span>
+                      <div class="flex flex-wrap items-center justify-between gap-1.5">
+                        <div class="flex flex-wrap items-center gap-2">
+                          <span class="text-xs font-black ${isCarlos ? "text-emerald-400" : "text-amber-400"}">
+                            ${spInfo.name}
+                          </span>
+                          ${spInfo.etiqueta ? `<span class="px-2 py-0.5 rounded bg-slate-950/90 border ${isCarlos ? "border-emerald-600/40 text-emerald-200" : "border-amber-500/40 text-amber-200"} text-[10px] font-bold">${spInfo.etiqueta}</span>` : ""}
+                        </div>
                         <span class="text-[10px] font-mono text-slate-400">▶️ Intervención ${idx + 1}/${ep.dialogo.length}</span>
                       </div>
                       <p class="text-xs sm:text-sm text-slate-100 leading-relaxed">${turn.texto}</p>
@@ -1944,7 +1969,8 @@ class AppController {
     const activeIdx = this.activePodcastTurnIndex || 0;
     if (ep && Array.isArray(ep.dialogo) && ep.dialogo[activeIdx] && speakerEl) {
       const turn = ep.dialogo[activeIdx];
-      speakerEl.textContent = `🎙️ Hablando ahora (${activeIdx + 1}/${ep.dialogo.length}): ${turn.locutor}`;
+      const spInfo = this.getPodcastTurnSpeakerInfo(ep, turn);
+      speakerEl.textContent = `🎙️ Hablando ahora (${activeIdx + 1}/${ep.dialogo.length}): ${spInfo.name}${spInfo.etiqueta ? ` • ${spInfo.etiqueta}` : ""}`;
     }
 
     document.querySelectorAll(".podcast-turn-card").forEach((el, idx) => {
@@ -1992,6 +2018,7 @@ class AppController {
     const activeTurn = (ep && Array.isArray(ep.dialogo) && ep.dialogo[this.activePodcastTurnIndex || 0])
       ? ep.dialogo[this.activePodcastTurnIndex || 0]
       : null;
+    const activeSpInfo = activeTurn ? this.getPodcastTurnSpeakerInfo(ep, activeTurn) : null;
     const speedLabel = `${(this.audioRate || 1.0)}x`;
 
     bar.innerHTML = `
@@ -2014,7 +2041,7 @@ class AppController {
               </span>
             </div>
             <div class="font-bold text-white truncate">
-              ${activeTurn ? `<span class="text-amber-300">${activeTurn.locutor}:</span> ${activeTurn.texto}` : (ep ? ep.titulo : this.audioTemaCodigo)}
+              ${activeTurn && activeSpInfo ? `<span class="${activeSpInfo.isCarlos ? "text-emerald-400" : "text-amber-300"}">${activeSpInfo.name}:</span> ${activeTurn.texto}` : (ep ? ep.titulo : this.audioTemaCodigo)}
             </div>
           </div>
         </div>

@@ -1257,5 +1257,16 @@ function getNotebookLMPodcastPrompt(temaCodigo) {
   return `Hablad SIEMPRE en español de España. Cread un podcast conversacional muy ameno, dinámico y entretenido entre dos instructores militares explicando desde cero el tema "${ep.codigo}: ${ep.titulo}" para la oposición de Tropa Permanente de las Fuerzas Armadas. No leáis la ley de forma robótica: explicad cada artículo y cada plazo usando ejemplos cotidianos de cuartel y casos prácticos reales (${examplesList}), destacando dónde pone las trampas el Tribunal.`;
 }
 
+Object.values(PODCAST_EPISODES).forEach((ep) => {
+  if (!ep || !Array.isArray(ep.dialogo)) return;
+  ep.dialogo.forEach((turn) => {
+    if (!turn.locutor) {
+      const isCarlos = String(turn.speaker || "").toLowerCase().includes("carlos");
+      turn.locutor = (ep.personajes && ep.personajes[turn.speaker])
+        || (isCarlos ? "Brigada Carlos (Instructor)" : "Cabo 1º Marta (Opositora)");
+    }
+  });
+});
+
 window.PODCAST_EPISODES = PODCAST_EPISODES;
 window.getNotebookLMPodcastPrompt = getNotebookLMPodcastPrompt;
