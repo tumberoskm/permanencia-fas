@@ -6,6 +6,7 @@
 class AppController {
   constructor() {
     this.currentTab = "dashboard";
+    this.currentStudyTopic = "B1-T01";
     this.fcIndex = 0;
     this.fcFilter = "ALL";
     this.fcList = [];
@@ -15,13 +16,48 @@ class AppController {
     this.dailyPairOffset = 0;
     this.isSpeaking = false;
     this.activeHighlighterColor = "yellow";
+    try {
+      this.uiTheme = localStorage.getItem("permanencia_ui_theme_v1") || "soft-light";
+    } catch (_e) {
+      this.uiTheme = "soft-light";
+    }
     this.init();
   }
 
   init() {
+    this.applyVisualTheme();
     this.bindEvents();
     this.updateHeaderStats();
     this.showTab("dashboard");
+  }
+
+  applyVisualTheme() {
+    if (typeof document === "undefined" || !document.body) return;
+    const isLight = this.uiTheme === "soft-light";
+    if (document.body.classList) {
+      if (isLight) {
+        document.body.classList.add("theme-soft-light");
+      } else {
+        document.body.classList.remove("theme-soft-light");
+      }
+    }
+    const sIcon = document.getElementById("theme-toggle-icon");
+    const sLabel = document.getElementById("theme-toggle-label");
+    const hIcon = document.getElementById("header-theme-icon");
+    const hText = document.getElementById("header-theme-text");
+
+    if (sIcon) sIcon.textContent = isLight ? "☀️" : "🌙";
+    if (sLabel) sLabel.textContent = isLight ? "Estilo: Tarjetas Claras" : "Estilo: Pizarra Noche";
+    if (hIcon) hIcon.textContent = isLight ? "☀️" : "🌙";
+    if (hText) hText.textContent = isLight ? "Modo Claro" : "Modo Noche";
+  }
+
+  toggleVisualTheme() {
+    this.uiTheme = this.uiTheme === "soft-light" ? "soft-dark" : "soft-light";
+    try {
+      localStorage.setItem("permanencia_ui_theme_v1", this.uiTheme);
+    } catch (_e) {}
+    this.applyVisualTheme();
   }
 
   bindEvents() {
@@ -61,12 +97,138 @@ class AppController {
     const xpEl = document.getElementById("header-xp");
     const streakEl = document.getElementById("header-streak");
     const rankBadgeEl = document.getElementById("header-rank-badge");
+    const sidebarRankBadgeEl = document.getElementById("sidebar-rank-badge");
     const rankTitleEl = document.getElementById("header-rank-title");
 
     if (xpEl) xpEl.textContent = `${stats.xp || 0} XP`;
     if (streakEl) streakEl.textContent = `${stats.streakDays || 1}d`;
     if (rankBadgeEl) rankBadgeEl.textContent = rankInfo.current.badge;
+    if (sidebarRankBadgeEl) sidebarRankBadgeEl.textContent = rankInfo.current.badge;
     if (rankTitleEl) rankTitleEl.textContent = rankInfo.current.title;
+  }
+
+  activateInPageWorkspace(sectionId, title, sidebarBtnId = null) {
+    const allSections = [
+      "tab-dashboard",
+      "tab-simulator-config",
+      "tab-simulator-active",
+      "tab-simulator-results",
+      "tab-baremo",
+      "tab-temario",
+      "tab-trampas",
+      "tab-failed-bag",
+      "tab-flashcards",
+      "tab-importer",
+      "study-guide-modal",
+      "schema-modal",
+      "podcast-studio-modal",
+      "war-notebook-modal"
+    ];
+    allSections.forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.classList.add("hidden");
+    });
+
+    const target = document.getElementById(sectionId);
+    if (target) {
+      target.classList.remove("hidden");
+      if (typeof window.scrollTo === "function") {
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      }
+    }
+
+    const titleEl = document.getElementById("header-section-title");
+    if (titleEl && title) {
+      titleEl.textContent = title;
+    }
+
+    document.querySelectorAll("[data-tab]").forEach(btn => {
+      btn.classList.remove("active", "border-amber-500", "text-amber-400");
+    });
+    ["sidebar-btn-podcast", "sidebar-btn-schema", "sidebar-btn-notebook"].forEach(id => {
+      const b = document.getElementById(id);
+      if (b) b.classList.remove("active");
+    });
+
+    if (sidebarBtnId) {
+      const sb = document.getElementById(sidebarBtnId);
+      if (sb) sb.classList.add("active");
+    } else if (sectionId === "study-guide-modal") {
+      document.querySelectorAll('[data-tab="temario"]').forEach(b => b.classList.add("active"));
+    }
+  }
+
+  renderTopicWorkspaceSubNav(temaCodigo, activeStep = 1) {
+    if (typeof OFFICIAL_SYLLABUS === "undefined") return "";
+    const code = temaCodigo || this.currentStudyTopic || "B1-T01";
+    this.currentStudyTopic = code;
+    const allCodes = OFFICIAL_SYLLABUS.map(t => t.codigo);
+    const activeCls = "border-b-2 border-teal-400 text-teal-300 font-black bg-slate-800/70";
+    const idleCls = "border-b-2 border-transparent text-slate-400 hover:text-slate-200 font-semibold hover:bg-slate-800/40";
+
+    const switchFn = activeStep === 2
+      ? "openSchemaModal"
+      : activeStep === 3
+        ? "openPodcastStudioModal"
+        : "openStudyGuideModal";
+
+    return `
+      <div class="p-3 rounded-2xl bg-slate-900/95 border border-slate-700/80 flex flex-wrap items-center justify-between gap-3 mb-4">
+        <!-- Pestañas Superiores Integradas (Sin Ventanas Flotantes, como en Imagen 2) -->
+        <div class="flex flex-wrap items-center gap-1 text-xs">
+          <button
+            type="button"
+            onclick="window.appController.openStudyGuideModal('${code}')"
+            class="px-3.5 py-2 rounded-t-xl transition ${activeStep === 1 ? activeCls : idleCls}"
+          >
+            1. Resumen Magistral
+          </button>
+          <button
+            type="button"
+            onclick="window.appController.openSchemaModal('${code}')"
+            class="px-3.5 py-2 rounded-t-xl transition ${activeStep === 2 ? activeCls : idleCls}"
+          >
+            2. Esquema Visual
+          </button>
+          <button
+            type="button"
+            onclick="window.appController.playTopicPodcast('${code}', true)"
+            class="px-3.5 py-2 rounded-t-xl transition ${activeStep === 3 ? activeCls : idleCls}"
+          >
+            3. Radio Podcast (Tertulia)
+          </button>
+          <button
+            type="button"
+            onclick="window.appController.startTopicStudy('${code}')"
+            class="px-3.5 py-2 rounded-t-xl transition ${idleCls}"
+          >
+            4. Test del Tema
+          </button>
+        </div>
+
+        <!-- Selector rápido de cualquiera de los 21 Temas + Botón Volver -->
+        <div class="flex flex-wrap items-center gap-2">
+          <select
+            onchange="window.appController.${switchFn}(this.value)"
+            class="px-3 py-1.5 rounded-xl bg-slate-950 border border-slate-700 text-xs font-bold text-amber-300"
+            title="Cambiar entre los 21 Temas sin salir de esta vista"
+          >
+            ${allCodes.map(c => {
+              const tItem = OFFICIAL_SYLLABUS.find(x => x.codigo === c);
+              return `<option value="${c}" ${c === code ? "selected" : ""}>${c} — ${tItem ? tItem.titulo.replace(/^Tema\s+\d+\.\s*/i, "").slice(0, 38) : c}</option>`;
+            }).join("")}
+          </select>
+
+          <button
+            type="button"
+            onclick="window.appController.showTab(window.appController.currentTab || 'dashboard')"
+            class="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold text-xs transition"
+          >
+            ⬅️ Volver
+          </button>
+        </div>
+      </div>
+    `;
   }
 
   showTab(tabName) {
@@ -74,6 +236,28 @@ class AppController {
       this.stopAudio();
     }
     this.currentTab = tabName;
+
+    const sectionTitles = {
+      "dashboard": "Panel Diario",
+      "temario": "Temario y Lectura (21 Temas)",
+      "simulator-config": "Simulacros Oficiales (20)",
+      "simulator-active": "Simulacro en Curso",
+      "simulator-results": "Informe de Resultados",
+      "baremo": "Calculadora Oficial de Baremo",
+      "trampas": "Laboratorio Caza-Trampas",
+      "failed-bag": "Bolsa Personal de Fallos",
+      "flashcards": "Tarjetas de Memoria (120)",
+      "importer": "Sincronización Nube 24/7"
+    };
+    const titleEl = document.getElementById("header-section-title");
+    if (titleEl) {
+      titleEl.textContent = sectionTitles[tabName] || "Academia Permanencia FAS";
+    }
+
+    ["sidebar-btn-podcast", "sidebar-btn-schema", "sidebar-btn-notebook"].forEach(id => {
+      const b = document.getElementById(id);
+      if (b) b.classList.remove("active");
+    });
 
     document.querySelectorAll("[data-tab]").forEach(btn => {
       const active = btn.getAttribute("data-tab") === tabName;
@@ -96,7 +280,11 @@ class AppController {
       "tab-trampas",
       "tab-failed-bag",
       "tab-flashcards",
-      "tab-importer"
+      "tab-importer",
+      "study-guide-modal",
+      "schema-modal",
+      "podcast-studio-modal",
+      "war-notebook-modal"
     ];
 
     sections.forEach(id => {
@@ -107,7 +295,9 @@ class AppController {
     const targetSection = document.getElementById(`tab-${tabName}`);
     if (targetSection) {
       targetSection.classList.remove("hidden");
-      window.scrollTo({ top: 0, behavior: "smooth" });
+      if (typeof window.scrollTo === "function") {
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      }
     }
 
     if (tabName === "dashboard") {
@@ -143,6 +333,7 @@ class AppController {
     const questions = window.storageManager.getQuestions();
     const failed = window.storageManager.getFailedQuestions();
     const history = window.storageManager.getSimulatorHistory();
+    const readTopics = window.storageManager.getReadTopics();
 
     const dashRankBadge = document.getElementById("dash-rank-badge");
     const dashRankTitle = document.getElementById("dash-rank-title");
@@ -154,12 +345,12 @@ class AppController {
     if (dashRankTitle) dashRankTitle.textContent = rankInfo.current.title;
     if (dashRankSub) dashRankSub.textContent = rankInfo.current.sub;
     if (dashRankProgress) {
-      dashRankProgress.style.width = `${rankInfo.progressPercent}%`;
+      dashRankProgress.style.width = `${Math.max(12, rankInfo.progressPercent || 25)}%`;
     }
     if (dashRankNext) {
       dashRankNext.textContent = rankInfo.next
-        ? `Siguiente: ${rankInfo.next.title} (${stats.xp}/${rankInfo.next.minXP} XP)`
-        : "¡Rango Máximo Alcanzado!";
+        ? `Sig: ${rankInfo.next.title}`
+        : "¡Rango Máximo!";
     }
 
     const dashStreak = document.getElementById("dash-streak-count");
@@ -167,11 +358,19 @@ class AppController {
     const dashFailedCount = document.getElementById("dash-failed-count");
     const dashSimCount = document.getElementById("dash-sim-count");
     const dashNetAccuracy = document.getElementById("dash-net-accuracy");
+    const dashAccuracyBar = document.getElementById("dash-accuracy-bar");
+    const dashReadKpi = document.getElementById("dash-read-topics-kpi");
+    const dashReadBar = document.getElementById("dash-read-topics-bar");
 
     if (dashStreak) dashStreak.textContent = `${stats.streakDays || 1} días`;
     if (dashTotalQuestions) dashTotalQuestions.textContent = questions.length;
     if (dashFailedCount) dashFailedCount.textContent = failed.length;
     if (dashSimCount) dashSimCount.textContent = stats.simulatorsCompleted || 0;
+    if (dashReadKpi) dashReadKpi.textContent = `${readTopics.length}/21`;
+    if (dashReadBar) {
+      const readPct = Math.min(100, Math.max(8, Math.round((readTopics.length / 21) * 100)));
+      dashReadBar.style.width = `${readPct}%`;
+    }
 
     const totalAns = (stats.totalCorrect || 0) + (stats.totalWrong || 0);
     if (dashNetAccuracy) {
@@ -179,8 +378,10 @@ class AppController {
         const netScore = Math.max(0, stats.totalCorrect - (stats.totalWrong / 3));
         const netPct = Math.round((netScore / totalAns) * 100);
         dashNetAccuracy.textContent = `${netPct}%`;
+        if (dashAccuracyBar) dashAccuracyBar.style.width = `${Math.max(10, netPct)}%`;
       } else {
         dashNetAccuracy.textContent = "--%";
+        if (dashAccuracyBar) dashAccuracyBar.style.width = `15%`;
       }
     }
 
@@ -682,12 +883,11 @@ class AppController {
       </div>
     `;
 
-    modal.classList.remove("hidden");
+    this.activateInPageWorkspace("war-notebook-modal", "Cuaderno de Estudio", "sidebar-btn-notebook");
   }
 
   closeWarNotebookModal() {
-    const modal = document.getElementById("war-notebook-modal");
-    if (modal) modal.classList.add("hidden");
+    this.showTab(this.currentTab || "dashboard");
   }
 
   // ==========================================
@@ -1237,6 +1437,7 @@ class AppController {
 
     content.innerHTML = `
       <div class="space-y-5">
+        ${this.renderTopicWorkspaceSubNav(tema.codigo, 1)}
         <!-- Cabecera del Manual desde Cero -->
         <div class="flex flex-wrap items-start justify-between gap-3 border-b border-slate-800 pb-4">
           <div class="space-y-1">
@@ -1434,12 +1635,11 @@ class AppController {
       </div>
     `;
 
-    modal.classList.remove("hidden");
+    this.activateInPageWorkspace("study-guide-modal", `Resumen Magistral • ${tema.codigo}`);
   }
 
   closeStudyGuideModal() {
-    const modal = document.getElementById("study-guide-modal");
-    if (modal) modal.classList.add("hidden");
+    this.showTab(this.currentTab || "dashboard");
   }
 
   // ==========================================
@@ -1696,21 +1896,18 @@ class AppController {
   }
 
   openPodcastStudioModal(temaCodigo) {
-    const code = temaCodigo || this.audioTemaCodigo || "B1-T01";
+    const code = temaCodigo || this.audioTemaCodigo || this.currentStudyTopic || "B1-T01";
+    this.currentStudyTopic = code;
     const ep = this.getPodcastEpisode(code);
     const tema = (typeof OFFICIAL_SYLLABUS !== "undefined")
       ? OFFICIAL_SYLLABUS.find(t => t.codigo === code)
       : null;
     if (!ep || !tema) return;
 
-    let modal = document.getElementById("podcast-studio-modal");
-    if (!modal) {
-      modal = document.createElement("div");
-      modal.id = "podcast-studio-modal";
-      modal.className = "fixed inset-0 z-50 bg-slate-950/90 backdrop-blur-md flex items-center justify-center p-2 sm:p-4 overflow-y-auto";
-      document.body.appendChild(modal);
-    }
-    modal.classList.remove("hidden");
+    const modal = document.getElementById("podcast-studio-modal");
+    if (!modal) return;
+
+    this.activateInPageWorkspace("podcast-studio-modal", `Radio Permanencia ET • ${code}`, "sidebar-btn-podcast");
 
     const pal = (typeof TOPIC_COLOR_PALETTE !== "undefined" && TOPIC_COLOR_PALETTE[code]) || {
       accent: "#f59e0b",
@@ -1720,11 +1917,13 @@ class AppController {
     const allCodes = OFFICIAL_SYLLABUS.map(t => t.codigo);
 
     modal.innerHTML = `
-      <div class="w-full max-w-5xl rounded-2xl bg-slate-950 border-2 border-amber-500/60 shadow-2xl overflow-hidden my-auto max-h-[92vh] flex flex-col">
+      <div class="ui2-surface-card rounded-3xl p-4 sm:p-6 shadow-2xl space-y-5">
+        ${this.renderTopicWorkspaceSubNav(code, 3)}
+
         <!-- Cabecera de Radio Permanencia ET -->
-        <div class="shrink-0 p-4 sm:p-5 bg-gradient-to-r from-slate-950 via-amber-950/40 to-emerald-950/40 border-b border-slate-800 flex flex-wrap items-center justify-between gap-3">
+        <div class="ui2-subcard p-4 sm:p-5 rounded-2xl flex flex-wrap items-center justify-between gap-3" style="border-left: 4px solid ${pal.accent};">
           <div class="flex items-center space-x-3">
-            <div class="w-12 h-12 rounded-2xl bg-amber-500 text-slate-950 font-black text-2xl flex items-center justify-center shadow-lg shrink-0">
+            <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-amber-400 to-orange-500 text-slate-950 font-black text-2xl flex items-center justify-center shadow-lg shrink-0">
               🎙️
             </div>
             <div>
@@ -1735,12 +1934,12 @@ class AppController {
                 <span class="px-2 py-0.5 rounded bg-emerald-950 text-emerald-300 border border-emerald-500/50 text-[10px] font-mono font-bold">
                   🗣️ 2 Voces Neurales Naturales • Casos Prácticos de Cuartel
                 </span>
-                ${tema.equivalencia28 ? `<span class="text-[11px] font-mono text-sky-300">${tema.equivalencia28}</span>` : ""}
+                ${tema.equivalencia28 ? `<span class="text-[11px] font-mono text-sky-400">${tema.equivalencia28}</span>` : ""}
               </div>
-              <h2 class="text-base sm:text-xl font-black text-white mt-1" style="color:${pal.titleColor};">
+              <h2 class="text-base sm:text-xl font-black ui2-heading mt-1" style="color:${pal.titleColor};">
                 ${ep.titulo}
               </h2>
-              <p class="text-xs text-slate-300">${ep.subtitulo}</p>
+              <p class="text-xs ui2-muted">${ep.subtitulo}</p>
             </div>
           </div>
 
@@ -1765,18 +1964,11 @@ class AppController {
             >
               ⬇️ MP3
             </a>
-
-            <button
-              onclick="window.appController.closePodcastStudioModal()"
-              class="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold text-xs"
-            >
-              Minimizar Reproductor ✕
-            </button>
           </div>
         </div>
 
-        <!-- Cuerpo scrollable: Reproductor + 3 Ejemplos Cotidianos + Guion Interactivo -->
-        <div class="p-4 sm:p-5 overflow-y-auto min-h-0 space-y-4 flex-1">
+        <!-- Cuerpo de la página: Reproductor + 3 Ejemplos Cotidianos + Guion Interactivo -->
+        <div class="space-y-4">
           <!-- Controles Principales Tipo Spotify -->
           <div class="p-4 rounded-2xl bg-slate-900/95 border border-amber-500/40 space-y-3">
             <div class="flex flex-wrap items-center justify-between gap-3">
@@ -1856,13 +2048,13 @@ class AppController {
                   🤖 Copiar Prompt Podcast NotebookLM
                 </button>
                 <button
-                  onclick="window.appController.closePodcastStudioModal(); window.appController.openStudyGuideModal('${code}');"
+                  onclick="window.appController.openStudyGuideModal('${code}');"
                   class="px-2.5 py-1 rounded-lg bg-slate-900 hover:bg-slate-800 text-amber-300 border border-amber-500/40 text-[11px] font-bold transition"
                 >
                   📖 Ver Resumen Escrito
                 </button>
                 <button
-                  onclick="window.appController.closePodcastStudioModal(); window.appController.startTopicStudy('${code}');"
+                  onclick="window.appController.startTopicStudy('${code}');"
                   class="px-2.5 py-1 rounded-lg bg-amber-500 hover:bg-amber-400 text-slate-950 text-[11px] font-black transition"
                 >
                   🎯 Hacer Test de ${code}
@@ -1885,7 +2077,7 @@ class AppController {
               <span class="font-black uppercase text-amber-400">
                 🗣️ Conversación Completa Paso a Paso (Haz clic en cualquier frase para escucharla desde ahí):
               </span>
-              <span class="text-[11px] text-slate-400 font-mono">${(ep.dialogo || []).length} intervenciones</span>
+              <span class="text-[11px] ui2-muted font-mono">${(ep.dialogo || []).length} intervenciones</span>
             </div>
 
             <div class="space-y-2.5">
@@ -1932,8 +2124,7 @@ class AppController {
   }
 
   closePodcastStudioModal() {
-    const modal = document.getElementById("podcast-studio-modal");
-    if (modal) modal.classList.add("hidden");
+    this.showTab(this.currentTab || "dashboard");
   }
 
   updatePodcastModalLiveState() {
@@ -2140,7 +2331,6 @@ class AppController {
     const pair = this.getPriorityTopicsForToday();
     if (pair.length < 2) return;
 
-    const readTopics = window.storageManager.getReadTopics();
     const allQuestions = window.storageManager.getQuestions();
     const survivalRec = window.storageManager.getSurvivalRecord();
     const diag = window.storageManager.getTopicDiagnosticReport();
@@ -2157,256 +2347,288 @@ class AppController {
     const pal1 = (typeof TOPIC_COLOR_PALETTE !== "undefined" && TOPIC_COLOR_PALETTE[t1.tema.codigo]) || { accent: "#10b981", titleColor: "#34d399" };
     const pal2 = (typeof TOPIC_COLOR_PALETTE !== "undefined" && TOPIC_COLOR_PALETTE[t2.tema.codigo]) || { accent: "#f59e0b", titleColor: "#fbbf24" };
 
+    const activeAudioCode = this.audioTemaCodigo || t1.tema.codigo || "B1-T01";
+    const activeEp = this.getPodcastEpisode(activeAudioCode) || this.getPodcastEpisode("B1-T01");
+    const previewTurns = (activeEp && Array.isArray(activeEp.dialogo)) ? activeEp.dialogo.slice(0, 2) : [];
+    const isPlayingNow = Boolean(this.isSpeaking && this.podcastAudio && !this.podcastAudio.paused);
+
     container.innerHTML = `
-      <div class="tactical-card rounded-2xl p-5 border-2 border-amber-500/40 bg-gradient-to-br from-slate-950/95 to-emerald-950/20 space-y-4">
-        <!-- Guía del Jefe de Estudios: ¿Por dónde empiezo si no he leído el temario? -->
-        <div class="p-4 rounded-2xl bg-slate-950/95 border-2 border-emerald-500/40 space-y-3">
-          <div class="flex flex-wrap items-center justify-between gap-2">
-            <div class="flex flex-wrap items-center gap-2.5">
-              <span class="px-2.5 py-0.5 rounded bg-emerald-500 text-slate-950 font-black text-[11px] uppercase tracking-wider">
-                👨‍🏫 Método del Jefe de Estudios (Empezar desde Cero)
-              </span>
-              <span class="text-xs font-mono font-bold text-amber-400">
-                📖 ${readTopics.length} de 21 Temas Leídos (Equivalen a los 28 Temas en Vídeo)
-              </span>
+      <div class="grid grid-cols-1 xl:grid-cols-12 gap-5 items-start">
+        <!-- COLUMNA IZQUIERDA (7 cols): OBJETIVOS DE HOY — 2 TEMAS -->
+        <div class="xl:col-span-7 ui2-surface-card rounded-3xl p-5 sm:p-6 space-y-4">
+          <div class="flex flex-wrap items-center justify-between gap-2 pb-3 border-b border-slate-500/15">
+            <div>
+              <div class="flex items-center space-x-2">
+                <span class="px-2.5 py-0.5 rounded-full bg-teal-500/15 text-teal-400 border border-teal-500/30 font-bold text-[11px] uppercase tracking-wider">
+                  🎯 Misión Diaria Guiada
+                </span>
+                <span class="text-xs ui2-muted font-medium">Ruta: 1. Leer Resumen ➔ 2. Podcast ➔ 3. Test</span>
+              </div>
+              <h3 class="text-lg sm:text-xl font-extrabold ui2-heading mt-1">
+                Objetivos de Hoy — 2 Temas Prioritarios
+              </h3>
             </div>
-            <span class="text-[11px] text-slate-400 font-semibold">
-              ¿No sabes por dónde empezar? Sigue siempre estos 4 pasos en orden:
-            </span>
-          </div>
-
-          <!-- Ruta Visual de los 4 Pasos en 4 Columnas Alineadas -->
-          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2 text-xs">
-            <div class="p-2.5 rounded-xl bg-amber-950/30 border border-amber-500/40 flex items-center space-x-2">
-              <span class="px-2 py-0.5 rounded bg-amber-500 text-slate-950 font-black text-[10px] shrink-0">PASO 1</span>
-              <span class="font-bold text-amber-200 truncate">📖 Resumen + 🎙️ Podcast</span>
-            </div>
-            <div class="p-2.5 rounded-xl bg-sky-950/30 border border-sky-500/40 flex items-center space-x-2">
-              <span class="px-2 py-0.5 rounded bg-sky-400 text-slate-950 font-black text-[10px] shrink-0">PASO 2</span>
-              <span class="font-bold text-sky-200 truncate">📊 Esquema Visual Color</span>
-            </div>
-            <div class="p-2.5 rounded-xl bg-emerald-950/30 border border-emerald-500/40 flex items-center space-x-2">
-              <span class="px-2 py-0.5 rounded bg-emerald-500 text-slate-950 font-black text-[10px] shrink-0">PASO 3</span>
-              <span class="font-bold text-emerald-200 truncate">🧠 Test Gradual / IA</span>
-            </div>
-            <div class="p-2.5 rounded-xl bg-purple-950/30 border border-purple-500/40 flex items-center space-x-2">
-              <span class="px-2 py-0.5 rounded bg-purple-400 text-slate-950 font-black text-[10px] shrink-0">PASO 4</span>
-              <span class="font-bold text-purple-200 truncate">🏆 Simulacro + Chuleta PDF</span>
-            </div>
-          </div>
-
-          <!-- Botonera de Acción Rápida en 4 Columnas Simétricas -->
-          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5 pt-2.5 border-t border-slate-800/80">
             <button
-              onclick="window.appController.playTopicPodcast('B1-T01', true)"
-              class="py-2.5 px-3 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 text-xs font-black transition shadow flex items-center justify-center space-x-1.5"
-              title="Abrir Radio Permanencia ET: 21 Podcasts Conversacionales con Brigada Carlos y Cabo 1º Marta explicando la ley con ejemplos"
+              onclick="window.appController.rotateDailyMissionPair()"
+              class="ui2-pill-neutral px-3 py-1.5 rounded-xl text-xs font-bold transition flex items-center space-x-1.5"
+              title="Cambiar a los siguientes 2 temas prioritarios"
             >
-              <span>🎙️</span><span>Radio Permanencia (21 Podcasts)</span>
+              <span>🔄</span><span>Siguiente Par</span>
+            </button>
+          </div>
+
+          <!-- Las 2 Tarjetas Limpias de Objetivos de Hoy -->
+          <div class="space-y-3.5">
+            ${[
+              { item: t1, pal: pal1, badge: "PRIORIDAD 1" },
+              { item: t2, pal: pal2, badge: "PRIORIDAD 2" }
+            ].map(({ item, pal, badge }) => {
+              const qCount = allQuestions.filter(q => q.temaCodigo === item.tema.codigo).length;
+              const statusText = item.netPct === -1
+                ? "⚪ Sin test aún"
+                : item.netPct >= 75
+                  ? `🟢 ${item.netPct}% Dominado`
+                  : item.netPct >= 50
+                    ? `🟡 ${item.netPct}% En progreso`
+                    : `🔴 ${item.netPct}% Reforzar`;
+              const readBadge = item.isRead
+                ? `<span class="px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 text-[10px] font-bold">✅ Leído</span>`
+                : `<span class="px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-400 border border-amber-500/30 text-[10px] font-bold">📖 Lectura pendiente</span>`;
+
+              return `
+                <div class="ui2-subcard rounded-2xl p-4 sm:p-5 transition hover:shadow-md space-y-3.5" style="border-left: 5px solid ${pal.accent};">
+                  <div class="flex flex-wrap items-start justify-between gap-2">
+                    <div class="space-y-1 flex-1 min-w-0">
+                      <div class="flex flex-wrap items-center gap-2 text-[11px]">
+                        <span class="px-2 py-0.5 rounded-md font-mono font-black bg-slate-900 text-amber-400 border border-slate-700">
+                          ${item.tema.codigo}
+                        </span>
+                        <span class="font-bold uppercase tracking-wider ui2-muted text-[10px]">${badge}</span>
+                        ${readBadge}
+                        <span class="text-[11px] font-mono ui2-muted">${statusText}</span>
+                      </div>
+                      <h4 class="text-sm sm:text-base font-extrabold ui2-heading leading-snug">
+                        ${item.tema.titulo}
+                      </h4>
+                      <p class="text-xs ui2-muted">
+                        📊 Peso Examen: <strong>${item.tema.frecuenciaExamen || "Alto"}</strong> • 🗄️ <strong>${qCount} preguntas</strong>
+                        ${item.tema.equivalencia28 ? ` • <span class="text-sky-400 font-medium">${item.tema.equivalencia28}</span>` : ""}
+                      </p>
+                    </div>
+                  </div>
+
+                  <!-- 3 Botones Principales Limpios + Acceso a Esquema/PDF -->
+                  <div class="flex flex-wrap items-center gap-2 pt-2.5 border-t border-slate-500/15">
+                    <button
+                      onclick="window.appController.openStudyGuideModal('${item.tema.codigo}')"
+                      class="ui2-pill-teal px-3.5 py-2 rounded-xl text-xs font-extrabold flex items-center space-x-1.5"
+                    >
+                      <span>📖</span><span>Leer Tema</span>
+                    </button>
+                    <button
+                      onclick="window.appController.playTopicPodcast('${item.tema.codigo}', true)"
+                      class="ui2-pill-amber px-3.5 py-2 rounded-xl text-xs font-extrabold flex items-center space-x-1.5"
+                    >
+                      <span>🎙️</span><span>Escuchar Podcast</span>
+                    </button>
+                    <button
+                      onclick="window.appController.startTopicStudy('${item.tema.codigo}')"
+                      class="ui2-pill-indigo px-3.5 py-2 rounded-xl text-xs font-extrabold flex items-center space-x-1.5"
+                    >
+                      <span>🎯</span><span>Hacer Test (${qCount})</span>
+                    </button>
+                    <button
+                      onclick="window.appController.openSchemaModal('${item.tema.codigo}')"
+                      class="ui2-pill-neutral px-2.5 py-2 rounded-xl text-[11px] font-bold ml-auto"
+                      title="Ver Esquema Visual del Tema"
+                    >
+                      📊 Esquema
+                    </button>
+                  </div>
+                </div>
+              `;
+            }).join("")}
+          </div>
+
+          <!-- Barra Inferior de la Tarjeta Izquierda -->
+          <div class="pt-2 flex flex-wrap items-center gap-2.5">
+            <button
+              onclick="window.appController.startDailyMissionTest('${t1.tema.codigo}', '${t2.tema.codigo}')"
+              class="flex-1 py-3 px-4 rounded-2xl bg-gradient-to-r from-teal-500 to-emerald-600 hover:from-teal-400 hover:to-emerald-500 text-white font-black text-xs uppercase tracking-wider transition shadow-lg text-center"
+            >
+              🚀 Test Combinado de Hoy (20 preg. ${t1.tema.codigo} + ${t2.tema.codigo})
             </button>
             <button
               onclick="window.appController.openWarNotebookModal()"
-              class="py-2.5 px-3 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 text-xs font-black transition shadow flex items-center justify-center space-x-1.5"
+              class="ui2-pill-neutral py-3 px-4 rounded-2xl font-bold text-xs transition flex items-center space-x-1.5"
             >
-              <span>📓</span><span>Mi Cuaderno de Guerra (PDF)</span>
-            </button>
-            <button
-              onclick="window.appController.startSurvivalMode()"
-              class="py-2.5 px-3 rounded-xl bg-red-950 hover:bg-red-900 text-red-200 border border-red-500 text-xs font-black transition flex items-center justify-center space-x-1.5"
-              title="Modo Supervivencia: 3 Vidas ❤️❤️❤️. Récord actual: ${survivalRec.bestStreak || 0} seguidas"
-            >
-              <span>💀</span><span>Supervivencia 3 Vidas (🏆 ${survivalRec.bestStreak || 0})</span>
-            </button>
-            <button
-              onclick="window.appController.startTagFilteredTest('Fácil', true, 20)"
-              class="py-2.5 px-3 rounded-xl bg-green-950 hover:bg-green-900 text-green-300 border border-green-600 text-xs font-black transition flex items-center justify-center space-x-1.5"
-            >
-              <span>🟢</span><span>Test Nivel Fácil (20p)</span>
+              <span>📓</span><span>Cuaderno PDF</span>
             </button>
           </div>
         </div>
 
-        <!-- 🧠 ENTRENADOR INTELIGENTE ADAPTATIVO (IA TÁCTICA LOCAL) + SEMÁFORO GLOBAL DE 21 TEMAS -->
-        <div class="p-4 rounded-2xl bg-gradient-to-r from-sky-950/60 via-slate-950 to-purple-950/50 border-2 border-sky-500/50 space-y-3">
-          <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-3">
-            <div class="space-y-1">
-              <div class="flex flex-wrap items-center gap-2">
-                <span class="px-2.5 py-0.5 rounded bg-sky-400 text-slate-950 font-black text-[11px] uppercase">
-                  🧠 Entrenador Inteligente Adaptativo (IA Táctica Local)
+        <!-- COLUMNA DERECHA (5 cols): RADIO PERMANENCIA INTEGRADA + ENTRENADOR IA -->
+        <div class="xl:col-span-5 space-y-5">
+          <!-- TARJETA 1 DERECHA: RADIO PERMANENCIA — REPRODUCTOR INTEGRADO -->
+          <div class="ui2-surface-card rounded-3xl p-5 sm:p-6 space-y-4">
+            <div class="flex items-center justify-between gap-2">
+              <div>
+                <span class="px-2.5 py-0.5 rounded-full bg-amber-500/15 text-amber-400 border border-amber-500/30 font-bold text-[10px] uppercase tracking-wider">
+                  📻 La Tertulia del Cuartel • 21 Episodios
                 </span>
-                <span class="text-xs font-mono text-sky-300">
-                  40% Temas Débiles • 30% Bolsa de Fallos (${failedCount}) • 30% Preguntas Inéditas (${unseenCount} por descubrir)
-                </span>
+                <h3 class="text-base sm:text-lg font-extrabold ui2-heading mt-1">
+                  Radio Permanencia — Reproductor Integrado
+                </h3>
               </div>
-              <p class="text-xs text-slate-200 leading-relaxed">
-                Nuestro motor analiza tu historial real en los <strong>21 temas</strong> y te construye al instante un entrenamiento a medida con tus puntos débiles, tus errores pendientes y preguntas del banco que aún no has visto.
-              </p>
-            </div>
-            <div class="flex flex-wrap gap-2 shrink-0">
               <button
-                onclick="window.appController.startAdaptiveIATest(25, true)"
-                class="px-4 py-2.5 rounded-xl bg-sky-500 hover:bg-sky-400 text-slate-950 font-black text-xs uppercase tracking-wider shadow-lg transition flex items-center space-x-1.5"
+                onclick="window.appController.openPodcastStudioModal('${activeAudioCode}')"
+                class="ui2-pill-neutral px-2.5 py-1.5 rounded-xl text-[11px] font-bold transition"
+                title="Abrir vista completa de Radio Podcast"
               >
-                <span>🧠</span><span>Test Adaptativo IA (25p Estudio)</span>
-              </button>
-              <button
-                onclick="window.appController.startAdaptiveIATest(50, false)"
-                class="px-3.5 py-2.5 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-black text-xs uppercase tracking-wider shadow-lg transition flex items-center space-x-1.5"
-              >
-                <span>🏆</span><span>Simulacro IA (50p Examen)</span>
+                Ver Todo ➔
               </button>
             </div>
-          </div>
 
-          <!-- Semáforo Táctico Resumen de los 21 Temas -->
-          <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-2 border-t border-slate-800/80 text-xs">
-            <div class="p-2.5 rounded-xl bg-emerald-950/40 border border-emerald-600/40 flex items-center justify-between">
-              <span class="font-bold text-emerald-300">🟢 Temas Dominados (≥75%)</span>
-              <span class="font-mono font-black text-base text-emerald-400">${countDominados}/21</span>
-            </div>
-            <div class="p-2.5 rounded-xl bg-amber-950/40 border border-amber-600/40 flex items-center justify-between">
-              <span class="font-bold text-amber-300">🟡 En Progreso (50–74%)</span>
-              <span class="font-mono font-black text-base text-amber-400">${countProgreso}/21</span>
-            </div>
-            <div class="p-2.5 rounded-xl bg-red-950/40 border border-red-600/40 flex items-center justify-between">
-              <span class="font-bold text-red-300">🔴 Críticos (&lt;50%)</span>
-              <span class="font-mono font-black text-base text-red-400">${countCriticos}/21</span>
-            </div>
-            <div class="p-2.5 rounded-xl bg-slate-900/90 border border-slate-700 flex items-center justify-between">
-              <span class="font-bold text-slate-300">⚪ Sin Test Aún</span>
-              <span class="font-mono font-black text-base text-slate-200">${countSinExplorar}/21</span>
-            </div>
-          </div>
-        </div>
-
-        <div class="flex flex-wrap items-center justify-between gap-2">
-          <div>
-            <div class="flex items-center space-x-2">
-              <span class="px-2.5 py-0.5 rounded bg-amber-500 text-slate-950 font-black text-[11px] uppercase">
-                📈 Orden de Operaciones del Día
-              </span>
-              <span class="text-xs font-mono text-emerald-400">2 Temas Prioritarios seleccionados según tu Semáforo Táctico</span>
-            </div>
-            <h3 class="text-base sm:text-lg font-black text-white mt-1">
-              🎯 Tus 2 Objetivos Prioritarios para Hoy (Lectura, Audio Manos Libres y Test)
-            </h3>
-          </div>
-          <button
-            onclick="window.appController.rotateDailyMissionPair()"
-            class="px-3 py-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 border border-slate-700 text-xs font-bold text-amber-300 transition"
-          >
-            🔄 Siguiente Par de Temas
-          </button>
-        </div>
-
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-3.5">
-          ${[ { item: t1, pal: pal1, label: "OBJETIVO 1 DEL DÍA" }, { item: t2, pal: pal2, label: "OBJETIVO 2 DEL DÍA" } ].map(({ item, pal, label }) => {
-            const qCount = allQuestions.filter(q => q.temaCodigo === item.tema.codigo).length;
-            const statusText = item.netPct === -1 ? "⚪ Sin test aún" : item.netPct >= 75 ? `🟢 ${item.netPct}% dominio` : item.netPct >= 50 ? `🟡 ${item.netPct}% progreso` : `🔴 ${item.netPct}% reforzar`;
-            const readBadge = item.isRead
-              ? `<span class="px-2 py-0.5 rounded bg-emerald-950 text-emerald-300 border border-emerald-600">✅ Resumen Leído</span>`
-              : `<span class="px-2 py-0.5 rounded bg-amber-950 text-amber-300 border border-amber-600">📖 Paso 1 Pendiente</span>`;
-            return `
-              <div class="p-4 rounded-xl bg-slate-950/90 border border-slate-800 flex flex-col justify-between space-y-3" style="border-left: 5px solid ${pal.accent};">
-                <div>
-                  <div class="flex flex-wrap items-center justify-between gap-1 text-[11px] font-mono mb-1">
-                    <span class="font-black text-amber-400">${label} • ${item.tema.codigo}</span>
-                    <div class="flex items-center space-x-1.5">
-                      ${readBadge}
-                      <span class="px-2 py-0.5 rounded bg-slate-900 text-slate-300 border border-slate-700">${statusText}</span>
+            <!-- Reproductor Compacto con Avatares y Selector -->
+            <div class="p-4 rounded-2xl bg-gradient-to-br from-slate-900 via-slate-900 to-teal-950/80 border border-slate-700/80 text-white space-y-3 shadow-inner">
+              <div class="flex items-center justify-between gap-3">
+                <div class="flex items-center space-x-3 min-w-0">
+                  <div class="flex -space-x-2 shrink-0">
+                    <span class="w-10 h-10 rounded-full bg-emerald-600 text-white font-black text-xs flex items-center justify-center border-2 border-slate-900 shadow">🎖️BC</span>
+                    <span class="w-10 h-10 rounded-full bg-amber-500 text-slate-950 font-black text-xs flex items-center justify-center border-2 border-slate-900 shadow">🪖CM</span>
+                  </div>
+                  <div class="min-w-0">
+                    <div class="text-xs font-extrabold text-amber-300 truncate">
+                      ${activeEp ? activeEp.titulo : `Episodio ${activeAudioCode}`}
+                    </div>
+                    <div class="text-[11px] text-slate-300 truncate">
+                      Brigada Carlos &amp; Cabo 1º Marta • Casos de Cuartel
                     </div>
                   </div>
-                  <h4 class="text-sm font-black leading-snug" style="color:${pal.titleColor};">${item.tema.titulo}</h4>
-                  <p class="text-[11px] text-slate-400 mt-1">📊 Peso: <strong class="text-slate-200">${item.tema.frecuenciaExamen || "Alto"}</strong> • 🗄️ <strong>${qCount} preg.</strong> ${item.tema.equivalencia28 ? `• <span class="text-sky-300">${item.tema.equivalencia28}</span>` : ""}</p>
                 </div>
-                <div class="flex flex-wrap gap-1.5 pt-2 border-t border-slate-800/80">
-                  <button onclick="window.appController.openStudyGuideModal('${item.tema.codigo}')" class="px-2.5 py-1.5 rounded-lg bg-amber-500 hover:bg-amber-400 text-slate-950 text-[11px] font-black transition">
-                    📖 1. Resumen
-                  </button>
-                  <button onclick="window.appController.playTopicPodcast('${item.tema.codigo}', true)" class="px-2.5 py-1.5 rounded-lg bg-emerald-950 hover:bg-emerald-900 text-emerald-300 border border-emerald-500 text-[11px] font-black transition" title="Escuchar Podcast Conversacional (Brigada Carlos y Cabo 1º Marta explicando la ley con ejemplos de cuartel)">
-                    🎙️ Podcast (Ejemplos)
-                  </button>
-                  <button onclick="window.appController.openSchemaModal('${item.tema.codigo}')" class="px-2.5 py-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 text-sky-300 border border-slate-700 text-[11px] font-bold transition">
-                    📊 2. Esquema
-                  </button>
-                  <button onclick="window.appController.startTopicStudy('${item.tema.codigo}')" class="px-2.5 py-1.5 rounded-lg bg-emerald-700 hover:bg-emerald-600 text-white text-[11px] font-black transition">
-                    💡 3. Test (${qCount})
-                  </button>
-                  <button onclick="window.pdfGenerator.downloadTopicCheatSheetPDF('${item.tema.codigo}')" class="px-2 py-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 text-amber-300 border border-slate-700 text-[11px] font-bold transition ml-auto" title="Descargar Chuleta PDF">
-                    📄 PDF
-                  </button>
-                </div>
+
+                <button
+                  onclick="window.appController.playTopicPodcast('${activeAudioCode}', false)"
+                  class="px-4 py-2.5 rounded-2xl bg-gradient-to-r from-amber-400 to-orange-500 hover:from-amber-300 hover:to-orange-400 text-slate-950 font-black text-xs uppercase shadow-lg shrink-0 transition"
+                >
+                  ${isPlayingNow ? "⏸️ Sonando" : "▶️ Escuchar"}
+                </button>
               </div>
-            `;
-          }).join("")}
-        </div>
 
-        <div class="pt-2 flex flex-wrap items-center justify-between gap-2.5 border-t border-slate-800/80">
-          <button
-            onclick="window.appController.startDailyMissionTest('${t1.tema.codigo}', '${t2.tema.codigo}')"
-            class="flex-1 py-3 px-4 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs uppercase tracking-wider transition text-center shadow-lg shadow-amber-500/10"
-          >
-            🚀 Lanzar Test de Misión Diaria (20 preg. de ${t1.tema.codigo} + ${t2.tema.codigo} + Fallos)
-          </button>
-          <button
-            onclick="window.appController.openPlazosFlashcards()"
-            class="py-3 px-4 rounded-xl bg-emerald-950 hover:bg-emerald-900 text-emerald-300 border border-emerald-600 font-black text-xs uppercase tracking-wider transition"
-          >
-            ⏱️ Repaso 2 Min: Tarjetas de Plazos y Sanciones
-          </button>
-        </div>
+              <!-- Selector Rápido de Episodio en el Dashboard -->
+              <div class="flex items-center gap-2 pt-1">
+                <select
+                  onchange="window.appController.playTopicPodcast(this.value, false); window.appController.renderDailyPlanner();"
+                  class="flex-1 px-3 py-1.5 rounded-xl bg-slate-950/90 border border-slate-700 text-xs font-bold text-slate-200"
+                >
+                  ${OFFICIAL_SYLLABUS.map(t => `
+                    <option value="${t.codigo}" ${t.codigo === activeAudioCode ? "selected" : ""}>
+                      🎙️ ${t.codigo} — ${t.titulo.replace(/^Tema\s+\d+\.\s*/i, "").slice(0, 38)}
+                    </option>
+                  `).join("")}
+                </select>
+                <button
+                  onclick="window.appController.openPodcastStudioModal('${activeAudioCode}')"
+                  class="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-amber-300 text-xs font-bold shrink-0 transition"
+                >
+                  📖 Guion
+                </button>
+              </div>
+            </div>
 
-        <!-- ⚡ RETOS RÁPIDOS / GUARDIA EXPRESS (3 A 5 MINUTOS) -->
-        <div class="p-3.5 rounded-xl bg-slate-950/90 border border-amber-500/30 space-y-2.5">
-          <div class="flex flex-wrap items-center justify-between gap-2">
-            <div class="flex items-center space-x-2">
-              <span class="px-2 py-0.5 rounded bg-amber-500 text-slate-950 font-black text-[10px] uppercase">
-                ⚡ Retos Rápidos / Guardia Express (3 a 5 Minutos)
-              </span>
-              <span class="text-[11px] text-slate-400">Micro-entrenamientos intensivos con corrección al instante</span>
+            <!-- Vista Previa de las 2 Primeras Intervenciones de la Tertulia -->
+            <div class="space-y-2">
+              <div class="flex items-center justify-between text-[11px] ui2-muted font-semibold">
+                <span>🗣️ Vista previa del diálogo (${activeAudioCode}):</span>
+                <button onclick="window.appController.openPodcastStudioModal('${activeAudioCode}')" class="text-teal-400 hover:underline font-bold">
+                  Abrir tertulia completa (${activeEp && activeEp.dialogo ? activeEp.dialogo.length : 12} intervenciones) ➔
+                </button>
+              </div>
+              ${previewTurns.map((turn, idx) => {
+                const spInfo = this.getPodcastTurnSpeakerInfo(activeEp, turn);
+                return `
+                  <div
+                    onclick="window.appController.openPodcastStudioModal('${activeAudioCode}')"
+                    class="ui2-subcard p-3 rounded-2xl cursor-pointer transition hover:border-amber-500/40 flex items-start space-x-2.5"
+                  >
+                    <span class="w-7 h-7 rounded-lg ${spInfo.isCarlos ? "bg-emerald-600 text-white" : "bg-amber-500 text-slate-950"} font-black text-[10px] flex items-center justify-center shrink-0 mt-0.5">
+                      ${spInfo.shortCode}
+                    </span>
+                    <div class="min-w-0 flex-1">
+                      <div class="flex items-center gap-1.5">
+                        <span class="text-[11px] font-extrabold ${spInfo.isCarlos ? "text-emerald-400" : "text-amber-400"}">
+                          ${spInfo.name}
+                        </span>
+                        ${spInfo.etiqueta ? `<span class="text-[10px] ui2-muted">• ${spInfo.etiqueta}</span>` : ""}
+                      </div>
+                      <p class="text-xs ui2-muted line-clamp-2 mt-0.5">${turn.texto}</p>
+                    </div>
+                  </div>
+                `;
+              }).join("")}
             </div>
           </div>
-          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2">
-            <button
-              onclick="window.appController.startQuickChallenge('RET-EXPRESS-10', true)"
-              class="p-2.5 rounded-xl bg-amber-950/30 hover:bg-amber-900/40 border border-amber-500/50 text-left transition flex flex-col justify-between"
-            >
-              <div class="flex items-center justify-between text-[10px] font-mono text-amber-300 font-bold">
-                <span>⚡ 3 MIN • 10 PREG</span>
-                <span class="px-1.5 py-0.5 rounded bg-amber-500 text-slate-950 font-black">EXPRESS</span>
+
+          <!-- TARJETA 2 DERECHA: ENTRENADOR INTELIGENTE IA & RETOS EXPRESS -->
+          <div class="ui2-surface-card rounded-3xl p-5 sm:p-6 space-y-4">
+            <div class="flex items-center justify-between gap-2">
+              <div>
+                <span class="px-2.5 py-0.5 rounded-full bg-indigo-500/15 text-indigo-400 border border-indigo-500/30 font-bold text-[10px] uppercase tracking-wider">
+                  🧠 IA Táctica Local • ${failedCount} Fallos • ${unseenCount} Inéditas
+                </span>
+                <h3 class="text-base sm:text-lg font-extrabold ui2-heading mt-1">
+                  Entrenador Adaptativo &amp; Retos 3 Min
+                </h3>
               </div>
-              <div class="text-xs font-black text-white mt-1">Guardia Express 3 Bloques</div>
-            </button>
-            <button
-              onclick="window.appController.startQuickChallenge('RET-PLAZOS-10', true)"
-              class="p-2.5 rounded-xl bg-rose-950/30 hover:bg-rose-900/40 border border-rose-500/50 text-left transition flex flex-col justify-between"
-            >
-              <div class="flex items-center justify-between text-[10px] font-mono text-rose-300 font-bold">
-                <span>⏱️ 3 MIN • 10 PREG</span>
-                <span class="px-1.5 py-0.5 rounded bg-rose-500 text-white font-black">PLAZOS</span>
+            </div>
+
+            <!-- Semáforo Compacto de 4 Bloques -->
+            <div class="grid grid-cols-4 gap-2 text-center">
+              <div class="ui2-subcard p-2.5 rounded-2xl">
+                <div class="text-[10px] font-bold text-emerald-400">🟢 Dominados</div>
+                <div class="text-base font-black ui2-heading font-mono mt-0.5">${countDominados}</div>
               </div>
-              <div class="text-xs font-black text-white mt-1">Sprint de Plazos y Mayorías</div>
-            </button>
-            <button
-              onclick="window.appController.startQuickChallenge('RET-TRAMPAS-10', true)"
-              class="p-2.5 rounded-xl bg-purple-950/30 hover:bg-purple-900/40 border border-purple-500/50 text-left transition flex flex-col justify-between"
-            >
-              <div class="flex items-center justify-between text-[10px] font-mono text-purple-300 font-bold">
-                <span>🪤 3 MIN • 10 PREG</span>
-                <span class="px-1.5 py-0.5 rounded bg-purple-500 text-white font-black">TRAMPAS</span>
+              <div class="ui2-subcard p-2.5 rounded-2xl">
+                <div class="text-[10px] font-bold text-amber-400">🟡 Progreso</div>
+                <div class="text-base font-black ui2-heading font-mono mt-0.5">${countProgreso}</div>
               </div>
-              <div class="text-xs font-black text-white mt-1">Duelo Caza-Trampas Express</div>
-            </button>
-            <button
-              onclick="window.appController.startQuickChallenge('RET-IMPRESCINDIBLES-15', true)"
-              class="p-2.5 rounded-xl bg-emerald-950/30 hover:bg-emerald-900/40 border border-emerald-500/50 text-left transition flex flex-col justify-between"
-            >
-              <div class="flex items-center justify-between text-[10px] font-mono text-emerald-300 font-bold">
-                <span>🔥 5 MIN • 15 PREG</span>
-                <span class="px-1.5 py-0.5 rounded bg-emerald-500 text-slate-950 font-black">TOP 6 PARETO</span>
+              <div class="ui2-subcard p-2.5 rounded-2xl">
+                <div class="text-[10px] font-bold text-rose-400">🔴 Críticos</div>
+                <div class="text-base font-black ui2-heading font-mono mt-0.5">${countCriticos}</div>
               </div>
-              <div class="text-xs font-black text-white mt-1">15 Imprescindibles Examen</div>
-            </button>
+              <div class="ui2-subcard p-2.5 rounded-2xl">
+                <div class="text-[10px] font-bold ui2-muted">⚪ Sin Test</div>
+                <div class="text-base font-black ui2-heading font-mono mt-0.5">${countSinExplorar}</div>
+              </div>
+            </div>
+
+            <!-- Botones de Entrenamiento Inteligente -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+              <button
+                onclick="window.appController.startAdaptiveIATest(25, true)"
+                class="ui2-pill-indigo py-2.5 px-3.5 rounded-2xl font-extrabold text-xs flex items-center justify-center space-x-1.5"
+              >
+                <span>🧠</span><span>Test Adaptativo IA (25p)</span>
+              </button>
+              <button
+                onclick="window.appController.startQuickChallenge('RET-EXPRESS-10', true)"
+                class="ui2-pill-amber py-2.5 px-3.5 rounded-2xl font-extrabold text-xs flex items-center justify-center space-x-1.5"
+              >
+                <span>⚡</span><span>Guardia Express (3 min)</span>
+              </button>
+              <button
+                onclick="window.appController.startQuickChallenge('RET-PLAZOS-10', true)"
+                class="ui2-pill-neutral py-2.5 px-3.5 rounded-2xl font-bold text-xs flex items-center justify-center space-x-1.5"
+              >
+                <span>⏱️</span><span>Sprint de Plazos (10p)</span>
+              </button>
+              <button
+                onclick="window.appController.startSurvivalMode()"
+                class="ui2-pill-neutral py-2.5 px-3.5 rounded-2xl font-bold text-xs flex items-center justify-center space-x-1.5"
+              >
+                <span>💀</span><span>Supervivencia (🏆 ${survivalRec.bestStreak || 0})</span>
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -2566,36 +2788,36 @@ class AppController {
 
   openSchemaModal(temaCodigo) {
     if (typeof OFFICIAL_SYLLABUS === "undefined" || typeof VISUAL_SCHEMAS === "undefined") return;
-    const tema = OFFICIAL_SYLLABUS.find(t => t.codigo === temaCodigo);
-    const schema = VISUAL_SCHEMAS[temaCodigo];
+    const code = temaCodigo || this.currentStudyTopic || "B1-T01";
+    this.currentStudyTopic = code;
+    const tema = OFFICIAL_SYLLABUS.find(t => t.codigo === code);
+    const schema = VISUAL_SCHEMAS[code];
     if (!tema || !schema) return;
 
     const modal = document.getElementById("schema-modal");
     const content = document.getElementById("schema-modal-body");
     if (!modal || !content) return;
 
+    this.activateInPageWorkspace("schema-modal", `Esquema Visual • ${tema.codigo}`, "sidebar-btn-schema");
+
     const pal = (typeof TOPIC_COLOR_PALETTE !== "undefined" && TOPIC_COLOR_PALETTE[tema.codigo]) || { accent: "#f59e0b", titleColor: "#fbbf24" };
 
     content.innerHTML = `
       <div class="space-y-4">
+        ${this.renderTopicWorkspaceSubNav(tema.codigo, 2)}
+
         <div class="flex flex-wrap items-center justify-between gap-3 border-b border-slate-800 pb-3">
           <div>
             <div class="flex items-center space-x-2">
               <span class="px-2.5 py-0.5 rounded font-mono font-black text-xs bg-sky-400 text-slate-950">📊 PASO 2 • ${tema.codigo}</span>
-              <span class="text-xs font-bold text-slate-400 uppercase">${tema.bloque}</span>
+              <span class="text-xs font-bold ui2-muted uppercase">${tema.bloque}</span>
               <span class="text-xs font-mono text-emerald-400">${tema.frecuenciaExamen || ""}</span>
             </div>
             <h3 class="text-lg sm:text-xl font-black mt-1" style="color:${pal.titleColor};">${tema.titulo}</h3>
-            <p class="text-xs font-mono text-slate-400">📜 ${tema.normativa}</p>
+            <p class="text-xs font-mono ui2-muted">📜 ${tema.normativa}</p>
           </div>
 
           <div class="flex flex-wrap items-center gap-2">
-            <button
-              onclick="window.appController.closeSchemaModal(); window.appController.openStudyGuideModal('${tema.codigo}');"
-              class="px-3 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-amber-300 border border-amber-500/50 font-black text-xs uppercase transition"
-            >
-              📖 Ver Paso 1: Resumen desde Cero
-            </button>
             <button
               onclick="window.pdfGenerator.downloadVisualSchemaPDF('${tema.codigo}')"
               class="px-3.5 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs uppercase tracking-wider transition flex items-center space-x-1.5 shadow-lg"
@@ -2607,12 +2829,6 @@ class AppController {
               class="px-3.5 py-2 rounded-xl bg-emerald-700 hover:bg-emerald-600 text-white font-black text-xs uppercase tracking-wider transition flex items-center space-x-1.5"
             >
               <span>📄</span><span>Chuleta + Preguntas PDF</span>
-            </button>
-            <button
-              onclick="window.appController.closeSchemaModal()"
-              class="px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold text-xs"
-            >
-              Cerrar ✕
             </button>
           </div>
         </div>
@@ -2634,13 +2850,10 @@ class AppController {
         </div>
       </div>
     `;
-
-    modal.classList.remove("hidden");
   }
 
   closeSchemaModal() {
-    const modal = document.getElementById("schema-modal");
-    if (modal) modal.classList.add("hidden");
+    this.showTab(this.currentTab || "dashboard");
   }
 
   renderTemario() {

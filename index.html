@@ -33,237 +33,326 @@
     };
   </script>
 
-  <!-- Estilos Tácticos Propios -->
-  <link rel="stylesheet" href="./css/tactical.css?v=10" />
+  <!-- Estilos UI 2.0 Propios -->
+  <link rel="stylesheet" href="./css/tactical.css?v=15.0" />
 </head>
-<body class="tactical-grid-bg min-h-screen pb-24 md:pb-12 text-slate-100 selection:bg-amber-500 selection:text-slate-950">
+<body class="tactical-grid-bg min-h-screen pb-24 md:pb-10 text-slate-100 selection:bg-indigo-500 selection:text-white">
 
   <!-- =====================================================
-       HEADER MILITAR SUPERIOR
+       MENÚ LATERAL FIJO (SIDEBAR UI 2.0 — SIN VENTANAS FLOTANTES)
        ===================================================== -->
-  <header class="sticky top-0 z-40 border-b border-emerald-950/80 bg-[#0d130b]/90 backdrop-blur-md">
-    <div class="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between">
-      <div class="flex items-center space-x-3 cursor-pointer" onclick="window.appController.showTab('dashboard')">
-        <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-[#2d3b26] to-[#172013] border border-amber-500/40 flex items-center justify-center shadow-lg">
-          <span class="text-xl" id="header-rank-badge">🎖️</span>
-        </div>
-        <div>
-          <div class="flex items-center space-x-2">
-            <h1 class="text-sm sm:text-base font-black tracking-tight uppercase text-white">
-              Permanencia <span class="text-amber-400">ET</span>
-            </h1>
-            <span class="hidden sm:inline-block px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider bg-emerald-950 text-emerald-300 rounded border border-emerald-800" id="header-rank-title">
-              Soldado
-            </span>
-          </div>
-          <p class="text-[11px] text-slate-400 font-medium">Oposición Tropa Permanente • FAS</p>
-        </div>
+  <aside id="app-sidebar" class="hidden md:flex md:flex-col md:fixed md:inset-y-0 md:left-0 md:w-64 z-40 ui2-sidebar select-none">
+    <!-- Cabecera del Sidebar: Logo + Academia Permanencia FAS -->
+    <div class="p-5 border-b border-slate-800/80 flex items-center space-x-3 cursor-pointer" onclick="window.appController.showTab('dashboard')">
+      <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500 to-teal-400 flex items-center justify-center shadow-lg text-white font-black text-lg shrink-0">
+        <span id="sidebar-rank-badge">🎖️</span>
       </div>
-
-      <!-- Indicadores Tácticos (Nube, Racha & XP) -->
-      <div class="flex items-center space-x-2 sm:space-x-3">
-        <button id="header-cloud-badge" onclick="window.appController.showTab('importer')" class="px-2.5 py-1.5 rounded-lg bg-emerald-950/70 border border-emerald-600/50 text-[10px] font-bold text-emerald-300 hover:border-emerald-400 transition flex items-center space-x-1" title="Estado de Base de Datos en la Nube y Modo Maniobras (PC ↔ Móvil ↔ Tablet)">
-          <span>☁️</span><span>Nube Activa</span>
-        </button>
-        <button onclick="window.appController.showTab('baremo')" class="hidden sm:flex items-center space-x-1.5 px-2.5 py-1.5 rounded-lg bg-emerald-950/60 hover:bg-emerald-900/70 border border-emerald-600/50 text-xs font-bold text-emerald-300 transition" title="Abrir Calculadora Oficial de Baremo y Nota de Corte">
-          <span>🎖️</span><span>Mi Baremo</span>
-        </button>
-        <div class="flex items-center space-x-1.5 px-2.5 py-1.5 rounded-lg bg-slate-900/90 border border-slate-800" title="Racha diaria de estudio">
-          <span class="text-sm">🔥</span>
-          <span class="text-xs font-mono font-bold text-orange-400" id="header-streak">1d</span>
-        </div>
-        <div class="flex items-center space-x-1.5 px-2.5 py-1.5 rounded-lg bg-amber-950/40 border border-amber-600/40" title="Puntos de Experiencia Militar">
-          <span class="text-sm">⚡</span>
-          <span class="text-xs font-mono font-bold text-amber-400" id="header-xp">150 XP</span>
-        </div>
+      <div class="min-w-0">
+        <h1 class="text-sm font-black tracking-tight text-white leading-tight truncate">
+          Academia Permanencia
+        </h1>
+        <p class="text-[11px] text-slate-400 font-medium truncate">
+          Ejército de Tierra • FAS
+        </p>
       </div>
     </div>
 
-    <!-- Barra de Navegación Desktop -->
-    <nav class="hidden md:block border-t border-slate-800/70 bg-[#11170e]/80">
-      <div class="max-w-6xl mx-auto px-4 flex space-x-1 overflow-x-auto">
-        <button data-tab="dashboard" class="nav-item px-3.5 py-2.5 text-xs font-bold uppercase tracking-wider border-b-2 border-amber-500 text-amber-400 flex items-center space-x-1.5 transition shrink-0">
-          <span>📊</span><span>Mando</span>
-        </button>
-        <button data-tab="temario" class="nav-item px-3.5 py-2.5 text-xs font-bold uppercase tracking-wider border-b-2 border-transparent text-slate-400 hover:text-slate-200 flex items-center space-x-1.5 transition shrink-0">
-          <span>📖</span><span>Temario (21/28)</span>
-        </button>
-        <button data-tab="simulator-config" class="nav-item px-3.5 py-2.5 text-xs font-bold uppercase tracking-wider border-b-2 border-transparent text-slate-400 hover:text-slate-200 flex items-center space-x-1.5 transition shrink-0">
-          <span>🎯</span><span>Simulacros (20)</span>
-        </button>
-        <button data-tab="baremo" class="nav-item px-3.5 py-2.5 text-xs font-bold uppercase tracking-wider border-b-2 border-transparent text-emerald-400 hover:text-emerald-300 flex items-center space-x-1.5 transition shrink-0">
-          <span>🎖️</span><span>Baremo & Corte</span>
-        </button>
-        <button data-tab="trampas" class="nav-item px-3.5 py-2.5 text-xs font-bold uppercase tracking-wider border-b-2 border-transparent text-slate-400 hover:text-slate-200 flex items-center space-x-1.5 transition shrink-0">
-          <span>🪤</span><span>Caza-Trampas</span>
-        </button>
-        <button data-tab="failed-bag" class="nav-item px-3.5 py-2.5 text-xs font-bold uppercase tracking-wider border-b-2 border-transparent text-slate-400 hover:text-slate-200 flex items-center space-x-1.5 transition shrink-0">
-          <span>⚠️</span><span>Bolsa Fallos</span>
-        </button>
-        <button data-tab="flashcards" class="nav-item px-3.5 py-2.5 text-xs font-bold uppercase tracking-wider border-b-2 border-transparent text-slate-400 hover:text-slate-200 flex items-center space-x-1.5 transition shrink-0">
-          <span>🃏</span><span>Flashcards (120)</span>
-        </button>
-        <button data-tab="importer" class="nav-item px-3.5 py-2.5 text-xs font-bold uppercase tracking-wider border-b-2 border-transparent text-sky-400 hover:text-sky-300 flex items-center space-x-1.5 transition shrink-0">
-          <span>☁️</span><span>Nube & NotebookLM</span>
-        </button>
+    <!-- Navegación Lateral por Secciones Dedicadas -->
+    <nav class="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
+      <div class="px-3 pb-1.5 text-[10px] font-bold uppercase tracking-wider text-slate-500">
+        Estudio Principal
       </div>
+
+      <button data-tab="dashboard" class="nav-item sidebar-nav-btn active">
+        <span class="text-base">📊</span>
+        <span>Panel Diario</span>
+      </button>
+
+      <button data-tab="temario" class="nav-item sidebar-nav-btn">
+        <span class="text-base">📖</span>
+        <span>Temario <span class="text-[11px] text-slate-400 font-normal">(21 Temas)</span></span>
+      </button>
+
+      <button id="sidebar-btn-podcast" onclick="window.appController.openPodcastStudioModal(window.appController.currentStudyTopic || 'B1-T01')" class="sidebar-nav-btn">
+        <span class="text-base">🎙️</span>
+        <span>Radio Podcast</span>
+      </button>
+
+      <button id="sidebar-btn-schema" onclick="window.appController.openSchemaModal(window.appController.currentStudyTopic || 'B1-T01')" class="sidebar-nav-btn">
+        <span class="text-base">🗺️</span>
+        <span>Esquemas Visuales</span>
+      </button>
+
+      <button data-tab="simulator-config" class="nav-item sidebar-nav-btn">
+        <span class="text-base">🎯</span>
+        <span>Simulacros <span class="text-[11px] text-slate-400 font-normal">(20)</span></span>
+      </button>
+
+      <div class="pt-4 px-3 pb-1.5 text-[10px] font-bold uppercase tracking-wider text-slate-500">
+        Herramientas &amp; Progreso
+      </div>
+
+      <button id="sidebar-btn-notebook" onclick="window.appController.openWarNotebookModal()" class="sidebar-nav-btn">
+        <span class="text-base">📓</span>
+        <span>Cuaderno de Estudio</span>
+      </button>
+
+      <button data-tab="baremo" class="nav-item sidebar-nav-btn">
+        <span class="text-base">🎖️</span>
+        <span>Mi Baremo</span>
+      </button>
+
+      <button data-tab="failed-bag" class="nav-item sidebar-nav-btn">
+        <span class="text-base">⚠️</span>
+        <span>Bolsa de Fallos</span>
+      </button>
+
+      <button data-tab="trampas" class="nav-item sidebar-nav-btn">
+        <span class="text-base">🪤</span>
+        <span>Caza-Trampas</span>
+      </button>
+
+      <button data-tab="flashcards" class="nav-item sidebar-nav-btn">
+        <span class="text-base">🃏</span>
+        <span>Tarjetas <span class="text-[11px] text-slate-400 font-normal">(120)</span></span>
+      </button>
+
+      <button data-tab="importer" class="nav-item sidebar-nav-btn">
+        <span class="text-base">☁️</span>
+        <span>Sincronización Nube</span>
+      </button>
     </nav>
-  </header>
+
+    <!-- Pie del Sidebar: Selector de Tema Visual (Opción 3: Claro Suave / Pizarra Noche) -->
+    <div class="p-3.5 border-t border-slate-800/80 space-y-2">
+      <button
+        id="sidebar-theme-toggle"
+        onclick="window.appController.toggleVisualTheme()"
+        class="w-full py-2.5 px-3 rounded-xl bg-slate-900/90 hover:bg-slate-800 border border-slate-700/80 text-xs font-bold text-slate-200 flex items-center justify-between transition"
+        title="Alternar entre Estilo 1 (Tarjetas Claras sobre Azul Suave) y Estilo 2 (Pizarra Noche Difuminado)"
+      >
+        <span class="flex items-center space-x-2">
+          <span id="theme-toggle-icon">🌙</span>
+          <span id="theme-toggle-label">Estilo: Pizarra Suave</span>
+        </span>
+        <span class="text-[10px] px-1.5 py-0.5 rounded bg-indigo-500/20 text-indigo-300 border border-indigo-500/40">Cambiar</span>
+      </button>
+    </div>
+  </aside>
 
   <!-- =====================================================
-       CONTENEDOR PRINCIPAL SPA
+       ENVOLTORIO PRINCIPAL (CON MARGEN IZQUIERDO EN DESKTOP)
        ===================================================== -->
-  <main class="max-w-6xl mx-auto px-4 py-6">
+  <div class="md:pl-64 min-h-screen flex flex-col">
 
-    <!-- 1. SECCIÓN: DASHBOARD / CUADRO DE MANDO -->
-    <section id="tab-dashboard" class="space-y-6">
-      <!-- Tarjeta de Rango y Progreso Militar -->
-      <div class="tactical-card rounded-2xl p-5 sm:p-6 border border-amber-500/30 relative overflow-hidden">
-        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <div class="flex items-center space-x-4">
-            <div class="w-16 h-16 rounded-2xl bg-gradient-to-br from-amber-500/20 to-emerald-950 border border-amber-400/50 flex items-center justify-center text-4xl shadow-inner" id="dash-rank-badge">
-              🎖️
-            </div>
-            <div>
-              <span class="text-[11px] font-bold uppercase tracking-widest text-amber-400 block">Escalafón de Estudio</span>
-              <h2 class="text-2xl font-black text-white" id="dash-rank-title">Soldado</h2>
-              <p class="text-xs text-slate-300" id="dash-rank-sub">Aspirante a la Permanencia</p>
-            </div>
+    <!-- CABECERA SUPERIOR LIMPIA Y LIGERA -->
+    <header class="sticky top-0 z-30 border-b border-slate-800/60 bg-slate-950/75 backdrop-blur-md">
+      <div class="max-w-6xl mx-auto px-4 sm:px-6 py-3 flex items-center justify-between gap-3">
+        <div class="flex items-center space-x-3">
+          <div class="md:hidden w-9 h-9 rounded-xl bg-gradient-to-br from-indigo-500 to-teal-400 flex items-center justify-center shadow text-lg cursor-pointer" onclick="window.appController.showTab('dashboard')">
+            <span id="header-rank-badge">🎖️</span>
           </div>
-
-          <div class="flex flex-wrap gap-2">
-            <button onclick="window.appController.startSimulatorWithParams({ count: 100, bloque: 'ALL', mode: 'ponderado_100', studyMode: false })" class="px-4 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs uppercase tracking-wider shadow-lg shadow-amber-500/10 transition flex items-center space-x-1.5">
-              <span>🏆</span><span>Simulacro Oficial 100p</span>
-            </button>
-            <button onclick="window.appController.startAdaptiveIATest(25, true)" class="px-3.5 py-2.5 rounded-xl bg-sky-500 hover:bg-sky-400 text-slate-950 font-black text-xs uppercase tracking-wider transition flex items-center space-x-1.5" title="Test personalizado por el Entrenador Inteligente Adaptativo (40% temas débiles + 30% fallos/trampas + 30% inéditas)">
-              <span>🧠</span><span>Test Adaptativo IA (25p)</span>
-            </button>
-            <button onclick="window.appController.showTab('baremo')" class="px-3.5 py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black text-xs uppercase tracking-wider transition flex items-center space-x-1.5">
-              <span>🎖️</span><span>Calculadora Baremo</span>
-            </button>
-            <button onclick="window.appController.startSurvivalMode()" class="px-3.5 py-2.5 rounded-xl bg-red-950 hover:bg-red-900 text-red-200 border border-red-500 font-black text-xs uppercase tracking-wider transition flex items-center space-x-1.5">
-              <span>💀</span><span>Supervivencia (3 ❤️)</span>
-            </button>
-            <button onclick="window.appController.openWarNotebookModal()" class="px-3.5 py-2.5 rounded-xl bg-emerald-950 hover:bg-emerald-900 text-emerald-300 border border-emerald-600 font-black text-xs uppercase tracking-wider transition flex items-center space-x-1.5">
-              <span>📓</span><span>Cuaderno Guerra PDF</span>
-            </button>
-            <button id="btn-quick-sim" class="px-3.5 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-amber-300 border border-amber-500/30 font-bold text-xs uppercase tracking-wider transition flex items-center space-x-1.5">
-              <span>💡</span><span>Modo Estudio (20p)</span>
-            </button>
-          </div>
-        </div>
-
-        <div class="mt-5">
-          <div class="flex justify-between text-xs mb-1.5">
-            <span class="font-semibold text-slate-300">Progreso de Ascenso</span>
-            <span class="font-mono text-amber-400 font-bold" id="dash-rank-next">Siguiente: Soldado de 1ª</span>
-          </div>
-          <div class="w-full h-2.5 bg-slate-950 rounded-full overflow-hidden border border-slate-800">
-            <div id="dash-rank-progress" class="h-full bg-gradient-to-r from-emerald-500 to-amber-400 transition-all duration-500" style="width: 45%"></div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Grid de Métricas Tácticas -->
-      <div class="grid grid-cols-2 sm:grid-cols-5 gap-3">
-        <div class="tactical-card p-4 rounded-xl">
-          <span class="text-xs text-slate-400 block">🔥 Racha Diaria</span>
-          <span class="text-xl font-black text-orange-400 mt-1 block" id="dash-streak-count">1 días</span>
-        </div>
-        <div class="tactical-card p-4 rounded-xl">
-          <span class="text-xs text-slate-400 block">🎯 Nota Neta Media</span>
-          <span class="text-xl font-black text-emerald-400 mt-1 block" id="dash-net-accuracy">--%</span>
-        </div>
-        <div class="tactical-card p-4 rounded-xl">
-          <span class="text-xs text-slate-400 block">📋 Simulacros</span>
-          <span class="text-xl font-black text-white mt-1 block" id="dash-sim-count">0</span>
-        </div>
-        <div class="tactical-card p-4 rounded-xl cursor-pointer hover:border-red-500/50 transition" onclick="window.appController.showTab('failed-bag')">
-          <span class="text-xs text-slate-400 block">⚠️ Bolsa de Fallos</span>
-          <span class="text-xl font-black text-red-400 mt-1 block" id="dash-failed-count">0</span>
-        </div>
-        <div class="tactical-card p-4 rounded-xl col-span-2 sm:col-span-1">
-          <span class="text-xs text-slate-400 block">🗄️ Banco Etiquetado</span>
-          <span class="text-xl font-black text-amber-400 mt-1 block" id="dash-total-questions">1400</span>
-        </div>
-      </div>
-
-      <!-- 📈 PLANIFICADOR DIARIO DE MISIÓN (PLAN DE CHOQUE INTELIGENTE) -->
-      <div id="daily-planner-container"></div>
-
-      <!-- 🎖️ RESUMEN RÁPIDO DE BAREMO Y ACCESO A PESTAÑA BAREMO -->
-      <div id="baremo-calculator-container"></div>
-
-      <!-- Accesos Rápidos a los 3 Bloques Oficiales -->
-      <div>
-        <div class="flex items-center justify-between mb-3">
-          <h3 class="text-sm font-black uppercase tracking-wider text-slate-200 flex items-center space-x-2">
-            <span>🛡️</span><span>Entrenamiento por los 3 Bloques Oficiales (Orden DEF/1341/2017 + Actualización 2025/2026)</span>
-          </h3>
-          <button onclick="window.appController.showTab('temario')" class="text-xs text-amber-400 hover:underline font-semibold">
-            Abrir Temario Completo (21 Temas + Resúmenes desde Cero) ➔
-          </button>
-        </div>
-
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div onclick="window.appController.startBlockTest('Bloque 1: Organización')" class="tactical-card tactical-card-hover p-4 rounded-xl cursor-pointer">
-            <div class="flex items-center justify-between mb-2">
-              <span class="px-2.5 py-0.5 rounded text-[11px] font-black bg-emerald-950 text-emerald-400 border border-emerald-700">BLOQUE 1 • 6 TEMAS (~34% Examen)</span>
-              <span class="text-lg">🏛️</span>
-            </div>
-            <h4 class="font-bold text-white text-base">Organización</h4>
-            <p class="text-xs text-slate-400 mt-1">Constitución, LO 5/2005, Ley 40/2015, MINISDEF (RD 205/2024), RD 521/2020, EMAD, ET (Inst. 14/2021), Armada y EA.</p>
-          </div>
-
-          <div onclick="window.appController.startBlockTest('Bloque 2: Jurídico-Social')" class="tactical-card tactical-card-hover p-4 rounded-xl cursor-pointer">
-            <div class="flex items-center justify-between mb-2">
-              <span class="px-2.5 py-0.5 rounded text-[11px] font-black bg-amber-950 text-amber-400 border border-amber-700">BLOQUE 2 • 8 TEMAS (~40% Examen)</span>
-              <span class="text-lg">⚖️</span>
-            </div>
-            <h4 class="font-bold text-white text-base">Jurídico - Social</h4>
-            <p class="text-xs text-slate-400 mt-1">Ley 8/2006 y 39/2007, RROO, Derechos (LO 9/2011), Disciplinario (LO 8/2014), Quejas, Igualdad, UPA y Ley 39/2015 LPACAP.</p>
-          </div>
-
-          <div onclick="window.appController.startBlockTest('Bloque 3: Seguridad Nacional')" class="tactical-card tactical-card-hover p-4 rounded-xl cursor-pointer">
-            <div class="flex items-center justify-between mb-2">
-              <span class="px-2.5 py-0.5 rounded text-[11px] font-black bg-sky-950 text-sky-400 border border-sky-700">BLOQUE 3 • 7 TEMAS (~26% Examen)</span>
-              <span class="text-lg">🌍</span>
-            </div>
-            <h4 class="font-bold text-white text-base">Seguridad Nacional y OO.II.</h4>
-            <p class="text-xs text-slate-400 mt-1">Ley 36/2015, ESN 2021, Doctrina PDC-01, ONU, OTAN (32 aliados), OSCE, Unión Europea y Misiones Internacionales.</p>
-          </div>
-        </div>
-      </div>
-
-      <!-- Listado Táctico por Filas de Colores de los 21 Temas Oficiales -->
-      <div class="tactical-card rounded-2xl p-5">
-        <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
           <div>
-            <h3 class="text-sm font-black uppercase tracking-wider text-slate-200">
-              🎨 Ruta por Bloques y Colores de los 21 Temas (📖 1. Resumen Cero • 📊 2. Esquema • 💡 3. Test • 📄 4. Chuleta)
-            </h3>
-            <p class="text-xs text-slate-400">Pulsa <strong>📖</strong> o el título para leer el <strong>Resumen Magistral desde Cero</strong>, <strong>📊</strong> para el Esquema Visual de colores, <strong>📄</strong> para la Chuleta PDF o <strong>Test</strong> para entrenar.</p>
-          </div>
-          <div class="flex items-center space-x-3 text-[11px]">
-            <span class="text-emerald-400">🟢 ≥70% Dominado</span>
-            <span class="text-amber-400">🟡 50-69% En progreso</span>
-            <span class="text-red-400">🔴 &lt;50% Reforzar</span>
+            <div class="flex items-center space-x-2">
+              <h2 id="header-section-title" class="text-base sm:text-xl font-black tracking-tight text-white">
+                Panel Diario
+              </h2>
+              <span class="px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider bg-indigo-950/80 text-indigo-300 rounded-md border border-indigo-700/50" id="header-rank-title">
+                Soldado
+              </span>
+            </div>
+            <p class="text-[11px] text-slate-400 hidden sm:block" id="dash-rank-sub">
+              Plataforma Oficial de Estudio • Oposición Tropa Permanente
+            </p>
           </div>
         </div>
-        <div id="dash-heatmap-grid" class="grid grid-cols-1 lg:grid-cols-3 gap-4"></div>
-      </div>
 
-      <!-- Historial de Simulacros -->
-      <div class="tactical-card rounded-2xl p-5">
-        <div class="flex items-center justify-between mb-4">
-          <h3 class="text-sm font-black uppercase tracking-wider text-slate-200">
-            📜 Parte de Simulacros Recientes
-          </h3>
-          <span class="text-xs text-slate-400 font-mono">Fórmula: A - (E / 3)</span>
+        <!-- Indicadores Rápidos: Estilo Visual, Nube, Racha y XP -->
+        <div class="flex items-center space-x-2">
+          <button
+            onclick="window.appController.toggleVisualTheme()"
+            class="px-2.5 py-1.5 rounded-xl bg-slate-900/90 hover:bg-slate-800 border border-slate-700/80 text-xs font-bold text-slate-200 flex items-center space-x-1.5 transition"
+            title="Cambiar entre Tarjetas Claras (Día) y Pizarra Noche (Noche)"
+          >
+            <span id="header-theme-icon">🌙</span>
+            <span class="hidden sm:inline" id="header-theme-text">Tema Visual</span>
+          </button>
+
+          <button id="header-cloud-badge" onclick="window.appController.showTab('importer')" class="px-2.5 py-1.5 rounded-xl bg-emerald-950/70 border border-emerald-600/50 text-[11px] font-bold text-emerald-300 hover:border-emerald-400 transition flex items-center space-x-1" title="Estado de Sincronización en la Nube">
+            <span>☁️</span><span>Nube Activa</span>
+          </button>
+
+          <div class="flex items-center space-x-1 px-2.5 py-1.5 rounded-xl bg-slate-900/90 border border-slate-800" title="Racha diaria de estudio">
+            <span class="text-xs">🔥</span>
+            <span class="text-xs font-mono font-bold text-orange-400" id="header-streak">1d</span>
+          </div>
+
+          <div class="hidden sm:flex items-center space-x-1 px-2.5 py-1.5 rounded-xl bg-amber-950/40 border border-amber-600/40" title="Puntos de Experiencia">
+            <span class="text-xs">⚡</span>
+            <span class="text-xs font-mono font-bold text-amber-400" id="header-xp">150 XP</span>
+          </div>
         </div>
-        <div id="dash-history-list" class="space-y-2.5"></div>
       </div>
-    </section>
+    </header>
+
+    <!-- =====================================================
+         CONTENEDOR PRINCIPAL SPA (CERO VENTANAS FLOTANTES)
+         ===================================================== -->
+    <main class="max-w-6xl w-full mx-auto px-4 sm:px-6 py-6 flex-1">
+
+      <!-- 1. SECCIÓN: PANEL DIARIO (DISEÑO LIMPIO UI 2.0 CON DEGRADADOS SUAVES) -->
+      <section id="tab-dashboard" class="space-y-6">
+
+        <!-- Fila Superior: 4 Tarjetas KPI con Degradado Suave y Barra de Progreso (Inspirado en Imagen 1) -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <!-- KPI 1: Racha Diaria (Degradado Índigo Suave) -->
+          <div class="rounded-2xl overflow-hidden shadow-lg ui2-surface-card">
+            <div class="h-7 bg-gradient-to-r from-indigo-600 to-violet-500"></div>
+            <div class="p-4 -mt-2 rounded-t-2xl ui2-surface-card border-0">
+              <div class="flex items-baseline justify-between">
+                <span class="text-xs font-bold ui2-muted">Racha Diaria</span>
+                <span class="text-lg font-black ui2-heading" id="dash-streak-count">1 días</span>
+              </div>
+              <div class="w-full h-2 bg-slate-800/30 rounded-full overflow-hidden mt-3">
+                <div id="dash-rank-progress" class="h-full bg-gradient-to-r from-indigo-500 to-violet-400 rounded-full transition-all duration-500" style="width: 65%"></div>
+              </div>
+              <div class="flex items-center justify-between mt-1.5 text-[10px] ui2-muted">
+                <span id="dash-rank-title">Soldado</span>
+                <span id="dash-rank-next">En progreso</span>
+              </div>
+              <span id="dash-rank-badge" class="hidden">🎖️</span>
+            </div>
+          </div>
+
+          <!-- KPI 2: Nota Media Neta (Degradado Esmeralda / Verde Agua Suave) -->
+          <div class="rounded-2xl overflow-hidden shadow-lg ui2-surface-card">
+            <div class="h-7 bg-gradient-to-r from-emerald-600 to-teal-400"></div>
+            <div class="p-4 -mt-2 rounded-t-2xl ui2-surface-card border-0">
+              <div class="flex items-baseline justify-between">
+                <span class="text-xs font-bold ui2-muted">Nota Media</span>
+                <span class="text-lg font-black text-emerald-500" id="dash-net-accuracy">--%</span>
+              </div>
+              <div class="w-full h-2 bg-slate-800/30 rounded-full overflow-hidden mt-3">
+                <div id="dash-accuracy-bar" class="h-full bg-gradient-to-r from-emerald-500 to-teal-400 rounded-full transition-all duration-500" style="width: 75%"></div>
+              </div>
+              <div class="flex items-center justify-between mt-1.5 text-[10px] ui2-muted">
+                <span>Simulacros: <strong id="dash-sim-count">0</strong></span>
+                <span class="cursor-pointer hover:underline text-rose-400" onclick="window.appController.showTab('failed-bag')">Fallos: <strong id="dash-failed-count">0</strong></span>
+              </div>
+            </div>
+          </div>
+
+          <!-- KPI 3: Temas Leídos (Degradado Azul Pizarra Suave) -->
+          <div class="rounded-2xl overflow-hidden shadow-lg ui2-surface-card cursor-pointer" onclick="window.appController.showTab('temario')">
+            <div class="h-7 bg-gradient-to-r from-sky-600 to-blue-500"></div>
+            <div class="p-4 -mt-2 rounded-t-2xl ui2-surface-card border-0">
+              <div class="flex items-baseline justify-between">
+                <span class="text-xs font-bold ui2-muted">Temas Leídos</span>
+                <span class="text-lg font-black ui2-heading" id="dash-read-topics-kpi">0/21</span>
+              </div>
+              <div class="w-full h-2 bg-slate-800/30 rounded-full overflow-hidden mt-3">
+                <div id="dash-read-topics-bar" class="h-full bg-gradient-to-r from-sky-500 to-blue-400 rounded-full transition-all duration-500" style="width: 15%"></div>
+              </div>
+              <div class="flex items-center justify-between mt-1.5 text-[10px] ui2-muted">
+                <span>21 Temas (28 Vídeos)</span>
+                <span class="text-sky-400 font-semibold">Abrir Temario ➔</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- KPI 4: Banco Oficial (Degradado Ámbar Dorado Suave) -->
+          <div class="rounded-2xl overflow-hidden shadow-lg ui2-surface-card cursor-pointer" onclick="window.appController.showTab('simulator-config')">
+            <div class="h-7 bg-gradient-to-r from-amber-500 to-orange-400"></div>
+            <div class="p-4 -mt-2 rounded-t-2xl ui2-surface-card border-0">
+              <div class="flex items-baseline justify-between">
+                <span class="text-xs font-bold ui2-muted">Banco Oficial</span>
+                <span class="text-lg font-black text-amber-500"><span id="dash-total-questions">1400</span> preg.</span>
+              </div>
+              <div class="w-full h-2 bg-slate-800/30 rounded-full overflow-hidden mt-3">
+                <div class="h-full bg-gradient-to-r from-amber-500 to-orange-400 rounded-full" style="width: 100%"></div>
+              </div>
+              <div class="flex items-center justify-between mt-1.5 text-[10px] ui2-muted">
+                <span>20 Simulacros Oficiales</span>
+                <span class="text-amber-400 font-semibold">Entrenar ➔</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 📈 ZONA PRINCIPAL EN 2 COLUMNAS LIMPIAS: OBJETIVOS DE HOY + RADIO PERMANENCIA INTEGRADA -->
+        <div id="daily-planner-container"></div>
+
+        <!-- Accesos Limpios a los 3 Bloques Oficiales -->
+        <div class="ui2-surface-card rounded-2xl p-5 space-y-4">
+          <div class="flex flex-wrap items-center justify-between gap-2">
+            <div>
+              <h3 class="text-sm font-black uppercase tracking-wider ui2-heading">
+                🛡️ Los 3 Bloques Oficiales del Temario
+              </h3>
+              <p class="text-xs ui2-muted">Pulsa sobre cualquier bloque para iniciar un test directo o explora los 21 temas abajo.</p>
+            </div>
+            <button onclick="window.appController.showTab('temario')" class="text-xs text-indigo-400 hover:underline font-bold">
+              Ver los 21 Temas al detalle ➔
+            </button>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div onclick="window.appController.startBlockTest('Bloque 1: Organización')" class="ui2-subcard p-4 rounded-xl cursor-pointer">
+              <div class="flex items-center justify-between mb-2">
+                <span class="px-2.5 py-0.5 rounded-md text-[11px] font-black bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">BLOQUE 1 • 6 TEMAS (~34%)</span>
+                <span class="text-lg">🏛️</span>
+              </div>
+              <h4 class="font-bold ui2-heading text-sm">Organización</h4>
+              <p class="text-xs ui2-muted mt-1">Constitución, LO 5/2005, Ley 40/2015, MINISDEF (RD 205/2024), RD 521/2020, EMAD, ET, Armada y EA.</p>
+            </div>
+
+            <div onclick="window.appController.startBlockTest('Bloque 2: Jurídico-Social')" class="ui2-subcard p-4 rounded-xl cursor-pointer">
+              <div class="flex items-center justify-between mb-2">
+                <span class="px-2.5 py-0.5 rounded-md text-[11px] font-black bg-amber-500/15 text-amber-400 border border-amber-500/30">BLOQUE 2 • 8 TEMAS (~40%)</span>
+                <span class="text-lg">⚖️</span>
+              </div>
+              <h4 class="font-bold ui2-heading text-sm">Jurídico - Social</h4>
+              <p class="text-xs ui2-muted mt-1">Ley 8/2006 y 39/2007, RROO, Derechos (LO 9/2011), Disciplinario (LO 8/2014), Igualdad, UPA y Ley 39/2015.</p>
+            </div>
+
+            <div onclick="window.appController.startBlockTest('Bloque 3: Seguridad Nacional')" class="ui2-subcard p-4 rounded-xl cursor-pointer">
+              <div class="flex items-center justify-between mb-2">
+                <span class="px-2.5 py-0.5 rounded-md text-[11px] font-black bg-sky-500/15 text-sky-400 border border-sky-500/30">BLOQUE 3 • 7 TEMAS (~26%)</span>
+                <span class="text-lg">🌍</span>
+              </div>
+              <h4 class="font-bold ui2-heading text-sm">Seguridad Nacional y OO.II.</h4>
+              <p class="text-xs ui2-muted mt-1">Ley 36/2015, ESN 2021, Doctrina PDC-01, ONU, OTAN, OSCE, Unión Europea y Misiones Internacionales.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Mapa de los 21 Temas y Simulacros Recientes (Plegables / Limpios) -->
+        <details class="ui2-surface-card rounded-2xl p-5 group" open>
+          <summary class="cursor-pointer list-none flex flex-wrap items-center justify-between gap-2">
+            <div>
+              <h3 class="text-sm font-black uppercase tracking-wider ui2-heading">
+                🗺️ Mapa Completo de los 21 Temas (Acceso directo a Resumen, Podcast, Esquema y Test)
+              </h3>
+              <p class="text-xs ui2-muted">Haz clic en cualquier tema para abrir su espacio de estudio integrado sin ventanas emergentes.</p>
+            </div>
+            <span class="text-xs font-bold text-indigo-400">Mostrar / Ocultar ▾</span>
+          </summary>
+          <div id="dash-heatmap-grid" class="grid grid-cols-1 lg:grid-cols-3 gap-4 mt-4"></div>
+        </details>
+
+        <!-- Resumen de Baremo (compacto) + Historial de Simulacros -->
+        <div id="baremo-calculator-container" class="hidden"></div>
+
+        <div class="ui2-surface-card rounded-2xl p-5">
+          <div class="flex items-center justify-between mb-4">
+            <h3 class="text-sm font-black uppercase tracking-wider ui2-heading">
+              📜 Últimos Simulacros Realizados
+            </h3>
+            <span class="text-xs ui2-muted font-mono">Fórmula Oficial: A - (E / 3)</span>
+          </div>
+          <div id="dash-history-list" class="space-y-2.5"></div>
+        </div>
+      </section>
 
     <!-- 2. SECCIÓN: VISOR DE TEMARIO TÁCTICO (21 TEMAS / 3 BLOQUES + POST-ITS + SUBRAYADOR FLUORESCENTE + BUSCADOR + AUDIO) -->
     <section id="tab-temario" class="hidden space-y-6">
@@ -907,60 +996,68 @@
       </div>
     </section>
 
-    <!-- MODAL LECTOR DEL PASO 1: RESUMEN MAGISTRAL DESDE CERO + PDF -->
-    <div id="study-guide-modal" class="hidden fixed inset-0 z-50 bg-black/85 backdrop-blur-sm flex items-center justify-center p-3 sm:p-6 overflow-y-auto">
-      <div class="tactical-card w-full max-w-5xl rounded-2xl p-4 sm:p-6 border-2 border-emerald-500/60 max-h-[92vh] overflow-y-auto">
-        <div id="study-guide-modal-body"></div>
-      </div>
-    </div>
+      <!-- =====================================================
+           SECCIONES INTEGRADAS EN PÁGINA (CERO VENTANAS FLOTANTES)
+           ===================================================== -->
 
-    <!-- MODAL INTERACTIVO DE ESQUEMA VISUAL, ORGANIGRAMA E INFOGRAFÍA A TODO COLOR -->
-    <div id="schema-modal" class="hidden fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-3 sm:p-6 overflow-y-auto">
-      <div class="tactical-card w-full max-w-5xl rounded-2xl p-4 sm:p-6 border-2 border-amber-500/50 max-h-[92vh] overflow-y-auto">
-        <div id="schema-modal-body"></div>
-      </div>
-    </div>
+      <!-- SECCIÓN INTEGRADA: RESUMEN MAGISTRAL DESDE CERO + PDF -->
+      <section id="study-guide-modal" class="hidden space-y-5">
+        <div class="tactical-card w-full rounded-2xl p-4 sm:p-6">
+          <div id="study-guide-modal-body"></div>
+        </div>
+      </section>
 
-    <!-- MODAL CENTRAL DE "MI CUADERNO PERSONAL DE GUERRA" (TODOS LOS SUBRAYADOS + POST-ITS + FALLOS) -->
-    <div id="war-notebook-modal" class="hidden fixed inset-0 z-50 bg-black/85 backdrop-blur-sm flex items-center justify-center p-3 sm:p-6 overflow-y-auto">
-      <div class="tactical-card w-full max-w-5xl rounded-2xl p-4 sm:p-6 border-2 border-amber-500/60 max-h-[92vh] overflow-y-auto">
-        <div id="war-notebook-modal-body"></div>
-      </div>
-    </div>
+      <!-- SECCIÓN INTEGRADA: ESQUEMA VISUAL, ORGANIGRAMA E INFOGRAFÍA A TODO COLOR -->
+      <section id="schema-modal" class="hidden space-y-5">
+        <div class="tactical-card w-full rounded-2xl p-4 sm:p-6">
+          <div id="schema-modal-body"></div>
+        </div>
+      </section>
 
-  </main>
+      <!-- SECCIÓN INTEGRADA: RADIO PERMANENCIA ET (ESTUDIO DE PODCAST CONVERSACIONAL) -->
+      <section id="podcast-studio-modal" class="hidden space-y-5"></section>
+
+      <!-- SECCIÓN INTEGRADA: MI CUADERNO PERSONAL DE ESTUDIO (SUBRAYADOS + POST-ITS + FALLOS) -->
+      <section id="war-notebook-modal" class="hidden space-y-5">
+        <div class="tactical-card w-full rounded-2xl p-4 sm:p-6">
+          <div id="war-notebook-modal-body"></div>
+        </div>
+      </section>
+
+    </main>
+  </div>
 
   <!-- =====================================================
-       BARRA DE NAVEGACIÓN INFERIOR (MÓVIL FIRST)
+       BARRA DE NAVEGACIÓN INFERIOR (MÓVIL FIRST UI 2.0)
        ===================================================== -->
-  <nav class="md:hidden fixed bottom-0 inset-x-0 z-50 bg-[#0d130b]/95 backdrop-blur-lg border-t border-slate-800 px-1 py-1.5 flex justify-around items-center">
-    <button data-tab="dashboard" class="nav-item flex flex-col items-center py-1 px-1.5 rounded-xl text-amber-400">
+  <nav class="md:hidden fixed bottom-0 inset-x-0 z-50 bg-slate-950/95 backdrop-blur-lg border-t border-slate-800 px-1 py-1.5 flex justify-around items-center">
+    <button data-tab="dashboard" class="nav-item flex flex-col items-center py-1 px-1.5 rounded-xl text-sky-400">
       <span class="text-base">📊</span>
-      <span class="text-[9px] font-bold mt-0.5">Mando</span>
+      <span class="text-[9px] font-bold mt-0.5">Inicio</span>
     </button>
     <button data-tab="temario" class="nav-item flex flex-col items-center py-1 px-1.5 rounded-xl text-slate-400">
       <span class="text-base">📖</span>
       <span class="text-[9px] font-bold mt-0.5">Temario</span>
     </button>
+    <button onclick="window.appController.openPodcastStudioModal(window.appController.currentStudyTopic || 'B1-T01')" class="flex flex-col items-center py-1 px-1.5 rounded-xl text-slate-400">
+      <span class="text-base">🎙️</span>
+      <span class="text-[9px] font-bold mt-0.5">Radio</span>
+    </button>
+    <button onclick="window.appController.openSchemaModal(window.appController.currentStudyTopic || 'B1-T01')" class="flex flex-col items-center py-1 px-1.5 rounded-xl text-slate-400">
+      <span class="text-base">🗺️</span>
+      <span class="text-[9px] font-bold mt-0.5">Esquemas</span>
+    </button>
     <button data-tab="simulator-config" class="nav-item flex flex-col items-center py-1 px-1.5 rounded-xl text-slate-400">
       <span class="text-base">🎯</span>
-      <span class="text-[9px] font-bold mt-0.5">Simulacro</span>
+      <span class="text-[9px] font-bold mt-0.5">Tests</span>
     </button>
     <button data-tab="baremo" class="nav-item flex flex-col items-center py-1 px-1.5 rounded-xl text-slate-400">
       <span class="text-base">🎖️</span>
       <span class="text-[9px] font-bold mt-0.5">Baremo</span>
     </button>
-    <button data-tab="trampas" class="nav-item flex flex-col items-center py-1 px-1.5 rounded-xl text-slate-400">
-      <span class="text-base">🪤</span>
-      <span class="text-[9px] font-bold mt-0.5">Trampas</span>
-    </button>
-    <button data-tab="failed-bag" class="nav-item flex flex-col items-center py-1 px-1.5 rounded-xl text-slate-400">
-      <span class="text-base">⚠️</span>
-      <span class="text-[9px] font-bold mt-0.5">Fallos</span>
-    </button>
-    <button data-tab="flashcards" class="nav-item flex flex-col items-center py-1 px-1.5 rounded-xl text-slate-400">
-      <span class="text-base">🃏</span>
-      <span class="text-[9px] font-bold mt-0.5">Tarjetas</span>
+    <button onclick="window.appController.openWarNotebookModal()" class="flex flex-col items-center py-1 px-1.5 rounded-xl text-slate-400">
+      <span class="text-base">📓</span>
+      <span class="text-[9px] font-bold mt-0.5">Cuaderno</span>
     </button>
     <button data-tab="importer" class="nav-item flex flex-col items-center py-1 px-1.5 rounded-xl text-slate-400">
       <span class="text-base">☁️</span>
@@ -968,28 +1065,28 @@
     </button>
   </nav>
 
-  <!-- SCRIPTS DE LA APLICACIÓN (v14.3 Fix Locutores Radio Permanencia ET + Fix Cuota iOS WebKit + 1.400 Preguntas + 20 Simulacros) -->
-  <script src="./js/syllabus-data.js?v=14.3"></script>
-  <script src="./js/study-guides-data.js?v=14.3"></script>
-  <script src="./js/schemas-data.js?v=14.3"></script>
-  <script src="./js/podcasts-data.js?v=14.3"></script>
-  <script src="./js/questions-data.js?v=14.3"></script>
-  <script src="./js/questions-extra-data.js?v=14.3"></script>
-  <script src="./js/questions-wave2-data.js?v=14.3"></script>
-  <script src="./js/questions-wave3-data.js?v=14.3"></script>
-  <script src="./js/questions-wave4-data.js?v=14.3"></script>
-  <script src="./js/questions-wave5-data.js?v=14.3"></script>
-  <script src="./js/questions-wave6-data.js?v=14.3"></script>
-  <script src="./js/questions-wave7-data.js?v=14.3"></script>
-  <script src="./js/flashcards-data.js?v=14.3"></script>
-  <script src="./js/storage.js?v=14.3"></script>
-  <script src="./js/cloud-sync.js?v=14.3"></script>
-  <script src="./js/simulator.js?v=14.3"></script>
-  <script src="./js/app.js?v=14.3"></script>
+  <!-- SCRIPTS DE LA APLICACIÓN (v15.0 Rediseño UI 2.0: Menú Lateral + Vistas Integradas Sin Modales + Degradados Suaves Duales) -->
+  <script src="./js/syllabus-data.js?v=15.0"></script>
+  <script src="./js/study-guides-data.js?v=15.0"></script>
+  <script src="./js/schemas-data.js?v=15.0"></script>
+  <script src="./js/podcasts-data.js?v=15.0"></script>
+  <script src="./js/questions-data.js?v=15.0"></script>
+  <script src="./js/questions-extra-data.js?v=15.0"></script>
+  <script src="./js/questions-wave2-data.js?v=15.0"></script>
+  <script src="./js/questions-wave3-data.js?v=15.0"></script>
+  <script src="./js/questions-wave4-data.js?v=15.0"></script>
+  <script src="./js/questions-wave5-data.js?v=15.0"></script>
+  <script src="./js/questions-wave6-data.js?v=15.0"></script>
+  <script src="./js/questions-wave7-data.js?v=15.0"></script>
+  <script src="./js/flashcards-data.js?v=15.0"></script>
+  <script src="./js/storage.js?v=15.0"></script>
+  <script src="./js/cloud-sync.js?v=15.0"></script>
+  <script src="./js/simulator.js?v=15.0"></script>
+  <script src="./js/app.js?v=15.0"></script>
   <script>
     if ("serviceWorker" in navigator) {
       window.addEventListener("load", () => {
-        navigator.serviceWorker.register("./sw.js?v=14.3").then((reg) => {
+        navigator.serviceWorker.register("./sw.js?v=15.0").then((reg) => {
           try { reg.update(); } catch (e) {}
         }).catch(() => {});
       });
