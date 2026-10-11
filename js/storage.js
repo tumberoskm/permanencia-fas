@@ -4,7 +4,7 @@
  */
 
 const STORAGE_KEYS = {
-  QUESTIONS: "permanencia_questions_v11",
+  QUESTIONS: "permanencia_custom_questions_v1",
   FAILED_QUESTIONS: "permanencia_failed_v1",
   STATS: "permanencia_stats_v1",
   TOPIC_STATS: "permanencia_topic_stats_v1",
@@ -19,6 +19,20 @@ const STORAGE_KEYS = {
   SURVIVAL_RECORD: "permanencia_survival_record_v1"
 };
 
+const LEGACY_QUESTION_KEYS = [
+  "permanencia_questions_v11",
+  "permanencia_questions_v10",
+  "permanencia_questions_v9",
+  "permanencia_questions_v8",
+  "permanencia_questions_v7",
+  "permanencia_questions_v6",
+  "permanencia_questions_v5",
+  "permanencia_questions_v4",
+  "permanencia_questions_v3",
+  "permanencia_questions_v2",
+  "permanencia_questions_v1"
+];
+
 const RANKS = [
   { minXP: 0, title: "Soldado", badge: "🎖️", sub: "Aspirante a la Permanencia" },
   { minXP: 300, title: "Soldado de 1ª", badge: "🎗️", sub: "Tropa de Primera Clase" },
@@ -31,7 +45,22 @@ const RANKS = [
 class StorageManager {
   constructor() {
     this._suppressCloudTrigger = false;
+    this._memoryFallback = {};
     this.init();
+  }
+
+  _safeSetItem(key, valueStr) {
+    try {
+      localStorage.setItem(key, valueStr);
+    } catch (e) {
+      // Si el navegador móvil (iOS Safari/Chrome WebKit 5MB limit) tenía claves antiguas pesadas, limpiarlas y reintentar
+      try {
+        LEGACY_QUESTION_KEYS.forEach(k => localStorage.removeItem(k));
+        localStorage.setItem(key, valueStr);
+      } catch (e2) {
+        this._memoryFallback[key] = valueStr;
+      }
+    }
   }
 
   _notifyCloudSync(reason = "change") {
@@ -42,7 +71,7 @@ class StorageManager {
   }
 
   init() {
-    // Sincronizar preguntas base con cualquier pregunta personalizada guardada
+    // Limpiar claves antiguas pesadas y conservar solo preguntas personalizadas (CUSTOM-*)
     this.syncDefaultQuestions();
 
     // Inicializar estadísticas si no existen
@@ -65,61 +94,88 @@ class StorageManager {
 
   syncDefaultQuestions() {
     try {
-      const storedRaw =
-        localStorage.getItem(STORAGE_KEYS.QUESTIONS) ||
-        localStorage.getItem("permanencia_questions_v10") ||
-        localStorage.getItem("permanencia_questions_v9") ||
-        localStorage.getItem("permanencia_questions_v8") ||
-        localStorage.getItem("permanencia_questions_v7") ||
-        localStorage.getItem("permanencia_questions_v6") ||
-        localStorage.getItem("permanencia_questions_v5") ||
-        localStorage.getItem("permanencia_questions_v4") ||
-        localStorage.getItem("permanencia_questions_v3") ||
-        localStorage.getItem("permanencia_questions_v2");
-      const customQuestions = storedRaw
-        ? JSON.parse(storedRaw).filter(q => String(q.id).startsWith("CUSTOM-"))
-        : [];
-      const merged = [...DEFAULT_QUESTIONS, ...customQuestions];
-      this.saveQuestions(merged);
+      let rescuedCustom = [];
+      const currentCustomRaw = localStorage.getItem(STORAGE_KEYS.QUESTIONS);
+      if (currentCustomRaw) {
+        const parsed = JSON.parse(currentCustomRaw);
+        if (Array.isArray(parsed)) {
+          rescuedCustom = parsed.filter(q => q && String(q.id).startsWith("CUSTOM-"));
+        }
+      }
+
+      // Rescatar cualquier pregunta CUSTOM- de versiones anteriores y borrar las claves pesadas (liberando >5 MB en iPhone)
+      LEGACY_QUESTION_KEYS.forEach(oldKey => {
+        try {
+          const raw = localStorage.getItem(oldKey);
+          if (raw) {
+            const arr = JSON.parse(raw);
+            if (Array.isArray(arr)) {
+              arr.forEach(q => {
+                if (q && String(q.id).startsWith("CUSTOM-") && !rescuedCustom.some(c => c.id === q.id)) {
+                  rescuedCustom.push(q);
+                }
+              });
+            }
+          }
+          localStorage.removeItem(oldKey);
+        } catch (_err) {
+          try { localStorage.removeItem(oldKey); } catch (_e) {}
+        }
+      });
+
+      this.saveQuestions(rescuedCustom);
     } catch (e) {
-      this.saveQuestions(DEFAULT_QUESTIONS);
+      this.saveQuestions([]);
     }
   }
 
-  // PREGUNTAS
-  getQuestions() {
+  // PREGUNTAS (Las 1.400+ preguntas base viven en RAM en DEFAULT_QUESTIONS; localStorage solo guarda las CUSTOM-*)
+  getCustomQuestions() {
     try {
-      const data = localStorage.getItem(STORAGE_KEYS.QUESTIONS);
-      return data ? JSON.parse(data) : DEFAULT_QUESTIONS;
+      const data = localStorage.getItem(STORAGE_KEYS.QUESTIONS) || this._memoryFallback[STORAGE_KEYS.QUESTIONS];
+      if (!data) return [];
+      const parsed = JSON.parse(data);
+      return Array.isArray(parsed) ? parsed.filter(q => q && String(q.id).startsWith("CUSTOM-")) : [];
     } catch (e) {
-      return DEFAULT_QUESTIONS;
+      return [];
     }
+  }
+
+  getQuestions() {
+    const base = (typeof DEFAULT_QUESTIONS !== "undefined" && Array.isArray(DEFAULT_QUESTIONS)) ? DEFAULT_QUESTIONS : [];
+    const custom = this.getCustomQuestions();
+    return custom.length > 0 ? [...base, ...custom] : base;
   }
 
   saveQuestions(questions) {
-    localStorage.setItem(STORAGE_KEYS.QUESTIONS, JSON.stringify(questions));
+    const customOnly = Array.isArray(questions)
+      ? questions.filter(q => q && String(q.id).startsWith("CUSTOM-"))
+      : [];
+    this._safeSetItem(STORAGE_KEYS.QUESTIONS, JSON.stringify(customOnly));
   }
 
   addCustomQuestions(newQuestions) {
-    const current = this.getQuestions();
-    const existingIds = new Set(current.map(q => q.id));
+    const currentCustom = this.getCustomQuestions();
+    const existingIds = new Set(this.getQuestions().map(q => q.id));
     let addedCount = 0;
 
     newQuestions.forEach((q, idx) => {
-      const id = q.id || `CUSTOM-${Date.now()}-${idx}`;
+      const id = q.id && String(q.id).startsWith("CUSTOM-") ? q.id : `CUSTOM-${Date.now()}-${idx}`;
       if (!existingIds.has(id)) {
-        current.push({
+        currentCustom.push({
           ...q,
           id,
           temaCodigo: q.temaCodigo || "B1-T01",
           dificultad: q.dificultad || "media",
           esExamenOficial: Boolean(q.esExamenOficial)
         });
+        existingIds.add(id);
         addedCount++;
       }
     });
 
-    this.saveQuestions(current);
+    this.saveQuestions(currentCustom);
+    this._notifyCloudSync("custom_questions");
     return addedCount;
   }
 
@@ -152,7 +208,7 @@ class StorageManager {
       topicStats[key].seenIds.push(question.id);
     }
     topicStats[key].lastPracticed = new Date().toISOString();
-    localStorage.setItem(STORAGE_KEYS.TOPIC_STATS, JSON.stringify(topicStats));
+    this._safeSetItem(STORAGE_KEYS.TOPIC_STATS, JSON.stringify(topicStats));
     this._notifyCloudSync("topic_stats");
   }
 
@@ -259,7 +315,7 @@ class StorageManager {
         lastSelected: userSelectedOption
       });
     }
-    localStorage.setItem(STORAGE_KEYS.FAILED_QUESTIONS, JSON.stringify(list));
+    this._safeSetItem(STORAGE_KEYS.FAILED_QUESTIONS, JSON.stringify(list));
     this._notifyCloudSync("failed_bag");
   }
 
@@ -277,19 +333,19 @@ class StorageManager {
         list[index].correctConsecutive = 0;
         list[index].attempts = (list[index].attempts || 1) + 1;
       }
-      localStorage.setItem(STORAGE_KEYS.FAILED_QUESTIONS, JSON.stringify(list));
+      this._safeSetItem(STORAGE_KEYS.FAILED_QUESTIONS, JSON.stringify(list));
       this._notifyCloudSync("failed_bag");
     }
   }
 
   removeFailedQuestion(questionId) {
     const list = this.getFailedQuestions().filter(item => item.id !== questionId);
-    localStorage.setItem(STORAGE_KEYS.FAILED_QUESTIONS, JSON.stringify(list));
+    this._safeSetItem(STORAGE_KEYS.FAILED_QUESTIONS, JSON.stringify(list));
     this._notifyCloudSync("failed_bag");
   }
 
   clearFailedQuestions() {
-    localStorage.setItem(STORAGE_KEYS.FAILED_QUESTIONS, JSON.stringify([]));
+    this._safeSetItem(STORAGE_KEYS.FAILED_QUESTIONS, JSON.stringify([]));
     this._notifyCloudSync("failed_bag");
   }
 
@@ -304,7 +360,7 @@ class StorageManager {
   }
 
   saveStats(stats) {
-    localStorage.setItem(STORAGE_KEYS.STATS, JSON.stringify(stats));
+    this._safeSetItem(STORAGE_KEYS.STATS, JSON.stringify(stats));
     this._notifyCloudSync("stats");
   }
 
@@ -382,7 +438,7 @@ class StorageManager {
       date: new Date().toISOString()
     });
     if (history.length > 30) history.pop();
-    localStorage.setItem(STORAGE_KEYS.HISTORY, JSON.stringify(history));
+    this._safeSetItem(STORAGE_KEYS.HISTORY, JSON.stringify(history));
 
     // Si pertenece a un Simulacro Oficial Cerrado (packId), guardar mejor récord
     if (result.packId) {
@@ -399,7 +455,7 @@ class StorageManager {
         lastDate: new Date().toISOString(),
         timeFormatted: isBetter ? result.timeFormatted : (prev.timeFormatted || result.timeFormatted)
       };
-      localStorage.setItem(STORAGE_KEYS.PACK_SCORES, JSON.stringify(packScores));
+      this._safeSetItem(STORAGE_KEYS.PACK_SCORES, JSON.stringify(packScores));
     }
 
     const stats = this.getStats();
@@ -444,7 +500,7 @@ class StorageManager {
       list.push(cardId);
       this.addXP(15);
     }
-    localStorage.setItem(STORAGE_KEYS.LEARNED_FLASHCARDS, JSON.stringify(list));
+    this._safeSetItem(STORAGE_KEYS.LEARNED_FLASHCARDS, JSON.stringify(list));
     this._notifyCloudSync("flashcards");
     return list.includes(cardId);
   }
@@ -471,7 +527,7 @@ class StorageManager {
       list.push(temaCodigo);
       this.addXP(25);
     }
-    localStorage.setItem(STORAGE_KEYS.READ_TOPICS, JSON.stringify(list));
+    this._safeSetItem(STORAGE_KEYS.READ_TOPICS, JSON.stringify(list));
     this._notifyCloudSync("read_topics");
     return list.includes(temaCodigo);
   }
@@ -507,7 +563,7 @@ class StorageManager {
       fecha: new Date().toISOString()
     };
     all[temaCodigo].unshift(newNote);
-    localStorage.setItem(STORAGE_KEYS.TOPIC_NOTES, JSON.stringify(all));
+    this._safeSetItem(STORAGE_KEYS.TOPIC_NOTES, JSON.stringify(all));
     this.addXP(10);
     this._notifyCloudSync("notes");
     return newNote;
@@ -517,7 +573,7 @@ class StorageManager {
     const all = this.getAllTopicNotes();
     if (!Array.isArray(all[temaCodigo])) return false;
     all[temaCodigo] = all[temaCodigo].filter(n => n.id !== noteId);
-    localStorage.setItem(STORAGE_KEYS.TOPIC_NOTES, JSON.stringify(all));
+    this._safeSetItem(STORAGE_KEYS.TOPIC_NOTES, JSON.stringify(all));
     this._notifyCloudSync("notes");
     return true;
   }
@@ -554,7 +610,7 @@ class StorageManager {
       current.items[itemKey] = color;
     }
     all[temaCodigo] = current;
-    localStorage.setItem(STORAGE_KEYS.TOPIC_HIGHLIGHTS, JSON.stringify(all));
+    this._safeSetItem(STORAGE_KEYS.TOPIC_HIGHLIGHTS, JSON.stringify(all));
     this._notifyCloudSync("highlights");
     return current;
   }
@@ -572,7 +628,7 @@ class StorageManager {
       this.addXP(5);
     }
     all[temaCodigo] = current;
-    localStorage.setItem(STORAGE_KEYS.TOPIC_HIGHLIGHTS, JSON.stringify(all));
+    this._safeSetItem(STORAGE_KEYS.TOPIC_HIGHLIGHTS, JSON.stringify(all));
     this._notifyCloudSync("highlights");
     return current;
   }
@@ -582,7 +638,7 @@ class StorageManager {
     const current = this.getTopicHighlights(temaCodigo);
     current.phrases = current.phrases.filter(p => p.text !== text);
     all[temaCodigo] = current;
-    localStorage.setItem(STORAGE_KEYS.TOPIC_HIGHLIGHTS, JSON.stringify(all));
+    this._safeSetItem(STORAGE_KEYS.TOPIC_HIGHLIGHTS, JSON.stringify(all));
     this._notifyCloudSync("highlights");
     return current;
   }
@@ -590,7 +646,7 @@ class StorageManager {
   clearTopicHighlights(temaCodigo) {
     const all = this.getAllTopicHighlights();
     delete all[temaCodigo];
-    localStorage.setItem(STORAGE_KEYS.TOPIC_HIGHLIGHTS, JSON.stringify(all));
+    this._safeSetItem(STORAGE_KEYS.TOPIC_HIGHLIGHTS, JSON.stringify(all));
     this._notifyCloudSync("highlights");
   }
 
@@ -641,7 +697,7 @@ class StorageManager {
 
   saveBaremo(baremoData) {
     const merged = { ...this.getBaremo(), ...baremoData };
-    localStorage.setItem(STORAGE_KEYS.BAREMO, JSON.stringify(merged));
+    this._safeSetItem(STORAGE_KEYS.BAREMO, JSON.stringify(merged));
     this._notifyCloudSync("baremo");
     return merged;
   }
@@ -663,7 +719,7 @@ class StorageManager {
       rec.bestStreak = streak;
     }
     rec.lastDate = new Date().toISOString();
-    localStorage.setItem(STORAGE_KEYS.SURVIVAL_RECORD, JSON.stringify(rec));
+    this._safeSetItem(STORAGE_KEYS.SURVIVAL_RECORD, JSON.stringify(rec));
     this._notifyCloudSync("survival");
     return rec;
   }
@@ -702,41 +758,41 @@ class StorageManager {
     }
     try {
       if (backupData.questions && Array.isArray(backupData.questions)) {
-        const customQuestions = backupData.questions.filter(q => String(q.id).startsWith("CUSTOM-"));
-        this.saveQuestions([...DEFAULT_QUESTIONS, ...customQuestions]);
+        const customQuestions = backupData.questions.filter(q => q && String(q.id).startsWith("CUSTOM-"));
+        this.saveQuestions(customQuestions);
       }
       if (backupData.stats) {
         this.saveStats(backupData.stats);
       }
       if (backupData.topicStats) {
-        localStorage.setItem(STORAGE_KEYS.TOPIC_STATS, JSON.stringify(backupData.topicStats));
+        this._safeSetItem(STORAGE_KEYS.TOPIC_STATS, JSON.stringify(backupData.topicStats));
       }
       if (backupData.failedQuestions && Array.isArray(backupData.failedQuestions)) {
-        localStorage.setItem(STORAGE_KEYS.FAILED_QUESTIONS, JSON.stringify(backupData.failedQuestions));
+        this._safeSetItem(STORAGE_KEYS.FAILED_QUESTIONS, JSON.stringify(backupData.failedQuestions));
       }
       if (backupData.simulatorHistory && Array.isArray(backupData.simulatorHistory)) {
-        localStorage.setItem(STORAGE_KEYS.HISTORY, JSON.stringify(backupData.simulatorHistory));
+        this._safeSetItem(STORAGE_KEYS.HISTORY, JSON.stringify(backupData.simulatorHistory));
       }
       if (backupData.learnedFlashcards && Array.isArray(backupData.learnedFlashcards)) {
-        localStorage.setItem(STORAGE_KEYS.LEARNED_FLASHCARDS, JSON.stringify(backupData.learnedFlashcards));
+        this._safeSetItem(STORAGE_KEYS.LEARNED_FLASHCARDS, JSON.stringify(backupData.learnedFlashcards));
       }
       if (backupData.readTopics && Array.isArray(backupData.readTopics)) {
-        localStorage.setItem(STORAGE_KEYS.READ_TOPICS, JSON.stringify(backupData.readTopics));
+        this._safeSetItem(STORAGE_KEYS.READ_TOPICS, JSON.stringify(backupData.readTopics));
       }
       if (backupData.topicNotes && typeof backupData.topicNotes === "object") {
-        localStorage.setItem(STORAGE_KEYS.TOPIC_NOTES, JSON.stringify(backupData.topicNotes));
+        this._safeSetItem(STORAGE_KEYS.TOPIC_NOTES, JSON.stringify(backupData.topicNotes));
       }
       if (backupData.topicHighlights && typeof backupData.topicHighlights === "object") {
-        localStorage.setItem(STORAGE_KEYS.TOPIC_HIGHLIGHTS, JSON.stringify(backupData.topicHighlights));
+        this._safeSetItem(STORAGE_KEYS.TOPIC_HIGHLIGHTS, JSON.stringify(backupData.topicHighlights));
       }
       if (backupData.packScores && typeof backupData.packScores === "object") {
-        localStorage.setItem(STORAGE_KEYS.PACK_SCORES, JSON.stringify(backupData.packScores));
+        this._safeSetItem(STORAGE_KEYS.PACK_SCORES, JSON.stringify(backupData.packScores));
       }
       if (backupData.baremo && typeof backupData.baremo === "object") {
         this.saveBaremo(backupData.baremo);
       }
       if (backupData.survivalRecord && typeof backupData.survivalRecord === "object") {
-        localStorage.setItem(STORAGE_KEYS.SURVIVAL_RECORD, JSON.stringify(backupData.survivalRecord));
+        this._safeSetItem(STORAGE_KEYS.SURVIVAL_RECORD, JSON.stringify(backupData.survivalRecord));
       }
     } finally {
       this._suppressCloudTrigger = prevSuppress;

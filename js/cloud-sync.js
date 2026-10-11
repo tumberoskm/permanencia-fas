@@ -34,6 +34,12 @@ class CloudSyncManager {
     this.init();
   }
 
+  _safeSetLocal(key, val) {
+    try {
+      localStorage.setItem(key, val);
+    } catch (_e) {}
+  }
+
   loadConfig() {
     const defaults = {
       enabled: true,
@@ -66,7 +72,7 @@ class CloudSyncManager {
     } catch (e) {
       // ignore
     }
-    localStorage.setItem(CLOUD_CONFIG_KEY, JSON.stringify(defaults));
+    this._safeSetLocal(CLOUD_CONFIG_KEY, JSON.stringify(defaults));
     return defaults;
   }
 
@@ -80,7 +86,7 @@ class CloudSyncManager {
         this.config.cloudObjectId = "";
       }
     }
-    localStorage.setItem(CLOUD_CONFIG_KEY, JSON.stringify(this.config));
+    this._safeSetLocal(CLOUD_CONFIG_KEY, JSON.stringify(this.config));
     this.updateHeaderIndicator();
     return this.config;
   }
@@ -106,7 +112,7 @@ class CloudSyncManager {
 
   saveQueue(q) {
     this.queue = q;
-    localStorage.setItem(CLOUD_QUEUE_KEY, JSON.stringify(this.queue));
+    this._safeSetLocal(CLOUD_QUEUE_KEY, JSON.stringify(this.queue));
   }
 
   enqueueOfflineChange(reason = "estudio") {
@@ -435,29 +441,36 @@ class CloudSyncManager {
       // 3. Aplicar en local sin disparar bucle
       window.storageManager.importFullBackup(mergedBackup, { skipCloudTrigger: true });
 
-      // 4. Empaquetar sobre y subir a la Base de Datos en la Nube
-      const envelope = {
-        appName: "Permanencia FAS - Cloud Sync DB",
-        version: "10.0",
-        updatedAt: new Date().toISOString(),
-        deviceId: this.config.deviceId,
-        syncKey: this.config.syncKey || DEFAULT_SYNC_PIN,
-        payload: mergedBackup
-      };
+      const nowIso = new Date().toISOString();
+      const isPassiveStartup = (options.reason === "startup" || options.reason === "visibility") && pendingBefore === 0 && Boolean(cloudBackup);
 
-      const pushResult = await this._pushToActiveProvider(envelope);
+      let pushMessage = "Sincronizado con la Nube";
+      if (!isPassiveStartup) {
+        // 4. Empaquetar sobre y subir a la Base de Datos en la Nube
+        const envelope = {
+          appName: "Permanencia FAS - Cloud Sync DB",
+          version: "10.0",
+          updatedAt: nowIso,
+          deviceId: this.config.deviceId,
+          syncKey: this.config.syncKey || DEFAULT_SYNC_PIN,
+          payload: mergedBackup
+        };
 
-      // Si estamos en localhost, guardar también espejo automático en server.js (/api/cloud-sync)
-      if (this.config.provider !== "local_server" && typeof location !== "undefined" && (location.hostname === "localhost" || location.hostname === "127.0.0.1")) {
-        this._pushLocalServer(envelope).catch(() => {});
+        const pushResult = await this._pushToActiveProvider(envelope);
+        pushMessage = pushResult.message || pushMessage;
+
+        // Si estamos en localhost, guardar también espejo automático en server.js (/api/cloud-sync)
+        if (this.config.provider !== "local_server" && typeof location !== "undefined" && (location.hostname === "localhost" || location.hostname === "127.0.0.1")) {
+          this._pushLocalServer(envelope).catch(() => {});
+        }
       }
 
       this.clearQueue();
-      this.config.lastSyncAt = envelope.updatedAt;
-      localStorage.setItem(CLOUD_CONFIG_KEY, JSON.stringify(this.config));
+      this.config.lastSyncAt = nowIso;
+      this._safeSetLocal(CLOUD_CONFIG_KEY, JSON.stringify(this.config));
 
       this.status = "synced";
-      this.lastMessage = pushResult.message || "Sincronizado con la Nube";
+      this.lastMessage = pushMessage;
       this.updateHeaderIndicator();
       this._refreshUIViews();
 
@@ -502,7 +515,7 @@ class CloudSyncManager {
       window.storageManager.importFullBackup(merged, { skipCloudTrigger: true });
 
       this.config.lastSyncAt = remoteData.updatedAt || new Date().toISOString();
-      localStorage.setItem(CLOUD_CONFIG_KEY, JSON.stringify(this.config));
+      this._safeSetLocal(CLOUD_CONFIG_KEY, JSON.stringify(this.config));
       this.status = "synced";
       this.lastMessage = `Datos fusionados desde la Nube (${new Date(this.config.lastSyncAt).toLocaleTimeString()})`;
       this.updateHeaderIndicator();
@@ -564,7 +577,7 @@ class CloudSyncManager {
         const text = (await res.text()).replace(/^"+|"+$/g, "").trim();
         if (text && text !== "null" && text.length > 10) {
           this.config.cloudObjectId = text;
-          localStorage.setItem(CLOUD_CONFIG_KEY, JSON.stringify(this.config));
+          this._safeSetLocal(CLOUD_CONFIG_KEY, JSON.stringify(this.config));
           return text;
         }
       }
@@ -635,24 +648,23 @@ class CloudSyncManager {
     const topic = this._getNtfyCloudTopic(this.config.syncKey);
     const bodyStr = JSON.stringify(envelope);
 
-    // 1. Subir snapshot completo (sin límite de tamaño: Post-its, subrayados, Baremo, 16 simulacros, fallos)
-    const headers = {};
-    if (bodyStr.length > 3500) {
-      // Para backups grandes (>3.5 KB hasta 15 MB), ntfy.sh lo almacena automáticamente como archivo JSON adjunto
-      headers["Filename"] = "pfas-cloud-backup.json";
+    // 1. Subir snapshot completo por Simple CORS Request (?filename=... evita preflight OPTIONS en iOS Safari)
+    let ntfyOk = false;
+    try {
+      const postUrl = bodyStr.length > 3500
+        ? `https://ntfy.sh/${topic}?filename=pfas-cloud-backup.json`
+        : `https://ntfy.sh/${topic}`;
+      const ntfyRes = await fetch(postUrl, {
+        method: "POST",
+        body: bodyStr
+      });
+      ntfyOk = ntfyRes.ok;
+    } catch (_e) {
+      ntfyOk = false;
     }
 
-    const ntfyRes = await fetch(`https://ntfy.sh/${topic}`, {
-      method: "POST",
-      headers,
-      body: bodyStr
-    });
-
-    if (!ntfyRes.ok) {
-      throw new Error(`Error al sincronizar con PFAS Cloud DB (${ntfyRes.status})`);
-    }
-
-    // 2. Actualizar en segundo plano el índice compacto permanente (< 600 bytes para evitar límite de columna SQL)
+    // 2. Actualizar también el índice compacto permanente (< 600 bytes) como respaldo
+    let restOk = false;
     try {
       const objectId = await this._resolveCloudObjectIdForPin(this.config.syncKey);
       if (objectId) {
@@ -669,17 +681,22 @@ class CloudSyncManager {
             readTopics: (envelope.payload?.readTopics || []).slice(0, 21)
           }
         };
-        fetch(`https://api.restful-api.dev/objects/${objectId}`, {
+        const restRes = await fetch(`https://api.restful-api.dev/objects/${objectId}`, {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             name: `PFAS-CLOUD-DB-${this.config.syncKey || DEFAULT_SYNC_PIN}`,
             data: compactEnvelope
           })
-        }).catch(() => {});
+        });
+        restOk = restRes.ok;
       }
     } catch (e) {
-      // El canal principal ntfy.sh ya guardó el backup completo
+      restOk = false;
+    }
+
+    if (!ntfyOk && !restOk) {
+      throw new Error("Error temporal al sincronizar con PFAS Cloud DB");
     }
 
     return {

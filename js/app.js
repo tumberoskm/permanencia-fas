@@ -4319,7 +4319,7 @@ Devuelve ÚNICAMENTE el bloque JSON válido.`;
               <span>🪖</span><span>1️⃣ ¿Cómo funciona cuando estás de Maniobras?</span>
             </h3>
             <ul class="space-y-1.5 text-slate-300 leading-relaxed text-[11px]">
-              <li>• <strong>100% Offline en el campo:</strong> Gracias al motor PWA (<code class="text-amber-300">sw.js v10</code>), los 21/28 temas, las 1.000 preguntas y los 16 simulacros viven dentro de tu móvil aunque estés en modo avión o en mitad del campo de maniobras.</li>
+              <li>• <strong>100% Offline en el campo:</strong> Gracias al motor PWA (<code class="text-amber-300">sw.js v14.2</code>), los 21/28 temas, las 1.400 preguntas y los 20 simulacros viven dentro de tu móvil aunque estés en modo avión o en mitad del campo de maniobras.</li>
               <li>• <strong>Cola Persistente Automática:</strong> Cada pregunta que contestes, frase que subrayes o Post-it que pegues sin cobertura se guarda en la <strong>Cola de Maniobras</strong>.</li>
               <li>• <strong>Reconexión Inteligente (Smart Merge):</strong> En el instante en que cojas cobertura, la app compara tus datos del móvil con los del PC y <strong>los fusiona sin borrar nada</strong>.</li>
             </ul>
